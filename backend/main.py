@@ -90,7 +90,7 @@ DEMO_DISTRICTS = {
 
 # Database connection helper
 def get_db_connection():
-    db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@localhost:5432/maternal_twin_db')
+    db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@localhost:5433/maternal_twin_db')
     return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
 
 # =========================================================
@@ -163,7 +163,7 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
                    avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
-                   lat, lng, osm_health_facilities_count, wealth_quintiles_mmr
+                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, 50 as osm_health_facilities_count, wealth_quintiles_mmr
             FROM health_districts WHERE id = %s
         """, (district_id,))
         row = cur.fetchone()
@@ -215,7 +215,7 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
                    avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
-                   lat, lng, osm_health_facilities_count, wealth_quintiles_mmr
+                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, 50 as osm_health_facilities_count, wealth_quintiles_mmr
             FROM health_districts ORDER BY country, name
         """)
         rows = cur.fetchall()

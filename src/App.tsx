@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { DistrictData, SimulationResult, ValidationMetrics, UserProfile, JWTSession } from './types';
 import { SUB_SAHARAN_DISTRICTS } from './data/districts';
 import { SystemDynamicsEngine, SCENARIO_DEFINITIONS } from './services/systemDynamics';
@@ -39,6 +39,19 @@ function AppContent() {
   // RBAC and JWT Authentication state
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => AuthService.getCurrentProfile());
   const [currentSession, setCurrentSession] = useState<JWTSession>(() => AuthService.getCurrentSession());
+
+  // Load live districts from Python backend
+  useEffect(() => {
+    import('./services/api').then(ApiClient => {
+      ApiClient.fetchDistricts().then(data => {
+        if (data && data.length > 0) {
+          const fullData = data as DistrictData[];
+          setDistrictsList(fullData);
+          setSelectedDistrict(prev => fullData.find(d => d.id === prev.id) || fullData[0]);
+        }
+      }).catch(e => console.warn("Using fallback districts:", e));
+    });
+  }, []);
 
   // Refresh API data when district changes
   useEffect(() => {

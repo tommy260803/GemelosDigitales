@@ -112,6 +112,65 @@ st.sidebar.markdown("<h1 style='text-align: center;'>🏥 Digital Twin</h1>", un
 st.sidebar.markdown("<p style='text-align: center; color: gray;'>System Dynamics Engine v2.4</p>", unsafe_allow_html=True)
 st.sidebar.divider()
 
+# =========================================================
+# DATA INGESTION (ETL) PIPELINE
+# =========================================================
+st.sidebar.subheader("📥 Data Ingestion & Calibration")
+uploaded_file = st.sidebar.file_uploader("Upload DHS Microdata (.csv)", type=["csv"])
+
+if uploaded_file is not None:
+    import pandas as pd
+    from services.etl_processor import process_dhs_microdata
+    
+    try:
+        with st.spinner("Processing microdata..."):
+            raw_df = pd.read_csv(uploaded_file)
+            empirical_params = process_dhs_microdata(raw_df)
+            
+            # Calibrate the SD Engine by overwriting base district parameters in RAM
+            for d_id, ep in empirical_params.items():
+                if d_id in DEMO_DISTRICTS:
+                    dist = DEMO_DISTRICTS[d_id]
+                    dist.baseline_mmr = ep['baseline_mmr']
+                    dist.anc1_coverage = ep['anc1_coverage']
+                    dist.anc4_coverage = ep['anc4_coverage']
+                    dist.institutional_delivery_rate = ep['institutional_delivery_rate']
+            
+            # Persist to PostgreSQL so React can consume it
+            import psycopg2
+            import os
+            try:
+                db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@localhost:5433/maternal_twin_db')
+                conn = psycopg2.connect(db_url)
+                cur = conn.cursor()
+                for d_id, ep in empirical_params.items():
+                    cur.execute("""
+                        UPDATE health_districts 
+                        SET baseline_mmr = %s,
+                            anc1_coverage = %s,
+                            anc4_coverage = %s,
+                            institutional_delivery_rate = %s
+                        WHERE id = %s
+                    """, (ep['baseline_mmr'], ep['anc1_coverage'], ep['anc4_coverage'], ep['institutional_delivery_rate'], d_id))
+                conn.commit()
+                cur.close()
+                conn.close()
+                db_success = True
+            except Exception as db_err:
+                db_success = False
+                db_error_msg = str(db_err)
+            
+        st.sidebar.success(f"✅ Engine calibrated with {len(raw_df)} empirical records!")
+        if db_success:
+            st.sidebar.success("💾 Data synced to PostgreSQL (React Ready)!")
+        else:
+            st.sidebar.warning(f"⚠️ Saved in RAM only. DB sync failed: {db_error_msg}")
+            
+    except Exception as e:
+        st.sidebar.error(f"ETL Error: {str(e)}")
+
+st.sidebar.divider()
+
 # District selection
 district_options = {f"{d.name} ({d.country})": d for d in DEMO_DISTRICTS.values()}
 selected_district_name = st.sidebar.selectbox(
