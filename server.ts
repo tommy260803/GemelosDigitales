@@ -5,8 +5,6 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { SUB_SAHARAN_DISTRICTS } from './src/data/districts.ts';
-import { SystemDynamicsEngine } from './src/services/systemDynamics.ts';
-import { StatisticalValidationService } from './src/services/statistics.ts';
 import { TerrainService } from './src/services/terrainService.ts';
 
 dotenv.config();
@@ -34,7 +32,9 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-  // --- API ROUTES ---
+  // =========================================================
+  // EXPRESS-ONLY ROUTES (FastAPI does NOT serve these)
+  // =========================================================
 
   // Health Check
   app.get('/api/health', (req, res) => {
@@ -46,18 +46,6 @@ async function startServer() {
       districtsLoaded: SUB_SAHARAN_DISTRICTS.length,
       countries: ['Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Ethiopia'],
     });
-  });
-
-  // Get Districts
-  app.get('/api/districts', (req, res) => {
-    const { country } = req.query;
-    if (country && typeof country === 'string') {
-      const filtered = SUB_SAHARAN_DISTRICTS.filter(
-        (d) => d.country.toLowerCase() === country.toLowerCase()
-      );
-      return res.json(filtered);
-    }
-    res.json(SUB_SAHARAN_DISTRICTS);
   });
 
   // Geospatial 3D: DEM Grid & Topographical Accessibility KPIs
@@ -97,203 +85,6 @@ async function startServer() {
     } catch (error: any) {
       console.error('Geospatial Referral Route error:', error);
       res.status(500).json({ error: error?.message || 'Failed to calculate 3D referral route' });
-    }
-  });
-
-  // Run Baseline Simulation
-  app.post('/api/simulation/run', (req, res) => {
-    try {
-      const { districtId, months, customParams } = req.body;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
-      const result = SystemDynamicsEngine.simulate(district, 'baseline', customParams, months || 36);
-      res.json(result);
-    } catch (error: any) {
-      console.error('Simulation error:', error);
-      res.status(500).json({ error: error?.message || 'Simulation execution failed' });
-    }
-  });
-
-  // Run Scenario (a, b, c, d)
-  app.post('/api/simulation/scenario', (req, res) => {
-    try {
-      const { districtId, scenarioId, months, customParams } = req.body;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
-      const result = SystemDynamicsEngine.simulate(district, scenarioId || 'scenario_d', customParams, months || 36);
-      res.json(result);
-    } catch (error: any) {
-      console.error('Scenario error:', error);
-      res.status(500).json({ error: error?.message || 'Scenario execution failed' });
-    }
-  });
-
-  // Digital Twin Scenario Projection Endpoint (Protocol Ficha 10)
-  app.get('/api/simulation/projection', (req, res) => {
-    try {
-      const rawDistrictId = (req.query.district_id || req.query.districtId || 'ke-garissa') as string;
-      const rawScenario = (req.query.scenario_code || req.query.scenario || req.query.scenarioId || req.query.scenario_id || 'D') as string;
-      const projectionMonths = parseInt((req.query.months || req.query.projection_months || '36') as string, 10) || 36;
-
-      // Find District
-      const district = SUB_SAHARAN_DISTRICTS.find(
-        (d) => d.id.toLowerCase() === rawDistrictId.toLowerCase() || d.name.toLowerCase().includes(rawDistrictId.toLowerCase())
-      ) || SUB_SAHARAN_DISTRICTS[0];
-
-      // Normalize Scenario
-      const cleanScen = rawScenario.toString().trim().toLowerCase();
-      let normalizedScenarioId: 'baseline' | 'scenario_a' | 'scenario_b' | 'scenario_c' | 'scenario_d' = 'scenario_d';
-      let scenarioLetter = 'D';
-
-      if (cleanScen === 'base' || cleanScen === 'baseline' || cleanScen === '0') {
-        normalizedScenarioId = 'baseline';
-        scenarioLetter = 'Base';
-      } else if (cleanScen === 'a' || cleanScen === 'scenario_a' || cleanScen === '1') {
-        normalizedScenarioId = 'scenario_a';
-        scenarioLetter = 'A';
-      } else if (cleanScen === 'b' || cleanScen === 'scenario_b' || cleanScen === '2') {
-        normalizedScenarioId = 'scenario_b';
-        scenarioLetter = 'B';
-      } else if (cleanScen === 'c' || cleanScen === 'scenario_c' || cleanScen === '3') {
-        normalizedScenarioId = 'scenario_c';
-        scenarioLetter = 'C';
-      } else {
-        normalizedScenarioId = 'scenario_d';
-        scenarioLetter = 'D';
-      }
-
-      // Execute System Dynamics Simulation Engine
-      const simResult = SystemDynamicsEngine.simulate(district, normalizedScenarioId, {}, projectionMonths);
-      const baseMMR = district.baselineMMR;
-      const projectedMMR = simResult.summary.mmrFinal;
-      const absDiff = Math.max(0, baseMMR - projectedMMR);
-      const reductionPercentage = normalizedScenarioId === 'baseline' 
-        ? 0 
-        : Math.max(0, Math.round(((baseMMR - projectedMMR) / baseMMR) * 1000) / 10);
-      
-      const livesSaved36Months = normalizedScenarioId === 'baseline' 
-        ? 0 
-        : simResult.summary.livesSaved;
-      
-      const costPerLifeSaved = normalizedScenarioId === 'baseline'
-        ? 0
-        : simResult.summary.costPerLifeSavedUSD;
-
-      const isValidReduction = (normalizedScenarioId === 'baseline') || (projectedMMR < baseMMR);
-      const validationAlert = !isValidReduction
-        ? 'El escenario no produce reducción de mortalidad. Revisar parámetros del motor SD.'
-        : null;
-
-      const responsePayload = {
-        district_id: district.id,
-        district_name: district.name,
-        country: district.country,
-        scenario: scenarioLetter,
-        scenario_id: normalizedScenarioId,
-        scenario_name: simResult.scenarioName,
-        base_mmr: baseMMR,
-        projected_mmr: projectedMMR,
-        absolute_difference: absDiff,
-        reduction_percentage: reductionPercentage,
-        lives_saved_36_months: livesSaved36Months,
-        cost_per_life_saved: costPerLifeSaved,
-        total_intervention_cost: simResult.summary.totalCostUSD,
-        currency: 'USD',
-        projection_months: projectionMonths,
-        births_per_year: district.annualBirths,
-        population: district.population,
-        is_valid_reduction: isValidReduction,
-        validation_alert: validationAlert,
-        hypotheses_validated: {
-          h1_reduction_ge_15: reductionPercentage >= 15.0,
-          h2_cost_effective_who: costPerLifeSaved > 0 && costPerLifeSaved < 1500,
-        },
-      };
-
-      res.json(responsePayload);
-    } catch (error: any) {
-      console.error('Projection API error:', error);
-      res.status(500).json({ error: error?.message || 'Failed to compute scenario projection' });
-    }
-  });
-
-  // Calibrate Model Parameters
-  app.post('/api/simulation/calibrate', (req, res) => {
-    try {
-      const { districtId, empiricalMMRSeries } = req.body;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
-      
-      // Optimization simulation comparing parameter space
-      const baselineSim = SystemDynamicsEngine.simulate(district, 'baseline');
-      const calibratedParams = {
-        avgDistanceKm: district.avgDistanceToEmONC,
-        skilledStaffRatio: district.skilledStaffRatio * 1.05,
-        bloodAvailabilityRate: district.bloodBankAvailability / 100,
-        oxytocinMisoprostolStockRate: district.essentialDrugsAvailability / 100,
-        maternalEducationRate: district.femaleSecondaryEducation / 100,
-        communityTrustBaseline: 0.74,
-      };
-
-      res.json({
-        districtId: district.id,
-        districtName: district.name,
-        calibrationStatus: 'CONVERGED',
-        iterations: 420,
-        lossRMSE: 14.8,
-        rSquared: 0.942,
-        calibratedParameters: calibratedParams,
-        baselineMMR: district.baselineMMR,
-        simulatedMMR: baselineSim.summary.mmrFinal,
-      });
-    } catch (error: any) {
-      res.status(500).json({ error: error?.message || 'Calibration failed' });
-    }
-  });
-
-  // Statistical Validation: Kolmogorov-Smirnov
-  app.post('/api/validation/ks', (req, res) => {
-    try {
-      const { districtId } = req.body;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
-      const ksResult = StatisticalValidationService.runKolmogorovSmirnovTest(district);
-      res.json(ksResult);
-    } catch (error: any) {
-      res.status(500).json({ error: error?.message || 'KS test failed' });
-    }
-  });
-
-  // Statistical Validation: Sobol Sensitivity
-  app.post('/api/validation/sobol', (req, res) => {
-    try {
-      const { districtId } = req.body;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
-      const sobolResult = StatisticalValidationService.runSobolSensitivity(district);
-      res.json(sobolResult);
-    } catch (error: any) {
-      res.status(500).json({ error: error?.message || 'Sobol analysis failed' });
-    }
-  });
-
-  // Statistical Validation: Bootstrap 95% CI
-  app.post('/api/validation/bootstrap', (req, res) => {
-    try {
-      const { districtId, scenarioId } = req.body;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
-      const bootResult = StatisticalValidationService.runBootstrap(district, scenarioId || 'scenario_d');
-      res.json(bootResult);
-    } catch (error: any) {
-      res.status(500).json({ error: error?.message || 'Bootstrap test failed' });
-    }
-  });
-
-  // Statistical Validation: External Holdout & Countdown 2030
-  app.get('/api/validation/external', (req, res) => {
-    try {
-      const { districtId } = req.query;
-      const extResult = StatisticalValidationService.runExternalValidation(
-        typeof districtId === 'string' ? districtId : 'ug-moroto'
-      );
-      res.json(extResult);
-    } catch (error: any) {
-      res.status(500).json({ error: error?.message || 'External validation failed' });
     }
   });
 
@@ -431,10 +222,22 @@ Provide concise, highly professional responses with specific data points, policy
     return res.json({ analysis: fallbackAudit });
   });
 
-  // --- PROXY TO FASTAPI BACKEND ---
+  // =========================================================
+  // PROXY TO FASTAPI BACKEND
+  // Catches all /api/* routes NOT handled by Express above:
+  //   /api/districts, /api/simulation/*, /api/validation/*
+  // =========================================================
   const apiProxyTarget = process.env.API_URL || 'http://localhost:8000';
-  
-  // --- VITE MIDDLEWARE / STATIC ASSETS ---
+  const apiProxy = createProxyMiddleware({
+    target: apiProxyTarget,
+    changeOrigin: true,
+    pathRewrite: { '^/api': '' },
+  } as any);
+  app.use('/api', apiProxy);
+
+  // =========================================================
+  // VITE MIDDLEWARE (dev) OR STATIC FILES (production)
+  // =========================================================
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -442,14 +245,6 @@ Provide concise, highly professional responses with specific data points, policy
     });
     app.use(vite.middlewares);
   } else {
-    // In production, proxy /api to FastAPI first
-    const apiProxy = createProxyMiddleware({
-      target: apiProxyTarget,
-      changeOrigin: true,
-      pathRewrite: { '^/api': '' },
-    } as any);
-    app.use('/api', apiProxy);
-    
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {

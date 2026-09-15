@@ -19,6 +19,7 @@ import {
   FileCode2,
   Sun,
   Moon,
+  RefreshCw,
   Menu,
   X,
   ChevronDown
@@ -42,6 +43,8 @@ interface NavbarProps {
   onExportPDF: () => void;
   onExportExcel: () => void;
   onExportWord: () => void;
+  onRefreshDistricts?: () => void;
+  isRefreshing?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -57,6 +60,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onExportPDF,
   onExportExcel,
   onExportWord,
+  onRefreshDistricts,
+  isRefreshing = false,
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -275,7 +280,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* AI Advisor Button */}
+                        {/* Refresh Districts Button */}
+            {onRefreshDistricts && (
+              <button
+                onClick={onRefreshDistricts}
+                disabled={isRefreshing}
+                title="Actualizar datos desde FastAPI"
+                className={theme === 'light' ? 'flex items-center justify-center p-1.5 rounded border transition shadow-inner cursor-pointer shrink-0 bg-slate-100 border-slate-300 hover:border-slate-400 text-slate-600 hover:text-sky-600' : 'flex items-center justify-center p-1.5 rounded border transition shadow-inner cursor-pointer shrink-0 bg-[#0c0e12] border-slate-700 hover:border-slate-500 text-slate-400 hover:text-sky-400'}
+                aria-label="Actualizar datos"
+              >
+                {isRefreshing ? <div className="w-3.5 h-3.5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              </button>
+            )}
+{/* AI Advisor Button */}
             <button
               id="btn-open-copilot"
               onClick={onOpenCopilot}

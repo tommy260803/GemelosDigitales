@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { DistrictData, SimulationResult, ValidationMetrics, UserProfile, JWTSession } from './types';
 import { SUB_SAHARAN_DISTRICTS } from './data/districts';
 import { SystemDynamicsEngine, SCENARIO_DEFINITIONS } from './services/systemDynamics';
@@ -39,6 +39,26 @@ function AppContent() {
   // RBAC and JWT Authentication state
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => AuthService.getCurrentProfile());
   const [currentSession, setCurrentSession] = useState<JWTSession>(() => AuthService.getCurrentSession());
+  const [isRefreshingDistricts, setIsRefreshingDistricts] = useState(false);
+
+
+  // Refresh districts from FastAPI
+  const handleRefreshDistricts = async () => {
+    setIsRefreshingDistricts(true);
+    try {
+      const ApiClient = await import('./services/api');
+      const data = await ApiClient.fetchDistricts();
+      if (data && data.length > 0) {
+        const fullData = data as DistrictData[];
+        setDistrictsList(fullData);
+        setSelectedDistrict(prev => fullData.find(d => d.id === prev.id) || fullData[0]);
+      }
+    } catch (e) {
+      console.warn("Error refreshing districts:", e);
+    } finally {
+      setIsRefreshingDistricts(false);
+    }
+  };
 
   // Load live districts from Python backend
   useEffect(() => {
@@ -88,8 +108,8 @@ function AppContent() {
       bootstrap: StatisticalValidationService.runBootstrap(selectedDistrict, 'scenario_d'),
       externalValidation: StatisticalValidationService.runExternalValidation(selectedDistrict.id),
       hypothesisTesting: {
-        nullHypothesisH0: 'The digital twin does not identify systemic bottlenecks explaining â‰¥20% of maternal mortality variance.',
-        altHypothesisH1: 'The digital twin identifies 2â€“3 critical bottlenecks whose targeted simulation reduces maternal mortality by â‰¥15%.',
+        nullHypothesisH0: 'The digital twin does not identify systemic bottlenecks explaining Ã¢â€°Â¥20% of maternal mortality variance.',
+        altHypothesisH1: 'The digital twin identifies 2Ã¢â‚¬â€œ3 critical bottlenecks whose targeted simulation reduces maternal mortality by Ã¢â€°Â¥15%.',
         top3VarianceExplainedPercent: sobolResult.firstOrderIndices.slice(0, 3).reduce((a, b) => a + b, 0) * 100,
         isH0Rejected: observedReduction >= 15,
         isH1Confirmed: observedReduction >= 15,
@@ -163,6 +183,8 @@ function AppContent() {
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
           onExportWord={handleExportWord}
+          onRefreshDistricts={handleRefreshDistricts}
+          isRefreshing={isRefreshingDistricts}
         />
 
         {/* Main View Container */}
@@ -240,7 +262,7 @@ function AppContent() {
           </div>
           <div className="flex items-center space-x-3 text-[10px] text-slate-500">
             <span>{t.footerDistricts} ({districtsList.length} Distritos activos)</span>
-            <span className="text-slate-700">â€¢</span>
+            <span className="text-slate-700">Ã¢â‚¬Â¢</span>
             <span>{t.footerTelemetry}</span>
           </div>
         </div>

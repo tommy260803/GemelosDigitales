@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local DHS source datasets are too large for GitHub and may contain restricted data.
+data/dhs/*.dta
+data/dhs/*.DTA
+__pycache__/
+*.py[cod]

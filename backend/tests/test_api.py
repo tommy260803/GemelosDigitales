@@ -27,18 +27,18 @@ class TestHealthEndpoints:
 class TestDistrictsEndpoint:
     """Tests for districts endpoints."""
 
-    def test_districts_returns_4_demo(self, client):
+    def test_districts_returns_all(self, client):
         response = client.get("/districts")
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 4
+        assert len(data) == 25
 
     def test_districts_filter_by_country(self, client):
         response = client.get("/districts?country=Kenya")
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 1
-        assert data[0]["country"] == "Kenya"
+        assert len(data) == 5
+        assert all(d["country"] == "Kenya" for d in data)
 
     def test_district_by_id(self, client):
         response = client.get("/districts/ke-garissa")
@@ -47,7 +47,9 @@ class TestDistrictsEndpoint:
         assert data["id"] == "ke-garissa"
         assert data["name"] == "Garissa District"
         assert data["country"] == "Kenya"
-        assert "wealth_quintile_mmr" in data
+        assert "wealthQuintileMMR" in data
+        assert "baselineMMR" in data
+        assert "anc4Coverage" in data
 
     def test_district_404(self, client):
         response = client.get("/districts/invalid-id")

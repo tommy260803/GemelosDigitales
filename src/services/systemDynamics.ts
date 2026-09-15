@@ -107,7 +107,7 @@ export class SystemDynamicsEngine {
     const scenarioDef = SCENARIO_DEFINITIONS.find((s) => s.id === scenarioId) || SCENARIO_DEFINITIONS[0];
     
     // Merge parameters with scenario overrides and any user customizations
-    const params: SDParameters = {
+    const targetParams: SDParameters = {
       ...baseParams,
       ...scenarioDef.parameterOverrides,
       ...(customParams || {}),
@@ -115,23 +115,34 @@ export class SystemDynamicsEngine {
 
     // Ensure interventions only IMPROVE or retain capacity (never degrade already high-performing districts)
     if (scenarioId === 'scenario_a' || scenarioId === 'scenario_d') {
-      params.travelTimeHours = Math.min(baseParams.travelTimeHours * 0.28, customParams?.travelTimeHours ?? Math.min(0.9, baseParams.travelTimeHours * 0.5));
-      params.roadQualityIndex = Math.max(0.85, baseParams.roadQualityIndex);
-      params.transportCostUSD = Math.min(0.5, baseParams.transportCostUSD * 0.2);
+      targetParams.travelTimeHours = Math.min(baseParams.travelTimeHours * 0.28, customParams?.travelTimeHours ?? Math.min(0.9, baseParams.travelTimeHours * 0.5));
+      targetParams.roadQualityIndex = Math.max(0.85, baseParams.roadQualityIndex);
+      targetParams.transportCostUSD = Math.min(0.5, baseParams.transportCostUSD * 0.2);
     }
     if (scenarioId === 'scenario_b' || scenarioId === 'scenario_d') {
-      params.facilityDeliveryFeeUSD = 0.0;
-      params.insuranceCoverageRate = Math.max(0.95, baseParams.insuranceCoverageRate);
+      targetParams.facilityDeliveryFeeUSD = 0.0;
+      targetParams.insuranceCoverageRate = Math.max(0.95, baseParams.insuranceCoverageRate);
     }
     if (scenarioId === 'scenario_c' || scenarioId === 'scenario_d') {
-      params.tbaInfluenceFactor = Math.min(0.12, baseParams.tbaInfluenceFactor * 0.25);
-      params.communityTrustBaseline = Math.max(0.90, baseParams.communityTrustBaseline);
+      targetParams.tbaInfluenceFactor = Math.min(0.12, baseParams.tbaInfluenceFactor * 0.25);
+      targetParams.communityTrustBaseline = Math.max(0.90, baseParams.communityTrustBaseline);
     }
     if (scenarioId === 'scenario_d') {
-      params.bloodAvailabilityRate = Math.max(0.92, baseParams.bloodAvailabilityRate);
-      params.oxytocinMisoprostolStockRate = Math.max(0.95, baseParams.oxytocinMisoprostolStockRate);
-      params.skilledStaffRatio = Math.max(baseParams.skilledStaffRatio, 2.2);
+      targetParams.bloodAvailabilityRate = Math.max(0.92, baseParams.bloodAvailabilityRate);
+      targetParams.oxytocinMisoprostolStockRate = Math.max(0.95, baseParams.oxytocinMisoprostolStockRate);
+      targetParams.skilledStaffRatio = Math.max(baseParams.skilledStaffRatio, 2.2);
     }
+
+    // Phased rollout: smooth interpolation from baseline → scenario over RAMP_MONTHS
+    // Uses smoothstep curve: slow start (pilot), rapid middle (scale-up), slow finish (maturity)
+    const RAMP_MONTHS = scenarioId === 'baseline' ? 0 : 36;
+    const interpolateParam = (currentMonth: number, baseVal: number, targetVal: number): number => {
+      if (RAMP_MONTHS <= 0 || currentMonth <= 0) return targetVal;
+      if (currentMonth >= RAMP_MONTHS) return targetVal;
+      const t = currentMonth / RAMP_MONTHS;
+      const scale = t * t * (3 - 2 * t); // smoothstep: 0→1 with zero derivatives at endpoints
+      return baseVal + (targetVal - baseVal) * scale;
+    };
 
     const monthlyBirthsTarget = district.annualBirths / 12;
     const monthlyPregnancies = monthlyBirthsTarget * 1.05; // accounting for early pregnancy loss / fetal wastage
@@ -174,7 +185,7 @@ export class SystemDynamicsEngine {
     const monthlySnapshots: StockState[] = [];
 
     // System Feedback Variables
-    let systemTrust = params.communityTrustBaseline;
+    let systemTrust = baseParams.communityTrustBaseline;
     let rollingObservedMMR = district.baselineMMR;
 
     let cumulativeBirths = 0;
@@ -185,6 +196,28 @@ export class SystemDynamicsEngine {
 
     for (let step = 0; step <= totalSteps; step++) {
       const currentMonth = Math.floor(step * dt);
+
+      // --- 0. PHASED ROLLOUT: interpolate params from baseline → scenario over time ---
+      const params: SDParameters = {
+        avgDistanceKm: baseParams.avgDistanceKm,
+        travelTimeHours: interpolateParam(currentMonth, baseParams.travelTimeHours, targetParams.travelTimeHours),
+        roadQualityIndex: interpolateParam(currentMonth, baseParams.roadQualityIndex, targetParams.roadQualityIndex),
+        facilityDeliveryFeeUSD: interpolateParam(currentMonth, baseParams.facilityDeliveryFeeUSD, targetParams.facilityDeliveryFeeUSD),
+        transportCostUSD: interpolateParam(currentMonth, baseParams.transportCostUSD, targetParams.transportCostUSD),
+        insuranceCoverageRate: interpolateParam(currentMonth, baseParams.insuranceCoverageRate, targetParams.insuranceCoverageRate),
+        skilledStaffRatio: interpolateParam(currentMonth, baseParams.skilledStaffRatio, targetParams.skilledStaffRatio),
+        bloodAvailabilityRate: interpolateParam(currentMonth, baseParams.bloodAvailabilityRate, targetParams.bloodAvailabilityRate),
+        oxytocinMisoprostolStockRate: interpolateParam(currentMonth, baseParams.oxytocinMisoprostolStockRate, targetParams.oxytocinMisoprostolStockRate),
+        bedCapacityRatio: baseParams.bedCapacityRatio,
+        maternalEducationRate: baseParams.maternalEducationRate,
+        tbaInfluenceFactor: interpolateParam(currentMonth, baseParams.tbaInfluenceFactor, targetParams.tbaInfluenceFactor),
+        communityTrustBaseline: interpolateParam(currentMonth, baseParams.communityTrustBaseline, targetParams.communityTrustBaseline),
+        baselineComplicationRate: baseParams.baselineComplicationRate,
+        severePPHFraction: baseParams.severePPHFraction,
+        preEclampsiaFraction: baseParams.preEclampsiaFraction,
+        sepsisFraction: baseParams.sepsisFraction,
+        obstructedLaborFraction: baseParams.obstructedLaborFraction,
+      };
 
       // --- 1. DYNAMIC FEEDBACK LOOPS ---
       // R1: Trust Feedback Loop
@@ -447,7 +480,7 @@ export class SystemDynamicsEngine {
       country: district.country,
       scenarioId,
       scenarioName: scenarioDef.name,
-      parameters: params,
+      parameters: targetParams,
       trajectories: monthlySnapshots,
       summary: {
         totalBirths: Math.round(cumulativeBirths),

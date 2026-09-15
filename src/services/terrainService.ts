@@ -116,9 +116,47 @@ export class TerrainService {
   }
 
   /**
+   * Bilinear interpolation of DEM elevation at arbitrary (lat, lng).
+   * Maps geographic coordinates to grid cell and interpolates between 4 neighbors.
+   * Used by routes and facilities to stay anchored to terrain surface.
+   */
+  public static sampleElevationAt(
+    lat: number,
+    lng: number,
+    demGrid: DEMTerrainGrid
+  ): number {
+    const { bounds, gridSize, elevations } = demGrid;
+
+    // Map lat/lng to grid fractional coordinates
+    const u = ((lng - bounds.minLng) / (bounds.maxLng - bounds.minLng)) * (gridSize - 1);
+    const v = ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * (gridSize - 1);
+
+    // Clamp to grid bounds (leave 1 cell margin for interpolation)
+    const c = Math.max(0, Math.min(gridSize - 2, Math.floor(u)));
+    const r = Math.max(0, Math.min(gridSize - 2, Math.floor(v)));
+
+    // Fractional parts for interpolation weights
+    const fx = u - c;
+    const fy = v - r;
+
+    // Bilinear interpolation between 4 neighboring cells
+    const e00 = elevations[r][c];
+    const e10 = elevations[r][c + 1];
+    const e01 = elevations[r + 1][c];
+    const e11 = elevations[r + 1][c + 1];
+
+    return Math.round(
+      e00 * (1 - fx) * (1 - fy) +
+      e10 * fx * (1 - fy) +
+      e01 * (1 - fx) * fy +
+      e11 * fx * fy
+    );
+  }
+
+  /**
    * Returns geocoded OpenStreetMap / Ministry of Health referral facilities for the district
    */
-  public static getHealthFacilities(district: DistrictData): HealthFacilityPoint[] {
+  public static getHealthFacilities(district: DistrictData, demGrid?: DEMTerrainGrid): HealthFacilityPoint[] {
     const topo = this.getDistrictTopographicalProfile(district);
     const facilities: HealthFacilityPoint[] = [];
 
@@ -130,7 +168,9 @@ export class TerrainService {
       facilityType: 'CEmONC_Hospital',
       lat: district.lat + 0.02,
       lng: district.lng - 0.015,
-      altitudeMeters: Math.round(topo.baseAltitude + 35),
+      altitudeMeters: demGrid
+        ? this.sampleElevationAt(district.lat + 0.02, district.lng - 0.015, demGrid)
+        : Math.round(topo.baseAltitude + 35),
       beds: Math.max(120, district.osmHealthFacilitiesCount * 4),
       cSectionCapable: true,
       bloodBankReady: district.bloodBankAvailability >= 50,
@@ -147,7 +187,9 @@ export class TerrainService {
       facilityType: district.bloodBankAvailability >= 65 ? 'CEmONC_Hospital' : 'BEmONC_HealthCenter',
       lat: district.lat + 0.12,
       lng: district.lng + 0.08,
-      altitudeMeters: Math.round(topo.baseAltitude + 110),
+      altitudeMeters: demGrid
+        ? this.sampleElevationAt(district.lat + 0.12, district.lng + 0.08, demGrid)
+        : Math.round(topo.baseAltitude + 110),
       beds: 45,
       cSectionCapable: district.skilledStaffRatio >= 1.5,
       bloodBankReady: district.bloodBankAvailability >= 70,
@@ -164,7 +206,9 @@ export class TerrainService {
       facilityType: 'BEmONC_HealthCenter',
       lat: district.lat - 0.11,
       lng: district.lng + 0.13,
-      altitudeMeters: Math.round(topo.baseAltitude - 65),
+      altitudeMeters: demGrid
+        ? this.sampleElevationAt(district.lat - 0.11, district.lng + 0.13, demGrid)
+        : Math.round(topo.baseAltitude - 65),
       beds: 24,
       cSectionCapable: false,
       bloodBankReady: false,
@@ -181,7 +225,9 @@ export class TerrainService {
       facilityType: 'Dispensary_Clinic',
       lat: district.lat - 0.14,
       lng: district.lng - 0.12,
-      altitudeMeters: Math.round(topo.baseAltitude + 190),
+      altitudeMeters: demGrid
+        ? this.sampleElevationAt(district.lat - 0.14, district.lng - 0.12, demGrid)
+        : Math.round(topo.baseAltitude + 190),
       beds: 12,
       cSectionCapable: false,
       bloodBankReady: false,
@@ -199,9 +245,10 @@ export class TerrainService {
    */
   public static getObstetricReferralRoute(
     district: DistrictData,
-    destinationFacility?: HealthFacilityPoint
+    destinationFacility?: HealthFacilityPoint,
+    demGrid?: DEMTerrainGrid
   ): ObstetricReferralRoute {
-    const facilities = this.getHealthFacilities(district);
+    const facilities = this.getHealthFacilities(district, demGrid);
     const dest = destinationFacility || facilities[0];
     const topo = this.getDistrictTopographicalProfile(district);
 
@@ -216,7 +263,9 @@ export class TerrainService {
 
     let prevLat = originLat;
     let prevLng = originLng;
-    let prevAlt = topo.baseAltitude + (topo.ridgeFeature ? topo.ridgeFeature.height * 0.6 : 140);
+    let prevAlt = demGrid
+      ? this.sampleElevationAt(originLat, originLng, demGrid)
+      : topo.baseAltitude + (topo.ridgeFeature ? topo.ridgeFeature.height * 0.6 : 140);
     let cumulativeDistance2d = 0;
     let cumulativeDistance3d = 0;
     let totalGain = 0;
@@ -232,16 +281,19 @@ export class TerrainService {
       const lat = originLat + (dest.lat - originLat) * t + curveOffset * 0.5;
       const lng = originLng + (dest.lng - originLng) * t + curveOffset;
 
-      // Realistic altitude calculation along route (e.g. crossing mountain ridge or valley gorge)
+      // Realistic altitude calculation along route — sample DEM when available
       let alt = prevAlt;
       if (i === 0) {
         alt = prevAlt;
+      } else if (demGrid) {
+        // DEM-anchored: sample actual terrain height at waypoint position
+        alt = this.sampleElevationAt(lat, lng, demGrid);
       } else if (i === numWaypoints) {
         alt = dest.altitudeMeters;
       } else {
+        // Fallback parametric interpolation (no DEM available)
         const midPass = Math.sin(t * Math.PI) * (topo.ridgeFeature ? topo.ridgeFeature.height * 0.75 : 85);
         alt = Math.round(
-          originLat * 0 +
           (1 - t) * (topo.baseAltitude + 120) +
           t * dest.altitudeMeters +
           midPass +
@@ -346,7 +398,7 @@ export class TerrainService {
    */
   public static getTopographicAccessibilityKPI(district: DistrictData): TopographicAccessibilityKPI {
     const dem = this.generateDistrictDEM(district, 32);
-    const route = this.getObstetricReferralRoute(district);
+    const route = this.getObstetricReferralRoute(district, undefined, dem);
 
     let lowSlopeCount = 0;
     let highRiskSlopeCount = 0;

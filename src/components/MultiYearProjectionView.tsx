@@ -28,7 +28,7 @@ export const MultiYearProjectionView: React.FC<MultiYearProjectionViewProps> = (
     let cumLivesSavedD = 0;
     let cumCostD = 0;
 
-    const baseCostPerYear = Math.round(simD.summary.totalCostUSD / 3);
+    const baseCostPerYear = Math.round(simD.summary.totalCostUSD / selectedHorizonYears);
 
     for (let yr = 1; yr <= selectedHorizonYears; yr++) {
       const monthEnd = yr * 12 - 1;
@@ -169,7 +169,7 @@ export const MultiYearProjectionView: React.FC<MultiYearProjectionViewProps> = (
             {language === 'es' ? 'Costo Decenal por Vida:' : '10-Yr Cost / Life Saved:'}
           </span>
           <div className="text-xl font-bold text-cyan-300">
-            ${Math.round(projectionData.tenYearTotalInvestmentUSD / projectionData.tenYearLivesSavedTotal).toLocaleString()}
+            ${projectionData.tenYearLivesSavedTotal > 0 ? Math.round(projectionData.tenYearTotalInvestmentUSD / projectionData.tenYearLivesSavedTotal).toLocaleString() : '—'}
           </div>
           <span className="text-[10px] text-emerald-400 block font-bold">
             Altamente Costo-Efectivo (OMS)

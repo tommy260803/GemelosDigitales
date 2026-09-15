@@ -83,12 +83,12 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
   }, [targetDistrict]);
 
   const facilities = useMemo(() => {
-    return TerrainService.getHealthFacilities(targetDistrict);
-  }, [targetDistrict]);
+    return TerrainService.getHealthFacilities(targetDistrict, demGrid);
+  }, [targetDistrict, demGrid]);
 
   const referralRoute = useMemo(() => {
-    return TerrainService.getObstetricReferralRoute(targetDistrict, selectedFacility || undefined);
-  }, [targetDistrict, selectedFacility]);
+    return TerrainService.getObstetricReferralRoute(targetDistrict, selectedFacility || undefined, demGrid);
+  }, [targetDistrict, selectedFacility, demGrid]);
 
   const topographicKPI = useMemo(() => {
     return TerrainService.getTopographicAccessibilityKPI(targetDistrict);
