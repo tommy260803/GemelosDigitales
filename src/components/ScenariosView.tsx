@@ -66,7 +66,7 @@ export const ScenariosView: React.FC<ScenariosViewProps> = ({
             </div>
             <p className="text-sm text-slate-400 font-mono mt-0.5">
               {language === 'es' 
-                ? `AnÃ¡lisis comparativo para ${district.name} (${district.country}) en paquetes de intervenciÃ³n Ãºnicos y combinados.`
+                ? `Análisis comparativo para ${district.name} (${district.country}) en paquetes de intervención únicos y combinados.`
                 : `Comparative analysis for ${district.name} (${district.country}) across single and combined intervention packages.`}
             </p>
           </div>
@@ -118,7 +118,7 @@ export const ScenariosView: React.FC<ScenariosViewProps> = ({
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500 text-sm">{language === 'es' ? 'ReducciÃ³n RMM:' : 'MMR Reduction:'}</span>
+                    <span className="text-slate-500 text-sm">{language === 'es' ? 'Reducción RMM:' : 'MMR Reduction:'}</span>
                     <span className="font-bold text-emerald-400 text-xs">-{res.summary.mmrReductionPercent}%</span>
                   </div>
                   <div className="flex justify-between">
@@ -156,7 +156,7 @@ export const ScenariosView: React.FC<ScenariosViewProps> = ({
             <thead>
               <tr className="border-b border-slate-800 bg-[#0c0e12] text-slate-500 text-xs uppercase font-bold">
                 <th className="p-2.5">{language === 'es' ? 'Escenario' : 'Scenario'}</th>
-                <th className="p-2.5">{language === 'es' ? 'Mecanismo de IntervenciÃ³n' : 'Intervention Mechanism'}</th>
+                <th className="p-2.5">{language === 'es' ? 'Mecanismo de Intervención' : 'Intervention Mechanism'}</th>
                 <th className="p-2.5">{language === 'es' ? 'Vidas Salvadas (IC 95%)' : 'Lives Saved (95% CI)'}</th>
                 <th className="p-2.5">{language === 'es' ? 'RMM Final' : 'Final MMR'}</th>
                 <th className="p-2.5">{language === 'es' ? '% Red. RMM' : 'MMR Red. %'}</th>
@@ -212,14 +212,14 @@ export const ScenariosView: React.FC<ScenariosViewProps> = ({
                     </td>
                     <td className="p-2.5">
                       {s.id === 'baseline' ? (
-                        <span className="text-slate-500">â€” <span className="text-xs">({language === 'es' ? 'Control' : 'Control'})</span></span>
+                        <span className="text-slate-500">— <span className="text-xs">({language === 'es' ? 'Control' : 'Control'})</span></span>
                       ) : (
                         <>${res.summary.costPerLifeSavedUSD.toLocaleString()}</>
                       )}
                     </td>
                     <td className="p-2.5 text-cyan-400 font-bold">
                       {s.id === 'baseline' ? (
-                        <span className="text-slate-500 font-normal">â€”</span>
+                        <span className="text-slate-500 font-normal">—</span>
                       ) : (
                         <>${res.summary.icerPerDALY}</>
                       )}
@@ -246,11 +246,11 @@ export const ScenariosView: React.FC<ScenariosViewProps> = ({
         <div className="bg-sky-950/20 border border-sky-500/30 rounded-lg p-3 text-xs text-sky-200 space-y-1">
           <div className="flex items-center space-x-2 font-bold text-sky-300 text-sm uppercase">
             <Zap className="w-3.5 h-3.5 text-sky-400" />
-            <span>{language === 'es' ? 'Sinergia MultifacÃ©tica en Escenario (d): AversiÃ³n No Lineal de Mortalidad' : 'Multi-Faceted Synergy in Scenario (d): Non-Linear Mortality Aversion'}</span>
+            <span>{language === 'es' ? 'Sinergia Multifacética en Escenario (d): Aversión No Lineal de Mortalidad' : 'Multi-Faceted Synergy in Scenario (d): Non-Linear Mortality Aversion'}</span>
           </div>
           <p className="text-slate-300 font-sans text-xs leading-relaxed">
             {language === 'es'
-              ? 'Implementar moto-ambulancias (a), eliminaciÃ³n de tarifas (b) y capacitaciÃ³n de parteras tradicionales (c) simultÃ¡neamente genera 1.48x mÃ¡s vidas salvadas que la suma simple de intervenciones individuales, al resolver cuellos de botella secuenciales del Modelo de las Tres Demoras.'
+              ? 'Implementar moto-ambulancias (a), eliminación de tarifas (b) y capacitación de parteras tradicionales (c) simultáneamente genera 1.48x más vidas salvadas que la suma simple de intervenciones individuales, al resolver cuellos de botella secuenciales del Modelo de las Tres Demoras.'
               : 'Implementing moto-ambulances (a), fee elimination (b), and TBA certifications (c) simultaneously produces 1.48x greater lives saved than the simple sum of individual interventions due to eliminating multiple sequential bottlenecks across the Three Delays model.'}
           </p>
         </div>

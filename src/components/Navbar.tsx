@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Activity, 
   GitMerge, 
@@ -122,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
                     : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                 }`}>
-                  {apiAvailable === true ? 'ðŸ Python Engine' : apiAvailable === false ? 'âš¡ Local Engine' : 'â³ Checking...'}
+                  {apiAvailable === true ? '🐍 Python Engine' : apiAvailable === false ? '⚡ Local Engine' : '⏳ Checking...'}
                 </span>
                 {isHighRiskDistrict && (
                   <span className="hidden xl:inline-flex items-center text-xs px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 font-mono font-bold border border-rose-500/30">
@@ -164,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   return (
                     <optgroup
                       key={c}
-                      label={`â€” ${c.toUpperCase()} â€”`}
+                      label={`— ${c.toUpperCase()} —`}
                       className={theme === 'light' ? 'bg-white text-slate-900 font-bold' : 'bg-[#0c0e12] text-slate-200'}
                     >
                       {inCountry.map((dist) => dist && (
@@ -182,7 +182,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {/* Custom uploaded districts group if any */}
                 {districtsList.some((d) => d?.id?.startsWith('custom-')) && (
                   <optgroup
-                    label="â€” DISTRITOS PERSONALIZADOS DHS â€”"
+                    label="— DISTRITOS PERSONALIZADOS DHS —"
                     className={theme === 'light' ? 'bg-emerald-50 text-emerald-800 font-bold' : 'bg-[#0c0e12] text-emerald-300 font-bold'}
                   >
                     {districtsList.filter((d) => d?.id?.startsWith('custom-')).map((dist) => dist && (
@@ -191,7 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         value={dist.id}
                         className={theme === 'light' ? 'bg-white text-emerald-700' : 'bg-[#0c0e12] text-emerald-300'}
                       >
-                        â­ {dist.name} ({dist.country})
+                        ⭐ {dist.name} ({dist.country})
                       </option>
                     ))}
                   </optgroup>
@@ -403,7 +403,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
                   : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
               }`}
-              title="AutenticaciÃ³n y Roles RBAC"
+              title="Autenticación y Roles RBAC"
             >
               <Shield className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
               <span className={`text-xs font-bold hidden lg:inline truncate max-w-[100px] ${
@@ -433,7 +433,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
                   : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
               }`}
-              aria-label="Abrir menÃº de opciones"
+              aria-label="Abrir menú de opciones"
             >
               {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
@@ -448,7 +448,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'
           }`}>
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase font-bold text-slate-500">SesiÃ³n &amp; Herramientas:</span>
+              <span className="text-xs uppercase font-bold text-slate-500">Sesión &amp; Herramientas:</span>
               <button
                 onClick={() => { onOpenAuthModal(); setIsMobileMenuOpen(false); }}
                 className={`flex items-center space-x-1.5 px-2 py-1 rounded border text-xs font-bold ${

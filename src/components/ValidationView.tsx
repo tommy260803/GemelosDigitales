@@ -168,7 +168,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
 
             <div className="mt-3 space-y-1.5 text-xs bg-[#0c0e12] p-2.5 rounded border border-slate-800 font-mono">
               <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Determ. (RÂ²):</span>
+                <span className="text-slate-500 text-sm">Determ. (R²):</span>
                 <span className="text-emerald-400 font-bold">{externalResult.rSquared}</span>
               </div>
               <div className="flex justify-between">
@@ -184,7 +184,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
 
           <div className="pt-2 border-t border-slate-800 text-sm text-indigo-300 font-mono flex items-center space-x-1.5">
             <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-            <span>High external generalizability (RÂ² &gt; 0.90)</span>
+            <span>High external generalizability (R² &gt; 0.90)</span>
           </div>
         </div>
 
@@ -247,7 +247,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           <div>
             <span className="font-bold text-white block text-xs">Dominant Variance Drivers Identified:</span>
             <span className="text-slate-400 text-sm font-sans">
-              {sobolResult.topVarianceContributors.join(' â€¢ ')}. Targeted interventions on these 3 variables achieve the greatest systemic mortality reduction.
+              {sobolResult.topVarianceContributors.join(' • ')}. Targeted interventions on these 3 variables achieve the greatest systemic mortality reduction.
             </span>
           </div>
         </div>
@@ -267,13 +267,13 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
                 </h3>
               </div>
               <p className="text-sm text-slate-400 font-mono mt-0.5">
-                Verifying whether the digital twin identifies 2-3 bottleneck parameters explaining â‰¥20% variance and achieving â‰¥15% MMR reduction.
+                Verifying whether the digital twin identifies 2-3 bottleneck parameters explaining ≥20% variance and achieving ≥15% MMR reduction.
               </p>
             </div>
 
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-1 rounded text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                Hâ‚€ REJECTED (p &lt; 0.0001)
+                H₀ REJECTED (p &lt; 0.0001)
               </span>
               <span className="px-2.5 py-1 rounded text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                 Hâ‚ CONFIRMED
@@ -291,7 +291,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
                 <div className="font-bold text-white text-xs">{b.name}</div>
                 <div className="text-xs text-slate-400">{b.phase}</div>
                 <div className="text-xs text-sky-300 bg-sky-950/30 p-1.5 rounded border border-sky-800/40">
-                  âš¡ <strong>Action:</strong> {b.mitigationAction}
+                  ⚡ <strong>Action:</strong> {b.mitigationAction}
                 </div>
               </div>
             ))}
@@ -301,12 +301,12 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
             <div>
               <span className="text-slate-400">Total Variance Explained by Top 3 Bottlenecks:</span>{' '}
               <strong className="text-emerald-400 text-sm">{hypothesisResult.top3VarianceExplainedPercent}%</strong>{' '}
-              <span className="text-slate-500">(Required Threshold: â‰¥ 20.0%)</span>
+              <span className="text-slate-500">(Required Threshold: ≥ 20.0%)</span>
             </div>
             <div>
               <span className="text-slate-400">Achieved Scenario D MMR Reduction:</span>{' '}
               <strong className="text-sky-300 text-sm">-{hypothesisResult.observedScenarioDReductionPercent}%</strong>{' '}
-              <span className="text-slate-500">(Required: â‰¥ 15.0%)</span>
+              <span className="text-slate-500">(Required: ≥ 15.0%)</span>
             </div>
           </div>
         </div>
@@ -361,7 +361,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         {isMcRunning && (
           <div className="space-y-1.5 font-mono text-xs bg-[#0c0e12] p-3 rounded border border-slate-800">
             <div className="flex justify-between text-sm text-slate-300">
-              <span>Progreso de SimulaciÃ³n: {mcProgress}%</span>
+              <span>Progreso de Simulación: {mcProgress}%</span>
               <span className="text-cyan-400 font-bold">{mcThroughput.toLocaleString()} iter/seg</span>
             </div>
             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -388,7 +388,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
                 <span className="text-xs text-emerald-500 block">Convergencia &lt; 1.05</span>
               </div>
               <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800">
-                <span className="text-xs text-slate-500 uppercase block">Error EstÃ¡ndar (MCSE):</span>
+                <span className="text-xs text-slate-500 uppercase block">Error Estándar (MCSE):</span>
                 <span className="text-sky-300 font-bold">Â±{asyncMcResult.mcStandardError}</span>
                 <span className="text-xs text-slate-400 block">&lt; 1.2% varianza</span>
               </div>
@@ -402,7 +402,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
             {/* Distribution Frequency Histogram */}
             <div className="bg-[#0c0e12] p-3 rounded border border-slate-800 space-y-2 font-mono text-xs">
               <div className="flex justify-between text-sm text-slate-400">
-                <span>DistribuciÃ³n de Densidad de Probabilidad (12 Bins EmpÃ­ricos):</span>
+                <span>Distribución de Densidad de Probabilidad (12 Bins Empíricos):</span>
                 <span className="text-cyan-400 font-bold">N={asyncMcResult.iterations.toLocaleString()}</span>
               </div>
 

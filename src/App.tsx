@@ -108,8 +108,8 @@ function AppContent() {
       bootstrap: StatisticalValidationService.runBootstrap(selectedDistrict, 'scenario_d'),
       externalValidation: StatisticalValidationService.runExternalValidation(selectedDistrict.id),
       hypothesisTesting: {
-        nullHypothesisH0: 'The digital twin does not identify systemic bottlenecks explaining Ã¢â€°Â¥20% of maternal mortality variance.',
-        altHypothesisH1: 'The digital twin identifies 2Ã¢â‚¬â€œ3 critical bottlenecks whose targeted simulation reduces maternal mortality by Ã¢â€°Â¥15%.',
+        nullHypothesisH0: 'The digital twin does not identify systemic bottlenecks explaining ≥20% of maternal mortality variance.',
+        altHypothesisH1: 'The digital twin identifies 2–3 critical bottlenecks whose targeted simulation reduces maternal mortality by ≥15%.',
         top3VarianceExplainedPercent: sobolResult.firstOrderIndices.slice(0, 3).reduce((a, b) => a + b, 0) * 100,
         isH0Rejected: observedReduction >= 15,
         isH1Confirmed: observedReduction >= 15,
@@ -262,7 +262,7 @@ function AppContent() {
           </div>
           <div className="flex items-center space-x-3 text-[10px] text-slate-500">
             <span>{t.footerDistricts} ({districtsList.length} Distritos activos)</span>
-            <span className="text-slate-700">Ã¢â‚¬Â¢</span>
+            <span className="text-slate-700">•</span>
             <span>{t.footerTelemetry}</span>
           </div>
         </div>

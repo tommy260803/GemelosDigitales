@@ -43,8 +43,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ district, activeScenar
       bootstrap: StatisticalValidationService.runBootstrap(district, 'scenario_d'),
       externalValidation: StatisticalValidationService.runExternalValidation(district.id),
       hypothesisTesting: {
-        nullHypothesisH0: 'The digital twin does not identify systemic bottlenecks explaining â‰¥20% of maternal mortality variance.',
-        altHypothesisH1: 'The digital twin identifies 2â€“3 critical bottlenecks whose targeted simulation reduces maternal mortality by â‰¥15%.',
+        nullHypothesisH0: 'The digital twin does not identify systemic bottlenecks explaining ≥20% of maternal mortality variance.',
+        altHypothesisH1: 'The digital twin identifies 2–3 critical bottlenecks whose targeted simulation reduces maternal mortality by ≥15%.',
         top3VarianceExplainedPercent: sobolResult.firstOrderIndices.slice(0, 3).reduce((a, b) => a + b, 0) * 100,
         isH0Rejected: observedReduction >= 15,
         isH1Confirmed: observedReduction >= 15,
@@ -163,7 +163,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ district, activeScenar
         <div className="space-y-1.5">
           <h2 className="text-xs font-bold text-sky-400 uppercase tracking-wider font-mono">1. Executive Summary &amp; Key Findings</h2>
           <p className="text-xs leading-relaxed text-slate-300">
-            A continuous-time 5-stock System Dynamics model was calibrated using Demographic and Health Surveys (DHS) and DHIS2 data for <strong>{district.name} ({district.country})</strong>. The baseline Maternal Mortality Ratio (MMR) is <strong>{district.baselineMMR} per 100,000 live births</strong>. Simulation over a 36-month horizon indicates that implementing a combined policy packageâ€”comprising motorcycle ambulances, complete delivery fee abolition, and certified Traditional Birth Attendant (TBA) danger sign recognitionâ€”aversion of <strong className="text-sky-300 font-mono">{comboRes.summary.livesSaved} maternal deaths (95% CI: [{comboRes.summary.livesSavedCI95[0]} - {comboRes.summary.livesSavedCI95[1]}])</strong>, achieving a <strong className="text-emerald-400 font-mono">{comboRes.summary.mmrReductionPercent}% reduction in MMR</strong>.
+            A continuous-time 5-stock System Dynamics model was calibrated using Demographic and Health Surveys (DHS) and DHIS2 data for <strong>{district.name} ({district.country})</strong>. The baseline Maternal Mortality Ratio (MMR) is <strong>{district.baselineMMR} per 100,000 live births</strong>. Simulation over a 36-month horizon indicates that implementing a combined policy package—comprising motorcycle ambulances, complete delivery fee abolition, and certified Traditional Birth Attendant (TBA) danger sign recognition—aversion of <strong className="text-sky-300 font-mono">{comboRes.summary.livesSaved} maternal deaths (95% CI: [{comboRes.summary.livesSavedCI95[0]} - {comboRes.summary.livesSavedCI95[1]}])</strong>, achieving a <strong className="text-emerald-400 font-mono">{comboRes.summary.mmrReductionPercent}% reduction in MMR</strong>.
           </p>
         </div>
 
@@ -194,8 +194,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ district, activeScenar
                       </td>
                       <td className="p-2 text-slate-200">{r.summary.mmrFinal}</td>
                       <td className="p-2 text-emerald-400">{isBase ? '0.0% (Base)' : `-${r.summary.mmrReductionPercent}%`}</td>
-                      <td className="p-2">{isBase ? 'â€” (Control)' : `$${r.summary.costPerLifeSavedUSD.toLocaleString()}`}</td>
-                      <td className="p-2 text-cyan-400">{isBase ? 'â€”' : `$${r.summary.icerPerDALY}`}</td>
+                      <td className="p-2">{isBase ? '— (Control)' : `$${r.summary.costPerLifeSavedUSD.toLocaleString()}`}</td>
+                      <td className="p-2 text-cyan-400">{isBase ? '—' : `$${r.summary.icerPerDALY}`}</td>
                     </tr>
                   );
                 })}
@@ -209,15 +209,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ district, activeScenar
           <h2 className="text-xs font-bold text-sky-400 uppercase tracking-wider font-mono">3. Strategic Policy Recommendations</h2>
           <div className="space-y-1 text-xs text-slate-300">
             <div className="flex items-start space-x-2">
-              <span className="text-sky-400 font-bold">â€¢</span>
+              <span className="text-sky-400 font-bold">•</span>
               <span><strong>Prioritize Phase 2 Transport:</strong> Deploy 4x4 motorcycle ambulance units to the most remote sub-counties, reducing referral delays from {district.avgTravelTimeHours}h to under 1.0h.</span>
             </div>
             <div className="flex items-start space-x-2">
-              <span className="text-sky-400 font-bold">â€¢</span>
+              <span className="text-sky-400 font-bold">•</span>
               <span><strong>Abolish Out-of-Pocket Delivery Fees:</strong> Eliminating the typical out-of-pocket delivery fee (${district.insuranceCoverage > 50 ? '3.50' : '18.00'}) disproportionately rescues mothers in DHS Wealth Quintiles 1 &amp; 2.</span>
             </div>
             <div className="flex items-start space-x-2">
-              <span className="text-sky-400 font-bold">â€¢</span>
+              <span className="text-sky-400 font-bold">•</span>
               <span><strong>Certify TBAs as Community Referral Champions:</strong> Shift TBA incentives toward early danger sign detection and rapid facility referral.</span>
             </div>
           </div>
@@ -230,9 +230,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ district, activeScenar
             <span>Technical Validation &amp; Sensitivity Summary</span>
           </h3>
           <p className="text-slate-400 leading-relaxed font-sans text-xs">
-            â€¢ <strong>Kolmogorov-Smirnov Test:</strong> D = {validationMetrics.kolmogorovSmirnov.statisticD}, p = {validationMetrics.kolmogorovSmirnov.pValue} (Simulated distributions match empirical DHS GPS survey).<br />
-            â€¢ <strong>Wilcoxon Signed-Rank Test:</strong> W = {validationMetrics.wilcoxonSignedRank.statisticW}, p = {validationMetrics.wilcoxonSignedRank.pValue} (Zero systematic cross-district bias across 25 Sub-Saharan districts).<br />
-            â€¢ <strong>Goodness-of-Fit vs Countdown 2030:</strong> RÂ² = {validationMetrics.externalValidation.rSquared}, RMSE = {validationMetrics.externalValidation.rmse} per 100k live births.
+            • <strong>Kolmogorov-Smirnov Test:</strong> D = {validationMetrics.kolmogorovSmirnov.statisticD}, p = {validationMetrics.kolmogorovSmirnov.pValue} (Simulated distributions match empirical DHS GPS survey).<br />
+            • <strong>Wilcoxon Signed-Rank Test:</strong> W = {validationMetrics.wilcoxonSignedRank.statisticW}, p = {validationMetrics.wilcoxonSignedRank.pValue} (Zero systematic cross-district bias across 25 Sub-Saharan districts).<br />
+            • <strong>Goodness-of-Fit vs Countdown 2030:</strong> R² = {validationMetrics.externalValidation.rSquared}, RMSE = {validationMetrics.externalValidation.rmse} per 100k live births.
           </p>
         </div>
 

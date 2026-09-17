@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Sliders, 
   AlertCircle, 
@@ -89,7 +89,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {t.coreVersion}
               </span>
               <h2 className="text-sm font-bold text-white uppercase tracking-tight">
-                {district.name} ({district.country}) â€” {language === 'es' ? 'Gemelo Digital de DinÃ¡mica de Sistemas Maternos' : 'Maternal Health System Dynamics Twin'}
+                {district.name} ({district.country}) — {language === 'es' ? 'Gemelo Digital de Dinámica de Sistemas Maternos' : 'Maternal Health System Dynamics Twin'}
               </h2>
             </div>
             <p className="text-sm text-slate-400 font-mono mt-0.5">
@@ -190,15 +190,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t.costPerLife}</div>
           <div className="flex items-end gap-1.5 my-1">
             <span className="text-lg sm:text-xl font-mono font-bold text-white">
-              {activeScenarioId === 'baseline' ? 'â€”' : `$${simResult.summary.costPerLifeSavedUSD.toLocaleString()}`}
+              {activeScenarioId === 'baseline' ? '—' : `$${simResult.summary.costPerLifeSavedUSD.toLocaleString()}`}
             </span>
             {activeScenarioId === 'baseline' && (
-              <span className="text-xs text-slate-500 font-mono mb-0.5">({language === 'es' ? 'LÃ­nea Base' : 'Baseline'})</span>
+              <span className="text-xs text-slate-500 font-mono mb-0.5">({language === 'es' ? 'Línea Base' : 'Baseline'})</span>
             )}
           </div>
           <div className="text-xs text-slate-600 font-mono italic">
             {activeScenarioId === 'baseline' 
-              ? `${t.icerPerDaly}: â€”`
+              ? `${t.icerPerDaly}: —`
               : `${t.icerPerDaly}: $${simResult.summary.icerPerDALY}`}
           </div>
         </div>
@@ -251,9 +251,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   className={`px-1.5 py-0.5 rounded transition cursor-pointer ${
                     scaleMode === 'logarithmic' ? 'bg-sky-500 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
                   }`}
-                  title={language === 'es' ? 'Escala logarÃ­tmica log10' : 'Logarithmic scale log10'}
+                  title={language === 'es' ? 'Escala logarítmica log10' : 'Logarithmic scale log10'}
                 >
-                  Logâ‚â‚€
+                  Log₁₀
                 </button>
               </div>
 
@@ -274,7 +274,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 }`}
               >
                 <Sliders className="w-3 h-3" />
-                <span>{language === 'es' ? 'PARÃMETROS' : 'PARAMETERS'}</span>
+                <span>{language === 'es' ? 'PARÁMETROS' : 'PARAMETERS'}</span>
               </button>
             </div>
           </div>
@@ -290,14 +290,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: stockColors.anc }} />
                 <span className="text-slate-300">
                   {language === 'es' ? 'S2: CPN 4+' : 'S2: ANC'} ({currentSnapshot?.inANC?.toLocaleString()})
-                  {scaleMode === 'amplified' && <span className="text-xs text-emerald-500 ml-1 font-bold">Ã—1.5</span>}
+                  {scaleMode === 'amplified' && <span className="text-xs text-emerald-500 ml-1 font-bold">×1.5</span>}
                 </span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: stockColors.delivery }} />
                 <span className="text-slate-300">
                   {language === 'es' ? 'S3: Parto Inst.' : 'S3: Del'} ({currentSnapshot?.inFacilityDelivery?.toLocaleString()})
-                  {scaleMode === 'amplified' && <span className="text-xs text-indigo-400 ml-1 font-bold">Ã—6</span>}
+                  {scaleMode === 'amplified' && <span className="text-xs text-indigo-400 ml-1 font-bold">×6</span>}
                 </span>
               </div>
               <div className="flex items-center space-x-1.5">
@@ -308,7 +308,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: stockColors.complications }} />
                 <span className="text-rose-400 font-bold">
                   {language === 'es' ? 'S5: Compl. Graves' : 'S5: Compl'} ({currentSnapshot?.withComplications?.toLocaleString()})
-                  {scaleMode === 'amplified' && <span className="text-xs text-rose-500 ml-1 font-bold">Ã—12</span>}
+                  {scaleMode === 'amplified' && <span className="text-xs text-rose-500 ml-1 font-bold">×12</span>}
                 </span>
               </div>
             </div>
@@ -317,14 +317,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="text-xs font-mono text-slate-500 flex items-center justify-between">
               <span>
                 {scaleMode === 'amplified' && (language === 'es' 
-                  ? 'Modo Escala Dual: S3 (Ã—6) y S5 (Ã—12) reescaladas visualmente para observar simultÃ¡neamente dinÃ¡micas comunitarias e intrahospitalarias.'
-                  : 'Dual Scale Mode: S3 (Ã—6) and S5 (Ã—12) visually amplified for concurrent community and facility dynamic tracking.')}
+                  ? 'Modo Escala Dual: S3 (×6) y S5 (×12) reescaladas visualmente para observar simultáneamente dinámicas comunitarias e intrahospitalarias.'
+                  : 'Dual Scale Mode: S3 (×6) and S5 (×12) visually amplified for concurrent community and facility dynamic tracking.')}
                 {scaleMode === 'linear' && (language === 'es' 
-                  ? 'Modo Lineal 1:1: Todos los stocks graficados en escala fÃ­sica absoluta real sin multiplicadores.'
+                  ? 'Modo Lineal 1:1: Todos los stocks graficados en escala física absoluta real sin multiplicadores.'
                   : 'Linear 1:1 Mode: All stocks plotted on exact true physical units with zero visual scaling.')}
                 {scaleMode === 'logarithmic' && (language === 'es' 
-                  ? 'Modo LogarÃ­tmico Logâ‚â‚€: Permite comparar magnitudes dispares (S1 ~10â´ vs S5 ~10Â²) en la misma escala continua.'
-                  : 'Logâ‚â‚€ Mode: Enables direct visual tracking of disparate magnitudes (S1 ~10â´ vs S5 ~10Â²) continuously.')}
+                  ? 'Modo Logarítmico Logâ‚â‚€: Permite comparar magnitudes dispares (S1 ~10â´ vs S5 ~10²) en la misma escala continua.'
+                  : 'Logâ‚â‚€ Mode: Enables direct visual tracking of disparate magnitudes (S1 ~10â´ vs S5 ~10²) continuously.')}
               </span>
             </div>
           </div>
@@ -436,7 +436,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div className="bg-[#0c0e12] p-2.5 rounded-lg border border-slate-800">
               <span className="text-xs text-slate-500 uppercase font-bold block">
-                {language === 'es' ? 'SaturaciÃ³n (B1):' : 'Congestion (B1):'}
+                {language === 'es' ? 'Saturación (B1):' : 'Congestion (B1):'}
               </span>
               <span className={`font-bold ${currentSnapshot.facilityCongestionIndex > 1.2 ? 'text-amber-400' : 'text-emerald-400'}`}>
                 {currentSnapshot.facilityCongestionIndex}x {language === 'es' ? 'Carga' : 'Load'}
@@ -524,7 +524,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {/* Point 5: Blood Bank Availability Slider */}
                 <div>
                   <label className="text-slate-400 flex justify-between mb-1 font-mono">
-                    <span>{language === 'es' ? 'Banco de Sangre / Cadena FrÃ­o:' : 'Blood Bank Availability:'}</span>
+                    <span>{language === 'es' ? 'Banco de Sangre / Cadena Frío:' : 'Blood Bank Availability:'}</span>
                     <span className="text-rose-400 font-bold">{Math.round(activeParams.bloodAvailabilityRate * 100)}%</span>
                   </label>
                   <input
@@ -557,7 +557,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 <div>
                   <label className="text-slate-400 flex justify-between mb-1 font-mono">
-                    <span>{language === 'es' ? 'EducaciÃ³n Secundaria Femenina:' : 'Female Secondary Education:'}</span>
+                    <span>{language === 'es' ? 'Educación Secundaria Femenina:' : 'Female Secondary Education:'}</span>
                     <span className="text-indigo-300 font-bold">{Math.round(activeParams.maternalEducationRate * 100)}%</span>
                   </label>
                   <input
@@ -582,7 +582,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* System Dynamics Stocks HUD */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 flex flex-col">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-              {language === 'es' ? 'Stocks InstantÃ¡neos de DinÃ¡mica de Sistemas' : 'System Dynamics Instantaneous Stocks'}
+              {language === 'es' ? 'Stocks Instantáneos de Dinámica de Sistemas' : 'System Dynamics Instantaneous Stocks'}
             </div>
             
             <div className="flex-1 flex flex-col gap-2.5 relative justify-between font-mono">
@@ -624,7 +624,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm space-y-2.5">
             <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
               <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-              <span>{language === 'es' ? 'Cuellos de Botella SistÃ©micos' : 'Identified Systemic Bottlenecks'}</span>
+              <span>{language === 'es' ? 'Cuellos de Botella Sistémicos' : 'Identified Systemic Bottlenecks'}</span>
             </h3>
 
             <div className="space-y-2">
@@ -632,7 +632,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="bg-[#0c0e12] border border-rose-500/30 rounded p-2.5">
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="font-bold text-rose-300 text-sm">
-                    {language === 'es' ? 'Retraso GeogrÃ¡fico de Traslado (Fase 2)' : 'Phase 2 Geographic Referral Delay'}
+                    {language === 'es' ? 'Retraso Geográfico de Traslado (Fase 2)' : 'Phase 2 Geographic Referral Delay'}
                   </span>
                   <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold bg-rose-500/20 text-rose-300">
                     38% Var
@@ -657,7 +657,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
                 <p className="text-xs text-slate-400">
                   {language === 'es'
-                    ? `Tasa de pobreza del ${district.povertyRate}% retrasa la decisiÃ³n de acudir al parto institucional en Q1 y Q2.`
+                    ? `Tasa de pobreza del ${district.povertyRate}% retrasa la decisión de acudir al parto institucional en Q1 y Q2.`
                     : `Poverty rate of ${district.povertyRate}% creates delays in seeking institutional delivery among Q1 and Q2.`}
                 </p>
               </div>

@@ -59,7 +59,7 @@ export const EquityView: React.FC<EquityViewProps> = ({ district, activeScenario
                 SOCIOECONOMIC EQUITY &amp; WEALTH QUINTILES
               </span>
               <h2 className="text-xs font-bold text-white uppercase tracking-tight">
-                Disaggregated Maternal Health Outcomes by DHS Wealth Quintile (Q1â€“Q5)
+                Disaggregated Maternal Health Outcomes by DHS Wealth Quintile (Q1–Q5)
               </h2>
             </div>
             <p className="text-sm text-slate-400 font-mono mt-0.5">
@@ -164,7 +164,7 @@ export const EquityView: React.FC<EquityViewProps> = ({ district, activeScenario
                         ${q.fiscalCostUSD ? q.fiscalCostUSD.toLocaleString() : '0'}
                       </td>
                       <td className="p-2.5 text-slate-300 font-mono">
-                        {q.costPerLifeSavedInQ && q.costPerLifeSavedInQ > 0 ? `$${q.costPerLifeSavedInQ.toLocaleString()}` : 'â€”'}
+                        {q.costPerLifeSavedInQ && q.costPerLifeSavedInQ > 0 ? `$${q.costPerLifeSavedInQ.toLocaleString()}` : '—'}
                       </td>
                       <td className="p-2.5 font-bold text-emerald-400">
                         -{q.relativeReduction}%
