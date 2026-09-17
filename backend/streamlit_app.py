@@ -54,55 +54,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================
-# DEMO DISTRICTS (for when DB is not available)
+# NO HARDCODED DATA (STRICT DB ENFORCEMENT)
 # =========================================================
-
-DEMO_DISTRICTS = {
-    'ke-garissa': DistrictData(
-        id='ke-garissa', name='Garissa District', country='Kenya', region='North Eastern',
-        population=841353, annual_births=29400, baseline_mmr=646.0,
-        anc1_coverage=62.4, anc4_coverage=38.1, institutional_delivery_rate=46.5,
-        c_section_rate=3.2, avg_distance_to_emonc=38.5, avg_travel_time_hours=3.9,
-        skilled_staff_ratio=1.1, blood_bank_availability=42.0, essential_drugs_availability=68.0,
-        insurance_coverage=11.2, poverty_rate=65.5, female_secondary_education=22.4,
-        traditional_birth_attendant_prevalence=48.0, lat=-0.4532, lng=39.6461,
-        osm_health_facilities_count=48,
-        wealth_quintile_mmr={'q1_poorest': 890, 'q2_poor': 760, 'q3_middle': 610, 'q4_richer': 490, 'q5_richest': 340}
-    ),
-    'ug-moroto': DistrictData(
-        id='ug-moroto', name='Moroto District (Karamoja)', country='Uganda', region='Karamoja',
-        population=135000, annual_births=5800, baseline_mmr=690.0,
-        anc1_coverage=60.5, anc4_coverage=28.0, institutional_delivery_rate=41.5,
-        c_section_rate=2.2, avg_distance_to_emonc=44.0, avg_travel_time_hours=4.2,
-        skilled_staff_ratio=0.9, blood_bank_availability=32.0, essential_drugs_availability=51.0,
-        insurance_coverage=2.1, poverty_rate=74.2, female_secondary_education=14.5,
-        traditional_birth_attendant_prevalence=54.0, lat=2.5345, lng=34.6666,
-        osm_health_facilities_count=18,
-        wealth_quintile_mmr={'q1_poorest': 950, 'q2_poor': 810, 'q3_middle': 660, 'q4_richer': 500, 'q5_richest': 360}
-    ),
-    'gh-ashanti': DistrictData(
-        id='gh-ashanti', name='Kumasi Metro', country='Ghana', region='Ashanti',
-        population=2800000, annual_births=84000, baseline_mmr=295.0,
-        anc1_coverage=98.0, anc4_coverage=82.5, institutional_delivery_rate=88.5,
-        c_section_rate=15.8, avg_distance_to_emonc=6.5, avg_travel_time_hours=0.8,
-        skilled_staff_ratio=3.8, blood_bank_availability=91.0, essential_drugs_availability=94.0,
-        insurance_coverage=82.0, poverty_rate=16.5, female_secondary_education=68.0,
-        traditional_birth_attendant_prevalence=8.5, lat=6.6885, lng=-1.6244,
-        osm_health_facilities_count=168,
-        wealth_quintile_mmr={'q1_poorest': 410, 'q2_poor': 340, 'q3_middle': 275, 'q4_richer': 220, 'q5_richest': 150}
-    ),
-    'et-afar': DistrictData(
-        id='et-afar', name='Awash & Semera Zone', country='Ethiopia', region='Afar',
-        population=620000, annual_births=23500, baseline_mmr=710.0,
-        anc1_coverage=44.5, anc4_coverage=24.0, institutional_delivery_rate=29.5,
-        c_section_rate=1.8, avg_distance_to_emonc=56.0, avg_travel_time_hours=5.1,
-        skilled_staff_ratio=0.7, blood_bank_availability=30.0, essential_drugs_availability=52.0,
-        insurance_coverage=9.0, poverty_rate=68.0, female_secondary_education=14.0,
-        traditional_birth_attendant_prevalence=62.0, lat=11.7925, lng=41.0089,
-        osm_health_facilities_count=28,
-        wealth_quintile_mmr={'q1_poorest': 975, 'q2_poor': 835, 'q3_middle': 680, 'q4_richer': 515, 'q5_richest': 365}
-    ),
-}
+# DEMO_DISTRICTS has been removed to ensure the system strictly 
+# consumes empirical data from the PostgreSQL database.
 
 # =========================================================
 # SIDEBAR
@@ -115,64 +70,49 @@ st.sidebar.divider()
 # =========================================================
 # DATA INGESTION (ETL) PIPELINE
 # =========================================================
-st.sidebar.subheader("📥 Data Ingestion & Calibration")
-uploaded_file = st.sidebar.file_uploader("Upload DHS Microdata (.csv)", type=["csv"])
+st.sidebar.subheader("🌍 Master DHS Ingestion")
+st.sidebar.markdown("Process raw Stata (`.DTA`) microdata for all 25 Sub-Saharan districts.")
 
-if uploaded_file is not None:
-    import pandas as pd
-    from services.etl_processor import process_dhs_microdata
+if st.sidebar.button("🚀 Process All DHS Files", type="primary", use_container_width=True):
+    from services.stata_etl import process_all_dhs_files
+    import os
     
-    try:
-        with st.spinner("Processing microdata..."):
-            raw_df = pd.read_csv(uploaded_file)
-            empirical_params = process_dhs_microdata(raw_df)
-            
-            # Calibrate the SD Engine by overwriting base district parameters in RAM
-            for d_id, ep in empirical_params.items():
-                if d_id in DEMO_DISTRICTS:
-                    dist = DEMO_DISTRICTS[d_id]
-                    dist.baseline_mmr = ep['baseline_mmr']
-                    dist.anc1_coverage = ep['anc1_coverage']
-                    dist.anc4_coverage = ep['anc4_coverage']
-                    dist.institutional_delivery_rate = ep['institutional_delivery_rate']
-            
-            # Persist to PostgreSQL so React can consume it
-            import psycopg2
-            import os
-            try:
-                db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@localhost:5433/maternal_twin_db')
-                conn = psycopg2.connect(db_url)
-                cur = conn.cursor()
-                for d_id, ep in empirical_params.items():
-                    cur.execute("""
-                        UPDATE health_districts 
-                        SET baseline_mmr = %s,
-                            anc1_coverage = %s,
-                            anc4_coverage = %s,
-                            institutional_delivery_rate = %s
-                        WHERE id = %s
-                    """, (ep['baseline_mmr'], ep['anc1_coverage'], ep['anc4_coverage'], ep['institutional_delivery_rate'], d_id))
-                conn.commit()
-                cur.close()
-                conn.close()
-                db_success = True
-            except Exception as db_err:
-                db_success = False
-                db_error_msg = str(db_err)
-            
-        st.sidebar.success(f"✅ Engine calibrated with {len(raw_df)} empirical records!")
-        if db_success:
-            st.sidebar.success("💾 Data synced to PostgreSQL (React Ready)!")
-        else:
-            st.sidebar.warning(f"⚠️ Saved in RAM only. DB sync failed: {db_error_msg}")
-            
-    except Exception as e:
-        st.sidebar.error(f"ETL Error: {str(e)}")
-
+    dhs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'dhs')
+    db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@127.0.0.1:5433/maternal_twin_db')
+    
+    log_container = st.sidebar.empty()
+    logs = []
+    def streamlit_log(msg):
+        logs.append(msg)
+        log_container.markdown("<br>".join(logs[-10:]), unsafe_allow_html=True)
+        
+    with st.spinner("Crunching millions of DHS records..."):
+        success = process_all_dhs_files(dhs_dir, db_url, log_callback=streamlit_log)
+        
+    if success:
+        st.sidebar.success("✅ Database perfectly synchronized with real DHS data!")
+        st.sidebar.info("🔄 Refresh your React Frontend to see the new data.")
+    else:
+        st.sidebar.error("❌ Process failed.")
+        
 st.sidebar.divider()
 
 # District selection
-district_options = {f"{d.name} ({d.country})": d for d in DEMO_DISTRICTS.values()}
+try:
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from main import fetch_all_districts_from_db
+    
+    live_districts = fetch_all_districts_from_db()
+    if not live_districts:
+        st.error("Database is empty. Please run 'Process All DHS Files'.")
+        st.stop()
+    district_options = {f"{d.name} ({d.country})": d for d in live_districts}
+except Exception as e:
+    st.error(f"Database connection failed: {e}. Please ensure PostgreSQL is running.")
+    st.stop()
+
 selected_district_name = st.sidebar.selectbox(
     "Select Health District",
     options=list(district_options.keys()),
