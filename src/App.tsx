@@ -188,7 +188,7 @@ function AppContent() {
         />
 
         {/* Main View Container */}
-        <main className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4">
+        <main className="w-full max-w-[1680px] mx-auto px-3 sm:px-5 lg:px-8 xl:px-10 py-4 sm:py-6">
           {currentTab === 'dashboard' && (
             <DashboardView
               district={selectedDistrict}

@@ -78,7 +78,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const maxStock = Math.max(...trajectories.map((t) => Math.max(t.pregnantWomen, t.inANC * 1.5, t.inPostpartum)));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       
       {/* Top Protocol & Hypothesis Banner */}
       <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm">
@@ -92,8 +92,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {district.name} ({district.country}) — {language === 'es' ? 'Gemelo Digital de Dinámica de Sistemas Maternos' : 'Maternal Health System Dynamics Twin'}
               </h2>
             </div>
-            <p className="text-sm text-slate-400 font-mono mt-0.5">
-              {t.hypothesisH1}
+            <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+              {language === 'es'
+                ? 'Selecciona una intervención para ver cómo podría cambiar la mortalidad materna en este distrito.'
+                : 'Select an intervention to see how maternal mortality could change in this district.'}
             </p>
           </div>
 
@@ -121,8 +123,41 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
+      <div className="rounded-lg border border-sky-500/25 bg-sky-500/5 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.16em] font-bold text-sky-400">
+            {language === 'es' ? 'Resultado principal' : 'Key result'}
+          </p>
+          <p className="text-sm text-slate-200 mt-1">
+            {activeScenarioId === 'baseline'
+              ? (language === 'es' ? 'La línea base representa la evolución sin nuevas intervenciones.' : 'The baseline represents the trajectory without new interventions.')
+              : (language === 'es'
+                ? `El escenario seleccionado podría reducir la RMM un ${simResult.summary.mmrReductionPercent}% y salvar ${simResult.summary.livesSaved} vidas en ${horizonMonths} meses.`
+                : `The selected scenario could reduce MMR by ${simResult.summary.mmrReductionPercent}% and save ${simResult.summary.livesSaved} lives in ${horizonMonths} months.`)}
+          </p>
+        </div>
+        <span className="text-xs text-slate-500 shrink-0">
+          {language === 'es' ? 'Estimación del modelo' : 'Model estimate'}
+        </span>
+      </div>
+
       {/* High Density KPI Cards Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+      <section aria-label={language === 'es' ? 'Indicadores principales' : 'Key indicators'}>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <p className="text-[11px] font-mono font-bold uppercase tracking-[0.18em] text-sky-400">
+              {language === 'es' ? 'Lectura rápida' : 'Quick read'}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {language === 'es' ? 'Impacto estimado del escenario seleccionado' : 'Estimated impact of the selected scenario'}
+            </p>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            {language === 'es' ? 'Modelo actualizado' : 'Model updated'}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3">
         
         {/* Baseline MMR */}
         <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-2.5 sm:p-3 flex flex-col justify-between">
@@ -203,15 +238,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-      </div>
+        </div>
+      </section>
 
       {/* Main Grid: 5-Stock Time Series Chart & System Bottlenecks Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         {/* Left 2 Cols: 5-Stock Trajectory Chart */}
-        <div className="lg:col-span-2 bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
+        <div className="lg:col-span-2 bg-slate-900/50 border border-slate-800 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
             <div>
               <div className="flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-sky-500"></span>
@@ -225,7 +261,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             {/* Parameter, Scale & Horizon controls */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
               {/* Scale Mode Selector */}
               <div className="flex items-center bg-slate-800 rounded p-0.5 border border-slate-700 font-mono text-xs">
                 <button
@@ -323,8 +359,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   ? 'Modo Lineal 1:1: Todos los stocks graficados en escala física absoluta real sin multiplicadores.'
                   : 'Linear 1:1 Mode: All stocks plotted on exact true physical units with zero visual scaling.')}
                 {scaleMode === 'logarithmic' && (language === 'es' 
-                  ? 'Modo Logarítmico Logâ‚â‚€: Permite comparar magnitudes dispares (S1 ~10â´ vs S5 ~10²) en la misma escala continua.'
-                  : 'Logâ‚â‚€ Mode: Enables direct visual tracking of disparate magnitudes (S1 ~10â´ vs S5 ~10²) continuously.')}
+                  ? 'Modo Logarítmico Log₁₀: Permite comparar magnitudes dispares (S1 ~10⁴ vs S5 ~10²) en la misma escala continua.'
+                  : 'Log₁₀ Mode: Enables direct visual tracking of disparate magnitudes (S1 ~10⁴ vs S5 ~10²) continuously.')}
               </span>
             </div>
           </div>
@@ -677,16 +713,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       </div>
 
-      {/* High Density Scenario Comparison Matrix Row */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg flex flex-col">
-        <div className="px-4 py-2 border-b border-slate-800 flex justify-between items-center">
+      {/* Secondary comparison starts collapsed so the primary decision stays prominent. */}
+      <details className="bg-slate-900/50 border border-slate-800 rounded-lg flex flex-col group">
+        <summary className="px-4 py-3 flex justify-between items-center cursor-pointer list-none select-none">
+          <span className="flex items-center gap-2">
+            <span className="text-slate-500 transition-transform group-open:rotate-90">›</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              {language === 'es' ? 'Comparar los demás escenarios' : 'Compare other scenarios'}
+            </span>
+          </span>
+          <span className="text-xs font-mono text-slate-500 italic">
+            {t.timeHorizon} {horizonMonths} {t.monthsCount}
+          </span>
+        </summary>
+        <div className="border-t border-slate-800">
+          <div className="px-4 py-2 flex justify-end">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             {t.policyMatrixTitle}
           </span>
-          <div className="text-xs font-mono text-slate-500 italic">
-            {t.timeHorizon} {horizonMonths} {t.monthsCount}
           </div>
-        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-800">
           {SCENARIO_DEFINITIONS.filter((s) => s.id !== 'baseline').map((s) => {
@@ -723,9 +768,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
               </div>
             );
-          })}
+         })}
         </div>
-      </div>
+        </div>
+      </details>
 
     </div>
   );

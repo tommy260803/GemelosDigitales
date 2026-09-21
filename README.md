@@ -185,7 +185,64 @@ streamlit run streamlit_app.py
 
 ### Docker Compose
 
-`
+Docker Compose levanta PostgreSQL/PostGIS, Redis, FastAPI y el frontend Express/React.
+
+#### Requisitos
+
+- Docker Desktop instalado y ejecutándose.
+- Puertos disponibles: `3000`, `5433`, `6379` y `8000`.
+
+#### Configuración opcional
+
+Copia `.env.example` como `.env` y configura `GEMINI_API_KEY` si quieres utilizar el copiloto con Gemini. La aplicación funciona sin esa clave usando respuestas locales.
+
+#### Arrancar el proyecto
+
+```bash
+# Construir imágenes y arrancar todos los servicios en segundo plano
+docker compose up --build -d
+
+# Ver el estado de los servicios
+docker compose ps
+
+# Ver logs en tiempo real
+docker compose logs -f
+```
+
+Abre la aplicación en [http://localhost:3000](http://localhost:3000).
+
+Endpoints útiles:
+
+- Frontend: `http://localhost:3000`
+- Health del frontend: `http://localhost:3000/api/health`
+- Health de FastAPI: `http://localhost:8000/health`
+- Documentación FastAPI: `http://localhost:8000/docs`
+- PostgreSQL/PostGIS: `localhost:5433`
+- Redis: `localhost:6379`
+
+El frontend redirige automáticamente las rutas `/api/*` compatibles con FastAPI al servicio `backend`. Si FastAPI no está disponible, el frontend utiliza el motor local de respaldo.
+
+#### Detener el proyecto
+
+```bash
+# Detener contenedores sin borrar los datos de PostgreSQL
+docker compose down
+
+# Detener y borrar también el volumen de la base de datos
+docker compose down -v
+```
+
+#### Reconstruir un servicio concreto
+
+```bash
+docker compose up --build -d backend
+docker compose up --build -d frontend
+```
+
+La primera construcción puede tardar varios minutos porque instala las dependencias científicas de Python y compila el frontend.
+
+---
+
 ## 8. Distritos (25 distritos, 5 países)
 
 ### Kenya

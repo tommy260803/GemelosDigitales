@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+*.log
+.antigravity
+backend
+database
+README.md
+BASES.md
+*.pbtxt
+*.csv

@@ -388,8 +388,8 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
                 <span className="text-xs text-emerald-500 block">Convergencia &lt; 1.05</span>
               </div>
               <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800">
-                <span className="text-xs text-slate-500 uppercase block">Error Estándar (MCSE):</span>
-                <span className="text-sky-300 font-bold">Â±{asyncMcResult.mcStandardError}</span>
+              <span className="text-xs text-slate-500 uppercase block">Error Estándar (MCSE):</span>
+                 <span className="text-sky-300 font-bold">±{asyncMcResult.mcStandardError}</span>
                 <span className="text-xs text-slate-400 block">&lt; 1.2% varianza</span>
               </div>
               <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800">

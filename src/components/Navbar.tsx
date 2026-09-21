@@ -68,6 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { apiAvailable } = useApi();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const [isAdvancedMenuOpen, setIsAdvancedMenuOpen] = useState(false);
 
   const countries: Country[] = ['Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Ethiopia'];
   const isHighRiskDistrict = selectedDistrict?.baselineMMR >= 500;
@@ -84,6 +85,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'code-arch', label: t.tabCodeArch, icon: Code2, dot: 'bg-slate-400' },
   ];
 
+  const navGroups = [
+    { label: language === 'es' ? 'EXPLORAR' : 'EXPLORE', ids: ['dashboard', 'gis-map', 'multi-year'] },
+    { label: language === 'es' ? 'ANALIZAR' : 'ANALYZE', ids: ['causal-model', 'scenarios', 'equity', 'validation'] },
+    { label: language === 'es' ? 'ENTREGABLES' : 'OUTPUTS', ids: ['reports', 'code-arch'] },
+  ];
+
   return (
     <header className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors ${
       theme === 'light'
@@ -91,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         : 'bg-[#0c0e12]/95 border-slate-800 shadow-sm text-white'
     }`}>
       {/* Top Banner */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
+      <div className="w-full max-w-[1680px] mx-auto px-3 sm:px-5 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between h-14 gap-2">
           
           {/* Logo & Branding */}
@@ -140,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center space-x-1.5 sm:space-x-2">
             
             {/* District Selector */}
-            <div className={`flex items-center border rounded px-1.5 sm:px-2 py-1 text-xs shadow-inner max-w-[135px] sm:max-w-[160px] sm:max-w-[200px] md:max-w-none ${
+            <div className={`flex items-center border rounded px-1.5 sm:px-2 py-1 text-xs shadow-inner max-w-[118px] sm:max-w-[180px] lg:max-w-[230px] ${
               theme === 'light'
                 ? 'bg-slate-100 border-slate-300 text-slate-800'
                 : 'bg-slate-800/90 border-slate-700 text-slate-200'
@@ -481,25 +488,42 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Exportar PDF</span>
               </button>
             </div>
+
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-2">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-1.5">{language === 'es' ? 'Navegación' : 'Navigation'}</p>
+              <div className="grid grid-cols-2 gap-1">
+                {navTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => { onTabChange(tab.id); setIsMobileMenuOpen(false); }}
+                      className={`flex items-center gap-1.5 px-2 py-2 rounded text-left text-xs font-mono cursor-pointer ${currentTab === tab.id ? 'bg-sky-500/10 text-sky-500 font-bold' : theme === 'light' ? 'text-slate-600 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-800'}`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Navigation Tabs - High Density Row with Horizontal Touch Scrolling */}
-        <nav className={`flex space-x-1 overflow-x-auto py-1.5 scrollbar-none border-t touch-pan-x ${
+        {/* Primary navigation stays short; technical views live in the advanced menu. */}
+        <nav className={`hidden sm:flex items-center gap-1 py-2 border-t ${
           theme === 'light' ? 'border-slate-200' : 'border-slate-800/80'
         }`}>
-          {navTabs.map((tab) => {
+          {navGroups[0].ids.concat(['scenarios', 'equity', 'reports']).map((id) => {
+            const tab = navTabs.find((item) => item.id === id)!;
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
             return (
               <button
                 key={tab.id}
                 id={`tab-${tab.id}`}
-                onClick={() => {
-                  onTabChange(tab.id);
-                  if (isMobileMenuOpen) setIsMobileMenuOpen(false);
-                }}
-                className={`flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-2.5 py-1 rounded text-xs font-mono transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
+                onClick={() => onTabChange(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-mono transition-colors whitespace-nowrap cursor-pointer ${
                   isActive
                     ? theme === 'light'
                       ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 shadow-xs'
@@ -509,11 +533,41 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-sky-500' : tab.dot}`}></span>
-                <span className="text-sm sm:text-xs">{tab.label}</span>
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
               </button>
             );
           })}
+          <div className="relative ml-auto">
+            <button
+              onClick={() => setIsAdvancedMenuOpen((open) => !open)}
+              aria-expanded={isAdvancedMenuOpen}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-mono transition-colors cursor-pointer ${
+                theme === 'light' ? 'text-slate-600 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <span>{language === 'es' ? 'Más herramientas' : 'More tools'}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isAdvancedMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isAdvancedMenuOpen && (
+              <div className={`absolute right-0 top-full mt-1 w-56 rounded-lg border p-1.5 shadow-xl z-50 ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-700'}`}>
+                {navGroups[1].ids.concat(['code-arch']).map((id) => {
+                  const tab = navTabs.find((item) => item.id === id)!;
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => { onTabChange(tab.id); setIsAdvancedMenuOpen(false); }}
+                      className={`w-full flex items-center gap-2 px-2.5 py-2 rounded text-left text-xs font-mono cursor-pointer ${currentTab === tab.id ? 'bg-sky-500/10 text-sky-500' : theme === 'light' ? 'text-slate-600 hover:bg-slate-100' : 'text-slate-300 hover:bg-slate-800'}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
       </div>
     </header>
