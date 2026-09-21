@@ -22,7 +22,8 @@ import {
   RefreshCw,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  PanelLeft
 } from 'lucide-react';
 import { DistrictData, Country, UserProfile } from '../types';
 import { SUB_SAHARAN_DISTRICTS } from '../data/districts';
@@ -45,6 +46,7 @@ interface NavbarProps {
   onExportWord: () => void;
   onRefreshDistricts?: () => void;
   isRefreshing?: boolean;
+  onToggleSidebar: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -62,6 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onExportWord,
   onRefreshDistricts,
   isRefreshing = false,
+  onToggleSidebar,
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -433,6 +436,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile Menu Toggle Button */}
             <button
+              id="btn-sidebar-toggle"
+              onClick={onToggleSidebar}
+              className={`lg:hidden p-1.5 rounded border transition cursor-pointer ${
+                theme === 'light'
+                  ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                  : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+              }`}
+              aria-label={language === 'es' ? 'Abrir navegación lateral' : 'Open sidebar navigation'}
+            >
+              <PanelLeft className="w-4 h-4" />
+            </button>
+
+            <button
               id="btn-mobile-menu-toggle"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={`p-1.5 rounded border sm:hidden transition cursor-pointer ${
@@ -511,7 +527,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Primary navigation stays short; technical views live in the advanced menu. */}
-        <nav className={`hidden sm:flex items-center gap-1 py-2 border-t ${
+          <nav className={`hidden sm:flex lg:hidden items-center gap-1 py-2 border-t ${
           theme === 'light' ? 'border-slate-200' : 'border-slate-800/80'
         }`}>
           {navGroups[0].ids.concat(['scenarios', 'equity', 'reports']).map((id) => {

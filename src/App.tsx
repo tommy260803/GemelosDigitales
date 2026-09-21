@@ -22,6 +22,7 @@ import { CodeArchitectureView } from './components/CodeArchitectureView';
 import { AICopilotModal } from './components/AICopilotModal';
 import { AuthModal } from './components/AuthModal';
 import { DHSImportModal } from './components/DHSImportModal';
+import { Sidebar } from './components/Sidebar';
 
 function AppContent() {
   const { t } = useLanguage();
@@ -35,6 +36,7 @@ function AppContent() {
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isDHSImportOpen, setIsDHSImportOpen] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // RBAC and JWT Authentication state
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => AuthService.getCurrentProfile());
@@ -183,12 +185,21 @@ function AppContent() {
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
           onExportWord={handleExportWord}
-          onRefreshDistricts={handleRefreshDistricts}
-          isRefreshing={isRefreshingDistricts}
-        />
+           onRefreshDistricts={handleRefreshDistricts}
+           isRefreshing={isRefreshingDistricts}
+           onToggleSidebar={() => setIsSidebarOpen((open) => !open)}
+         />
 
-        {/* Main View Container */}
-        <main className="w-full max-w-[1680px] mx-auto px-3 sm:px-5 lg:px-8 xl:px-10 py-4 sm:py-6">
+        <div className="mx-auto flex w-full max-w-[1800px]">
+          <Sidebar
+            currentTab={currentTab}
+            onTabChange={setCurrentTab}
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+
+          {/* Main View Container */}
+          <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 xl:px-10">
           {currentTab === 'dashboard' && (
             <DashboardView
               district={selectedDistrict}
@@ -244,7 +255,8 @@ function AppContent() {
           {currentTab === 'code-arch' && (
             <CodeArchitectureView />
           )}
-        </main>
+          </main>
+        </div>
       </div>
 
       {/* Persistent High Density Footer with Telemetry Disclosures */}
