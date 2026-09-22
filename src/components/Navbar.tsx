@@ -24,7 +24,6 @@ import {
   BarChart3
 } from 'lucide-react';
 import { DistrictData, Country, UserProfile } from '../types';
-import { SUB_SAHARAN_DISTRICTS } from '../data/districts';
 import { useLanguage } from '../i18n/translations';
 import { useTheme } from '../context/ThemeContext';
 import { useApi } from '../context/ApiContext';
@@ -52,7 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTabChange,
   selectedDistrict,
   onDistrictChange,
-  districtsList = SUB_SAHARAN_DISTRICTS,
+  districtsList = [],
   currentUser,
   onOpenAuthModal,
   onOpenDHSImport,

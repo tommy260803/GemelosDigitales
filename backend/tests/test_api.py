@@ -71,8 +71,11 @@ class TestSimulationEndpoints:
         assert data["scenario_id"] == "baseline"
         assert data["trajectory_count"] == 12
         assert "summary" in data
-        assert "equity_disaggregation" in data
-        assert len(data["equity_disaggregation"]) == 5
+        assert data["equity_disaggregation"] == []
+        assert len(data["trajectories"]) == 12
+        assert data["summary"]["deaths_avoided"] == 0
+        assert data["run_metadata"]["integrator"] == "RK4"
+        assert data["run_metadata"]["deterministic"] is True
 
     def test_simulation_run_scenario_d(self, client):
         response = client.post("/simulation/run", json={
@@ -83,8 +86,8 @@ class TestSimulationEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["scenario_id"] == "scenario_d"
-        assert data["summary"]["mmr_reduction_percent"] > 0
-        assert data["summary"]["lives_saved"] > 0
+        assert data["summary"]["mortality_reduction_percent"] > 0
+        assert data["summary"]["deaths_avoided"] > 0
 
     def test_simulation_invalid_district(self, client):
         response = client.post("/simulation/run", json={
@@ -115,8 +118,8 @@ class TestScenarioComparison:
         response = client.get("/simulation/compare/ke-garissa")
         data = response.json()
         comparison = data["comparison"]
-        assert comparison["baseline"]["mmr_final"] == comparison["baseline"]["mmr_final"]
-        assert comparison["scenario_d"]["mmr_final"] < comparison["baseline"]["mmr_final"]
+        assert comparison["baseline"]["deaths_avoided"] == 0
+        assert comparison["scenario_d"]["horizon_mmr"] < comparison["baseline"]["horizon_mmr"]
 
 
 class TestValidationEndpoints:
@@ -124,39 +127,19 @@ class TestValidationEndpoints:
 
     def test_validation_ks(self, client):
         response = client.post("/validation/ks", json={"district_id": "ke-garissa"})
-        assert response.status_code == 200
-        data = response.json()
-        assert "statistic_d" in data
-        assert "p_value" in data
-        assert 0 <= data["statistic_d"] <= 1
+        assert response.status_code == 410
 
     def test_validation_sobol(self, client):
         response = client.post("/validation/sobol", json={"district_id": "ke-garissa"})
-        assert response.status_code == 200
-        data = response.json()
-        assert "parameters" in data
-        assert "first_order_indices" in data
-        assert "total_order_indices" in data
-        assert "top_variance_contributors" in data
+        assert response.status_code == 410
 
     def test_validation_bootstrap(self, client):
         response = client.post("/validation/bootstrap", json={"district_id": "ke-garissa"})
-        assert response.status_code == 200
-        data = response.json()
-        assert "iterations" in data
-        assert data["iterations"] == 1000
-        assert "mean_lives_saved" in data
-        assert "ci95_lives_saved" in data
-        assert len(data["ci95_lives_saved"]) == 2
+        assert response.status_code == 410
 
     def test_validation_external(self, client):
         response = client.get("/validation/external/ke-garissa")
-        assert response.status_code == 200
-        data = response.json()
-        assert "rmse" in data
-        assert "r_squared" in data
-        assert "mean_absolute_error" in data
-        assert data["test_district"] == "Garissa District"
+        assert response.status_code == 410
 
 
 class TestScenariosEndpoint:

@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { DistrictData, Country, HealthFacilityPoint } from '../types';
-import { SUB_SAHARAN_DISTRICTS } from '../data/districts';
-import { SystemDynamicsEngine } from '../services/systemDynamics';
 import { TerrainService } from '../services/terrainService';
 import { Terrain3DCanvas } from './Terrain3DCanvas';
 import { TerrainElevationProfile } from './TerrainElevationProfile';
@@ -52,7 +50,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
 }) => {
   const { language } = useLanguage();
   const { theme } = useTheme();
-  const allDistricts = propDistrictsList || propDistricts || SUB_SAHARAN_DISTRICTS;
+  const allDistricts = propDistrictsList || propDistricts || [];
   
   const currentSelectedDistrict: DistrictData = useMemo(() => {
     if (propSelectedDistrict) return propSelectedDistrict;
@@ -60,7 +58,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
       const found = allDistricts.find((d) => d.id === selectedDistrictId);
       if (found) return found;
     }
-    return allDistricts[0] || SUB_SAHARAN_DISTRICTS[0];
+    return allDistricts[0];
   }, [propSelectedDistrict, selectedDistrictId, allDistricts]);
 
   // View Mode: 2D Choropleth vs 3D Topographic DEM
@@ -100,18 +98,8 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
     return TerrainService.getTopographicAccessibilityKPI(targetDistrict);
   }, [targetDistrict]);
 
-  // Compute metric calculations
-  const districtMetrics = useMemo(() => {
-    const map = new Map<string, { livesSaved: number; mmrReduction: number }>();
-    allDistricts.forEach((d) => {
-      const res = SystemDynamicsEngine.simulate(d, 'scenario_d');
-      map.set(d.id, {
-        livesSaved: res.summary.livesSaved,
-        mmrReduction: res.summary.mmrReductionPercent,
-      });
-    });
-    return map;
-  }, [allDistricts]);
+  // Scenario metrics are supplied by the backend; no client-side simulation is run here.
+  const districtMetrics = useMemo(() => new Map<string, { livesSaved: number; mmrReduction: number }>(), []);
 
   // Metric color and size calculator for 2D View
   const getMetricValue = (d: DistrictData, metric: ChoroplethMetric): number => {
@@ -161,10 +149,6 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
     const y = ((maxLat - lat) / (maxLat - minLat)) * 500;
     return { x: Math.max(30, Math.min(770, x)), y: Math.max(30, Math.min(470, y)) };
   };
-
-  const simScenario = useMemo(() => {
-    return SystemDynamicsEngine.simulate(targetDistrict, activeScenarioId);
-  }, [targetDistrict, activeScenarioId]);
 
   return (
     <div className="space-y-6 font-sans">
@@ -457,8 +441,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
           {/* Digital Twin Scenario Projection Card */}
           <DigitalTwinProjectionCard
             district={targetDistrict}
-            activeScenarioId={activeScenarioId}
-            onSelectScenario={(scenId) => setActiveScenarioId(scenId)}
+            scenarioId={activeScenarioId}
           />
 
           {/* Topographic Accessibility KPI */}

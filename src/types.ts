@@ -40,6 +40,11 @@ export interface DistrictData {
   };
 }
 
+/** FastAPI territorial payload; territorial values are never bundled in the client. */
+export type Territory = DistrictData;
+export interface SimulationRequest { district_id: string; scenario_id: string; months: number; custom_params?: Record<string, number>; }
+export interface RunMetadata { timestamp: string; integrator: 'RK4'; dt_months: number; simulation_months: number; effective_parameters: Record<string, number>; deterministic: boolean; random_seed: null; }
+
 export interface SDParameters {
   // Geographic Access
   avgDistanceKm: number;
@@ -403,4 +408,3 @@ export interface SimulationProjectionResponse {
     h2_cost_effective_who: boolean;
   };
 }
-

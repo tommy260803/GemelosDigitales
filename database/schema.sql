@@ -48,6 +48,15 @@ CREATE TABLE IF NOT EXISTS health_districts (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Versioned model-input columns. Values are loaded from data/model_inputs;
+-- they are model inputs, not claims of external empirical provenance.
+ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS health_facilities_count INT NOT NULL DEFAULT 50;
+ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS road_quality_index NUMERIC(4,3);
+ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS transport_cost_usd NUMERIC(8,2);
+ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS community_trust_baseline NUMERIC(4,3);
+ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS facility_delivery_fee_usd NUMERIC(8,2);
+ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS baseline_complication_rate NUMERIC(5,4);
+
 -- 3. System Dynamics Model Parameter Sets
 CREATE TABLE IF NOT EXISTS sd_model_parameters (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

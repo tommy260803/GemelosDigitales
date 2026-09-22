@@ -37,8 +37,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: maternal_health_api
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-twin_admin}:${POSTGRES_PASSWORD:-secure_twin_password_2026}@postgres:5432/${POSTGRES_DB:-maternal_twin_db}

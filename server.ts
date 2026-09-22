@@ -4,7 +4,6 @@ import { createServer as createViteServer } from 'vite';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
-import { SUB_SAHARAN_DISTRICTS } from './src/data/districts.ts';
 import { TerrainService } from './src/services/terrainService.ts';
 
 dotenv.config();
@@ -43,16 +42,21 @@ async function startServer() {
       engine: 'System Dynamics 5-Stock Runge-Kutta 4th Order',
       version: '2.4.0',
       timestamp: new Date().toISOString(),
-      districtsLoaded: SUB_SAHARAN_DISTRICTS.length,
-      countries: ['Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Ethiopia'],
+      districtsLoaded: 'served by FastAPI /districts',
     });
   });
 
   // Geospatial 3D: DEM Grid & Topographical Accessibility KPIs
-  app.get('/api/geospatial/dem', (req, res) => {
+  const getDistrict = async (districtId: unknown) => {
+    if (typeof districtId !== 'string') throw new Error('districtId is required');
+    const response = await fetch(`${process.env.BACKEND_URL || 'http://backend:8000'}/districts/${encodeURIComponent(districtId)}`);
+    if (!response.ok) throw new Error(`FastAPI district request failed: ${response.status}`);
+    return response.json();
+  };
+  app.get('/api/geospatial/dem', async (req, res) => {
     try {
       const { districtId } = req.query;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
+      const district = await getDistrict(districtId);
       const dem = TerrainService.generateDistrictDEM(district, 36);
       const kpis = TerrainService.getTopographicAccessibilityKPI(district);
       res.json({ dem, kpis });
@@ -63,10 +67,10 @@ async function startServer() {
   });
 
   // Geospatial 3D: Health Facilities (EmONC & CEmONC with Altitude)
-  app.get('/api/geospatial/health-facilities', (req, res) => {
+  app.get('/api/geospatial/health-facilities', async (req, res) => {
     try {
       const { districtId } = req.query;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
+      const district = await getDistrict(districtId);
       const facilities = TerrainService.getHealthFacilities(district);
       res.json(facilities);
     } catch (error: any) {
@@ -76,10 +80,10 @@ async function startServer() {
   });
 
   // Geospatial 3D: Obstetric Referral Route over Topographic Relief
-  app.get('/api/geospatial/referral-route', (req, res) => {
+  app.get('/api/geospatial/referral-route', async (req, res) => {
     try {
       const { districtId } = req.query;
-      const district = SUB_SAHARAN_DISTRICTS.find((d) => d.id === districtId) || SUB_SAHARAN_DISTRICTS[0];
+      const district = await getDistrict(districtId);
       const route = TerrainService.getObstetricReferralRoute(district);
       res.json(route);
     } catch (error: any) {

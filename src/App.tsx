@@ -1,8 +1,5 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { DistrictData, SimulationResult, ValidationMetrics, UserProfile, JWTSession } from './types';
-import { SUB_SAHARAN_DISTRICTS } from './data/districts';
-import { SystemDynamicsEngine, SCENARIO_DEFINITIONS } from './services/systemDynamics';
-import { StatisticalValidationService } from './services/statistics';
 import { ReportGenerationService } from './services/reporting';
 import { AuthService } from './services/auth';
 import { LanguageProvider, useLanguage } from './i18n/translations';
@@ -25,10 +22,10 @@ import { DHSImportModal } from './components/DHSImportModal';
 
 function AppContent() {
   const { t } = useLanguage();
-  const { apiAvailable, apiResults, apiValidation, refreshApiData } = useApi();
+  const { apiAvailable, apiResults, refreshApiData } = useApi();
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
-  const [districtsList, setDistrictsList] = useState<DistrictData[]>(SUB_SAHARAN_DISTRICTS);
-  const [selectedDistrict, setSelectedDistrict] = useState<DistrictData>(SUB_SAHARAN_DISTRICTS[0]);
+  const [districtsList, setDistrictsList] = useState<DistrictData[]>([]);
+  const [selectedDistrict, setSelectedDistrict] = useState<DistrictData | null>(null);
   const [activeScenarioId, setActiveScenarioId] = useState<'baseline' | 'scenario_a' | 'scenario_b' | 'scenario_c' | 'scenario_d'>('scenario_d');
   
   // Modals state
@@ -51,7 +48,7 @@ function AppContent() {
       if (data && data.length > 0) {
         const fullData = data as DistrictData[];
         setDistrictsList(fullData);
-        setSelectedDistrict(prev => fullData.find(d => d.id === prev.id) || fullData[0]);
+        setSelectedDistrict(prev => fullData.find(d => d.id === prev?.id) || fullData[0]);
       }
     } catch (e) {
       console.warn("Error refreshing districts:", e);
@@ -67,15 +64,15 @@ function AppContent() {
         if (data && data.length > 0) {
           const fullData = data as DistrictData[];
           setDistrictsList(fullData);
-          setSelectedDistrict(prev => fullData.find(d => d.id === prev.id) || fullData[0]);
+          setSelectedDistrict(prev => fullData.find(d => d.id === prev?.id) || fullData[0]);
         }
-      }).catch(e => console.warn("Using fallback districts:", e));
+      }).catch(e => console.warn("Backend unavailable:", e));
     });
   }, []);
 
   // Refresh API data when district changes
   useEffect(() => {
-    refreshApiData(selectedDistrict);
+    if (selectedDistrict) refreshApiData(selectedDistrict);
   }, [selectedDistrict, refreshApiData]);
 
   // Pre-calculate all simulation results (use API if available, else local)
@@ -83,64 +80,14 @@ function AppContent() {
     if (apiAvailable && Object.keys(apiResults).length > 0) {
       return apiResults;
     }
-    // Fallback to local engine
-    const results: Record<string, SimulationResult> = {};
-    SCENARIO_DEFINITIONS.forEach((s) => {
-      results[s.id] = SystemDynamicsEngine.simulate(selectedDistrict, s.id, {}, 36);
-    });
-    return results;
-  }, [selectedDistrict, apiAvailable, apiResults]);
+    return {};
+  }, [apiAvailable, apiResults]);
 
   const validationMetrics: ValidationMetrics = useMemo(() => {
-    if (apiAvailable && apiValidation) {
-      return apiValidation;
-    }
-    // Fallback to local engine
-    const sobolResult = StatisticalValidationService.runSobolSensitivity(selectedDistrict);
-    const scenarioDResult = SystemDynamicsEngine.simulate(selectedDistrict, 'scenario_d', {}, 36);
-    const baselineResult = SystemDynamicsEngine.simulate(selectedDistrict, 'baseline', {}, 36);
-    const observedReduction = ((baselineResult.summary.mmrBaseline - scenarioDResult.summary.mmrFinal) / baselineResult.summary.mmrBaseline) * 100;
-
-    return {
-      kolmogorovSmirnov: StatisticalValidationService.runKolmogorovSmirnovTest(selectedDistrict),
-      wilcoxonSignedRank: StatisticalValidationService.runWilcoxonSignedRankTest(),
-      sobolSensitivity: sobolResult,
-      bootstrap: StatisticalValidationService.runBootstrap(selectedDistrict, 'scenario_d'),
-      externalValidation: StatisticalValidationService.runExternalValidation(selectedDistrict.id),
-      hypothesisTesting: {
-        nullHypothesisH0: 'The digital twin does not identify systemic bottlenecks explaining ≥20% of maternal mortality variance.',
-        altHypothesisH1: 'The digital twin identifies 2–3 critical bottlenecks whose targeted simulation reduces maternal mortality by ≥15%.',
-        top3VarianceExplainedPercent: sobolResult.firstOrderIndices.slice(0, 3).reduce((a, b) => a + b, 0) * 100,
-        isH0Rejected: observedReduction >= 15,
-        isH1Confirmed: observedReduction >= 15,
-        observedScenarioDReductionPercent: observedReduction,
-        pValVariance: 0.001,
-        bottlenecks: [
-          {
-            rank: 1,
-            name: 'Geographic Access / Phase 2 Delay',
-            phase: 'Phase 2: Reaching Care',
-            varianceSharePercent: sobolResult.firstOrderIndices[0] * 100,
-            mitigationAction: 'Deploy 24/7 solar-equipped motorcycle ambulance network (Scenario A)',
-          },
-          {
-            rank: 2,
-            name: 'Financial Barrier to Facility Delivery',
-            phase: 'Phase 1: Decision to Seek Care',
-            varianceSharePercent: sobolResult.firstOrderIndices[1] * 100,
-            mitigationAction: 'Eliminate user fees for facility delivery and emergency transport (Scenario B)',
-          },
-          {
-            rank: 3,
-            name: 'Clinical Quality & Triage Capacity',
-            phase: 'Phase 3: Receiving Quality Care',
-            varianceSharePercent: sobolResult.firstOrderIndices[2] * 100,
-            mitigationAction: 'TBA/CHW danger sign certification + oxytocin/misoprostol stock guarantee (Scenario C)',
-          },
-        ],
-      },
-    };
-  }, [selectedDistrict, apiAvailable, apiValidation]);
+    // Validation endpoints intentionally return no scientific metrics until a
+    // documented empirical protocol is configured.
+    return {} as ValidationMetrics;
+  }, []);
 
   const handleExportPDF = () => {
     ReportGenerationService.generateExecutivePDF(selectedDistrict, allResults, validationMetrics);
@@ -154,16 +101,14 @@ function AppContent() {
     ReportGenerationService.generateExcelReport(selectedDistrict, allResults, validationMetrics);
   };
 
-  const handleImportDistrict = (newDistrict: DistrictData) => {
-    setDistrictsList((prev) => [newDistrict, ...prev]);
-    setSelectedDistrict(newDistrict);
-    setCurrentTab('dashboard');
-  };
-
   const handleUpdateAuthSession = (profile: UserProfile, session: JWTSession) => {
     setCurrentUser(profile);
     setCurrentSession(session);
   };
+
+  if (!selectedDistrict) {
+    return <div className="min-h-screen bg-[#0c0e12] text-slate-300 grid place-items-center font-mono">Backend unavailable or territorial data are loading.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#0c0e12] text-slate-200 font-sans selection:bg-sky-500 selection:text-slate-950 flex">
@@ -197,6 +142,7 @@ function AppContent() {
               activeScenarioId={activeScenarioId}
               onScenarioChange={setActiveScenarioId}
               onOpenCopilot={() => setIsCopilotOpen(true)}
+              simulationResult={allResults[activeScenarioId]}
             />
           )}
 
@@ -222,6 +168,7 @@ function AppContent() {
               district={selectedDistrict}
               activeScenarioId={activeScenarioId}
               onSelectScenario={setActiveScenarioId}
+              results={allResults}
             />
           )}
 
@@ -239,7 +186,7 @@ function AppContent() {
           {currentTab === 'reports' && (
             <ReportsView
               district={selectedDistrict}
-              activeScenarioId={activeScenarioId}
+              allResults={allResults}
             />
           )}
 
@@ -287,11 +234,10 @@ function AppContent() {
         onUpdateSession={handleUpdateAuthSession}
       />
 
-      {/* DHS Survey Microdata Import Modal */}
       <DHSImportModal
         isOpen={isDHSImportOpen}
         onClose={() => setIsDHSImportOpen(false)}
-        onImportDistrict={handleImportDistrict}
+        onImportDistrict={() => {}}
       />
 
     </div>

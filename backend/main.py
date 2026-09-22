@@ -6,6 +6,7 @@ RESTful API for System Dynamics Simulation Engine
 
 import os
 import uuid
+from dataclasses import asdict
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
 
@@ -21,6 +22,7 @@ from services.system_dynamics import (
 )
 from services.validation import StatisticalValidationPy
 from services.calibrator import ModelCalibratorPy
+from services.model_inputs import districts_from_datasets
 
 # =========================================================
 # APP CONFIGURATION
@@ -39,54 +41,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Demo districts for when DB is unavailable
-DEMO_DISTRICTS = {
-    'ke-garissa': DistrictData(
-        id='ke-garissa', name='Garissa District', country='Kenya', region='North Eastern',
-        population=841353, annual_births=29400, baseline_mmr=646.0,
-        anc1_coverage=62.4, anc4_coverage=38.1, institutional_delivery_rate=46.5,
-        c_section_rate=3.2, avg_distance_to_emonc=38.5, avg_travel_time_hours=3.9,
-        skilled_staff_ratio=1.1, blood_bank_availability=42.0, essential_drugs_availability=68.0,
-        insurance_coverage=11.2, poverty_rate=65.5, female_secondary_education=22.4,
-        traditional_birth_attendant_prevalence=48.0, lat=-0.4532, lng=39.6461,
-        osm_health_facilities_count=48,
-        wealth_quintile_mmr={'q1_poorest': 890, 'q2_poor': 760, 'q3_middle': 610, 'q4_richer': 490, 'q5_richest': 340}
-    ),
-    'ug-moroto': DistrictData(
-        id='ug-moroto', name='Moroto District (Karamoja)', country='Uganda', region='Karamoja',
-        population=135000, annual_births=5800, baseline_mmr=690.0,
-        anc1_coverage=60.5, anc4_coverage=28.0, institutional_delivery_rate=41.5,
-        c_section_rate=2.2, avg_distance_to_emonc=44.0, avg_travel_time_hours=4.2,
-        skilled_staff_ratio=0.9, blood_bank_availability=32.0, essential_drugs_availability=51.0,
-        insurance_coverage=2.1, poverty_rate=74.2, female_secondary_education=14.5,
-        traditional_birth_attendant_prevalence=54.0, lat=2.5345, lng=34.6666,
-        osm_health_facilities_count=18,
-        wealth_quintile_mmr={'q1_poorest': 950, 'q2_poor': 810, 'q3_middle': 660, 'q4_richer': 500, 'q5_richest': 360}
-    ),
-    'gh-ashanti': DistrictData(
-        id='gh-ashanti', name='Kumasi Metro', country='Ghana', region='Ashanti',
-        population=2800000, annual_births=84000, baseline_mmr=295.0,
-        anc1_coverage=98.0, anc4_coverage=82.5, institutional_delivery_rate=88.5,
-        c_section_rate=15.8, avg_distance_to_emonc=6.5, avg_travel_time_hours=0.8,
-        skilled_staff_ratio=3.8, blood_bank_availability=91.0, essential_drugs_availability=94.0,
-        insurance_coverage=82.0, poverty_rate=16.5, female_secondary_education=68.0,
-        traditional_birth_attendant_prevalence=8.5, lat=6.6885, lng=-1.6244,
-        osm_health_facilities_count=168,
-        wealth_quintile_mmr={'q1_poorest': 410, 'q2_poor': 340, 'q3_middle': 275, 'q4_richer': 220, 'q5_richest': 150}
-    ),
-    'et-afar': DistrictData(
-        id='et-afar', name='Awash & Semera Zone', country='Ethiopia', region='Afar',
-        population=620000, annual_births=23500, baseline_mmr=710.0,
-        anc1_coverage=44.5, anc4_coverage=24.0, institutional_delivery_rate=29.5,
-        c_section_rate=1.8, avg_distance_to_emonc=56.0, avg_travel_time_hours=5.1,
-        skilled_staff_ratio=0.7, blood_bank_availability=30.0, essential_drugs_availability=52.0,
-        insurance_coverage=9.0, poverty_rate=68.0, female_secondary_education=14.0,
-        traditional_birth_attendant_prevalence=62.0, lat=11.7925, lng=41.0089,
-        osm_health_facilities_count=28,
-        wealth_quintile_mmr={'q1_poorest': 975, 'q2_poor': 835, 'q3_middle': 680, 'q4_richer': 515, 'q5_richest': 365}
-    ),
-}
 
 # Database connection helper
 def get_db_connection():
@@ -146,13 +100,16 @@ class SimulationResponse(BaseModel):
     summary: Dict[str, Any]
     equity_disaggregation: List[Dict[str, Any]]
     trajectory_count: int
+    trajectories: List[Dict[str, Any]] = []
+    equity_status: Optional[str] = None
+    run_metadata: Dict[str, Any] = {}
 
 # =========================================================
 # HELPER FUNCTIONS
 # =========================================================
 
 def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
-    """Fetch district data from PostgreSQL, fallback to demo data."""
+    """Fetch PostgreSQL runtime data; CSV inputs are the non-DB fallback."""
     # Try database first
     try:
         conn = get_db_connection()
@@ -163,7 +120,7 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
                    avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
-                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, 50 as osm_health_facilities_count, wealth_quintiles_mmr
+                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr
             FROM health_districts WHERE id = %s
         """, (district_id,))
         row = cur.fetchone()
@@ -198,13 +155,12 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
                 wealth_quintile_mmr=row['wealth_quintiles_mmr']
             )
     except Exception as e:
-        print(f"Database unavailable, using demo data: {e}")
+        print(f"Database unavailable, using versioned model-input datasets: {e}")
     
-    # Fallback to demo data
-    return DEMO_DISTRICTS.get(district_id)
+    return next((d for d in districts_from_datasets() if d.id == district_id), None)
 
 def fetch_all_districts_from_db() -> List[DistrictData]:
-    """Fetch all districts from PostgreSQL, fallback to demo data."""
+    """Fetch all runtime districts; versioned datasets are the fallback."""
     districts = []
     try:
         conn = get_db_connection()
@@ -215,7 +171,7 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
                    avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
-                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, 50 as osm_health_facilities_count, wealth_quintiles_mmr
+                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr
             FROM health_districts ORDER BY country, name
         """)
         rows = cur.fetchall()
@@ -250,8 +206,8 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
                 wealth_quintile_mmr=row['wealth_quintiles_mmr']
             ))
     except Exception as e:
-        print(f"Database unavailable, using demo data: {e}")
-        districts = list(DEMO_DISTRICTS.values())
+        print(f"Database unavailable, using versioned model-input datasets: {e}")
+        districts = districts_from_datasets()
     return districts
 
 # =========================================================
@@ -354,33 +310,30 @@ async def run_simulation(req: SimulationRequest):
             "summary": {
                 "total_births": result.summary.total_births,
                 "total_maternal_deaths": result.summary.total_maternal_deaths,
-                "baseline_deaths": result.summary.baseline_deaths,
-                "lives_saved": result.summary.lives_saved,
-                "lives_saved_ci95": result.summary.lives_saved_ci95,
-                "mmr_baseline": result.summary.mmr_baseline,
-                "mmr_final": result.summary.mmr_final,
-                "mmr_reduction_percent": result.summary.mmr_reduction_percent,
-                "anc4_coverage_final": result.summary.anc4_coverage_final,
+                "horizon_mmr": result.summary.horizon_mmr,
+                "deaths_avoided": result.summary.deaths_avoided,
+                "mortality_reduction_percent": result.summary.mortality_reduction_percent,
+                "anc_coverage_final": result.summary.anc_coverage_final,
                 "facility_delivery_rate_final": result.summary.facility_delivery_rate_final,
                 "total_cost_usd": result.summary.total_cost_usd,
-                "cost_per_life_saved_usd": result.summary.cost_per_life_saved_usd,
-                "cost_per_life_saved_ci95": result.summary.cost_per_life_saved_ci95,
-                "icer_per_daly": result.summary.icer_per_daly,
+                "incremental_cost_usd": result.summary.incremental_cost_usd,
+                "cost_per_death_avoided_usd": result.summary.cost_per_death_avoided_usd,
+                "integrator": result.summary.integrator,
+                "dt_months": result.summary.dt_months,
+                "simulation_months": result.summary.simulation_months,
             },
-            "equity_disaggregation": [
-                {
-                    "quintile": q.quintile,
-                    "label": q.label,
-                    "population_share": q.population_share,
-                    "baseline_mmr": q.baseline_mmr,
-                    "simulated_mmr": q.simulated_mmr,
-                    "lives_saved": q.lives_saved,
-                    "relative_reduction": q.relative_reduction,
-                    "fiscal_cost_usd": q.fiscal_cost_usd,
-                    "cost_per_life_saved_in_q": q.cost_per_life_saved_in_q,
-                }
-                for q in result.equity_disaggregation
-            ],
+            "equity_disaggregation": [],
+            "equity_status": "not_computed_without_empirical stratification data",
+            "trajectories": [asdict(snapshot) for snapshot in result.trajectories],
+            "run_metadata": {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "integrator": result.summary.integrator,
+                "dt_months": result.summary.dt_months,
+                "simulation_months": result.summary.simulation_months,
+                "effective_parameters": asdict(result.parameters),
+                "random_seed": None,
+                "deterministic": True,
+            },
             "trajectory_count": len(result.trajectories),
         }
     except Exception as e:
@@ -397,16 +350,16 @@ async def compare_scenarios(district_id: str, months: int = 36):
         raise HTTPException(status_code=404, detail=f"District {district_id} not found")
     
     results = {}
+    baseline = SystemDynamicsEngine.simulate(district, 'baseline', {}, months)
     for scenario in SCENARIO_DEFINITIONS:
-        result = SystemDynamicsEngine.simulate(district, scenario['id'], {}, months)
+        result = baseline if scenario['id'] == 'baseline' else SystemDynamicsEngine.simulate(district, scenario['id'], {}, months, baseline_result=baseline)
         results[scenario['id']] = {
             "scenario_name": result.scenario_name,
-            "mmr_final": result.summary.mmr_final,
-            "lives_saved": result.summary.lives_saved,
-            "mmr_reduction_percent": result.summary.mmr_reduction_percent,
+            "horizon_mmr": result.summary.horizon_mmr,
+            "deaths_avoided": result.summary.deaths_avoided,
+            "mortality_reduction_percent": result.summary.mortality_reduction_percent,
             "total_cost_usd": result.summary.total_cost_usd,
-            "cost_per_life_saved_usd": result.summary.cost_per_life_saved_usd,
-            "icer_per_daly": result.summary.icer_per_daly,
+            "cost_per_death_avoided_usd": result.summary.cost_per_death_avoided_usd,
         }
     return {"district_id": district_id, "district_name": district.name, "comparison": results}
 
@@ -424,51 +377,19 @@ async def calibrate_model(req: CalibrationRequest):
 
 @app.post("/validation/ks")
 async def kolmogorov_smirnov_test(req: ValidationRequest):
-    district = fetch_district_from_db(req.district_id)
-    if not district:
-        raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")
-    
-    try:
-        result = StatisticalValidationPy.kolmogorov_smirnov(district)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"KS test failed: {str(e)}")
+    raise HTTPException(status_code=410, detail="Disabled: no empirical travel-time distribution is configured.")
 
 @app.post("/validation/sobol")
 async def sobol_sensitivity(req: ValidationRequest):
-    district = fetch_district_from_db(req.district_id)
-    if not district:
-        raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")
-    
-    try:
-        result = StatisticalValidationPy.sobol_sensitivity(district)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Sobol analysis failed: {str(e)}")
+    raise HTTPException(status_code=410, detail="Disabled: documented parameter ranges and a real global sensitivity design are required.")
 
 @app.post("/validation/bootstrap")
 async def bootstrap_confidence(req: ValidationRequest):
-    district = fetch_district_from_db(req.district_id)
-    if not district:
-        raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")
-    
-    try:
-        result = StatisticalValidationPy.bootstrap_confidence_intervals(district, 'scenario_d')
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Bootstrap failed: {str(e)}")
+    raise HTTPException(status_code=410, detail="Disabled: output perturbation is not parameter uncertainty propagation.")
 
 @app.get("/validation/external/{district_id}")
 async def external_validation(district_id: str):
-    district = fetch_district_from_db(district_id)
-    if not district:
-        raise HTTPException(status_code=404, detail=f"District {district_id} not found")
-    
-    try:
-        result = StatisticalValidationPy.external_validation(district)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"External validation failed: {str(e)}")
+    raise HTTPException(status_code=410, detail="Disabled: no independent external comparator is configured.")
 
 @app.get("/scenarios")
 async def get_scenarios():

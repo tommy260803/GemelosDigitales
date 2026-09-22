@@ -1,0 +1,6 @@
+country,source_file,weight_variable,weight_scale,women_n,psu_variable,psu_n,stratum_v022_variable,stratum_v022_n,stratum_v023_variable,stratum_v023_n,region_variable,region_n,residence_variable,residence_categories
+Ethiopia,ETIR8AFL.dta,v005,divide_by_1000000,21395,v021,797,v022,27,v023,27,v024,14,v025,2
+Ghana,GHIR8CFL.DTA,v005,divide_by_1000000,15014,v021,618,v022,32,v023,32,v024,16,v025,2
+Kenya,KEIR8CFL.DTA,v005,divide_by_1000000,32156,v021,1691,v022,92,v023,92,v024,47,v025,2
+Tanzania,TZIR82FL.DTA,v005,divide_by_1000000,15254,v021,628,v022,61,v023,61,v024,31,v025,2
+Uganda,UGIR7BFL.DTA,v005,divide_by_1000000,18506,v021,696,v022,34,v023,34,v024,15,v025,2

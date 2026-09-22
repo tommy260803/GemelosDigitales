@@ -1,0 +1,26 @@
+territory_id,territory_name,country,region,latitude,longitude,population,annual_births,baseline_mmr
+ke-garissa,Garissa District,Kenya,North Eastern,-0.4532,39.6461,841353,29400,646.00
+ke-turkana,Turkana Central,Kenya,Rift Valley,3.1191,35.5966,926976,34200,720.00
+ke-kilifi,Kilifi South,Kenya,Coast,-3.6305,39.8499,1453787,48500,478.00
+ke-kisumu,Kisumu West,Kenya,Nyanza,-0.0917,34.7680,1155574,37200,495.00
+ke-kakamega,Kakamega Central,Kenya,Western,0.2827,34.7519,1867579,59800,516.00
+tz-mwanza,Mwanza Rural (Ilemela/Magu),Tanzania,Lake Victoria,-2.5164,32.9000,1245000,43500,532.00
+tz-kigoma,Kigoma Rural,Tanzania,Western Tanganyika,-4.8769,29.6267,685000,26800,618.00
+tz-dodoma,Dodoma Urban & Bahi,Tanzania,Central,-6.1630,35.7516,765000,27100,445.00
+tz-arusha,Arusha Rural (Monduli),Tanzania,Northern,-3.3869,36.6830,620000,21500,462.00
+tz-morogoro,Morogoro Rural (Kilosa),Tanzania,Eastern,-6.8278,37.6591,710000,25900,508.00
+ug-gulu,Gulu District,Uganda,Northern Acholi,2.7747,32.2990,460000,18400,440.00
+ug-arua,Arua District,Uganda,West Nile,3.0303,30.9073,580000,23200,512.00
+ug-moroto,Moroto District (Karamoja),Uganda,Karamoja,2.5345,34.6666,135000,5800,690.00
+ug-jinja,Jinja District,Uganda,Eastern Busoga,0.4479,33.2026,520000,19800,388.00
+ug-mbarara,Mbarara District,Uganda,Western Ankole,-0.6072,30.6545,490000,18100,375.00
+gh-northern,Tamale Metro & Sagnarigu,Ghana,Northern,9.4008,-0.8393,620000,21000,420.00
+gh-upper-east,Bolgatanga & Bongo,Ghana,Upper East,10.7856,-0.8514,410000,13900,448.00
+gh-volta,Ho Municipal & Central,Ghana,Volta,6.6108,0.4786,360000,11200,355.00
+gh-ashanti,Kumasi Metro,Ghana,Ashanti,6.6885,-1.6244,2800000,84000,295.00
+gh-accra,Greater Accra East,Ghana,Greater Accra,5.6037,-0.1870,3400000,98000,260.00
+et-somali,Jigjiga Zone & Godey,Ethiopia,Somali,9.3533,42.7950,1100000,41800,685.00
+et-afar,Awash & Semera Zone,Ethiopia,Afar,11.7925,41.0089,620000,23500,710.00
+et-oromia,East Shewa (Adama),Ethiopia,Oromia,8.5414,39.2689,1750000,57700,430.00
+et-amhara,West Gojjam (Bahir Dar),Ethiopia,Amhara,11.5936,37.3908,1600000,51200,455.00
+et-tigray,Central Tigray (Mekelle),Ethiopia,Tigray,13.4967,39.4767,950000,29500,490.00
