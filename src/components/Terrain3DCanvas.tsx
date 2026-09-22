@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { DistrictData, DEMTerrainGrid, HealthFacilityPoint, ObstetricReferralRoute } from '../types';
 import { TerrainService } from '../services/terrainService';
+import { useLanguage } from '../i18n/translations';
 import { 
   RotateCw, 
   ZoomIn, 
@@ -41,6 +42,7 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
   showContourLines = true,
   activeScenarioId = 'baseline',
 }) => {
+  const { t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -360,7 +362,7 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 9px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('📍 Origen Rural (Manyatta)', originPt.x, originPt.y - 17);
+      ctx.fillText(`📍 ${t.tcOriginLabel}`, originPt.x, originPt.y - 17);
 
       // Draw Bottleneck Hazard Flags
       referralRoute.bottlenecks.forEach((bn) => {
@@ -514,21 +516,21 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
       <div className="absolute top-3 right-3 z-10 flex items-center space-x-1.5 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-lg p-1.5 shadow-xl text-xs font-mono">
         <button
           onClick={() => setZoom((prev) => Math.min(2.5, prev + 0.2))}
-          title="Zoom In"
+          title={t.tcZoomIn}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => setZoom((prev) => Math.max(0.6, prev - 0.2))}
-          title="Zoom Out"
+          title={t.tcZoomOut}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={() => setAutoRotate(!autoRotate)}
-          title={autoRotate ? 'Detener Rotación Automática' : 'Iniciar Rotación Automática'}
+          title={autoRotate ? t.tcStopRotate : t.tcStartRotate}
           className={`p-1.5 rounded transition ${autoRotate ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40' : 'hover:bg-slate-800 text-slate-300'}`}
         >
           <RotateCw className={`w-4 h-4 ${autoRotate ? 'animate-spin' : ''}`} />
@@ -540,7 +542,7 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
             setZoom(1.15);
             setPanOffset({ x: 0, y: 10 });
           }}
-          title="Restablecer Cámara 3D"
+          title={t.tcResetCamera}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition"
         >
           <Compass className="w-4 h-4" />
@@ -550,40 +552,40 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
       {/* Top Left DEM Information Overlay */}
       <div className="absolute top-3 left-3 z-10 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-lg p-3 text-xs font-mono space-y-1.5 shadow-xl max-w-[280px]">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-sky-400 font-bold uppercase tracking-wider">SRTM 3D DIGITAL ELEVATION</span>
-          <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-500/30">
-            {verticalExaggeration}x RELIEVE
+          <span className="text-xs text-sky-400 font-bold uppercase tracking-wider">{t.tcSrtmLabel}</span>
+          <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[11px] font-bold border border-emerald-500/30">
+            {verticalExaggeration}x {t.tcRelieve}
           </span>
         </div>
         <div className="text-white font-bold text-xs truncate">{district.name} ({district.country})</div>
-        <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400 pt-1 border-t border-slate-800">
-          <div>Altitud Mín: <strong className="text-slate-200">{demGrid.minAltitude}m</strong></div>
-          <div>Altitud Máx: <strong className="text-slate-200">{demGrid.maxAltitude}m</strong></div>
-          <div>Desnivel: <strong className="text-amber-300">{demGrid.maxAltitude - demGrid.minAltitude}m</strong></div>
-          <div>Pendiente Máx: <strong className="text-rose-400">{referralRoute.maxSlopePercent}%</strong></div>
+        <div className="grid grid-cols-2 gap-2 text-xs text-slate-400 pt-1 border-t border-slate-800">
+          <div>{t.tcMinAlt} <strong className="text-slate-200">{demGrid.minAltitude}m</strong></div>
+          <div>{t.tcMaxAlt} <strong className="text-slate-200">{demGrid.maxAltitude}m</strong></div>
+          <div>{t.tcElevationDiff} <strong className="text-amber-300">{demGrid.maxAltitude - demGrid.minAltitude}m</strong></div>
+          <div>{t.tcMaxSlope} <strong className="text-rose-400">{referralRoute.maxSlopePercent}%</strong></div>
         </div>
       </div>
 
       {/* Hypsometric Elevation Legend (Bottom Left) */}
-      <div className="absolute bottom-3 left-3 z-10 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-lg p-2.5 text-[10px] font-mono space-y-1 shadow-xl">
+      <div className="absolute bottom-3 left-3 z-10 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-lg p-2.5 text-xs font-mono space-y-1 shadow-xl">
         <div className="text-slate-400 font-bold flex items-center justify-between">
-          <span>Gradiente Hipsométrico</span>
-          <span className="text-slate-500">m.s.n.m.</span>
+          <span>{t.tcHypsometric}</span>
+          <span className="text-slate-500">{t.tcMetersASL}</span>
         </div>
         <div className="flex items-center space-x-1 pt-0.5">
-          <span className="w-3.5 h-2.5 rounded-sm bg-[#148c28]" title="0 - 500m (Llanuras / Costas)" />
-          <span className="text-slate-300 text-[9px]">0-500m</span>
-          <span className="w-3.5 h-2.5 rounded-sm bg-[#eab308]" title="500 - 1500m (Mesetas / Valles)" />
-          <span className="text-slate-300 text-[9px]">1.5k</span>
-          <span className="w-3.5 h-2.5 rounded-sm bg-[#a55f32]" title="1500 - 2500m (Tierras Altas)" />
-          <span className="text-slate-300 text-[9px]">2.5k</span>
-          <span className="w-3.5 h-2.5 rounded-sm bg-[#f1f5f9]" title="> 2500m (Cumbres Alpinas)" />
-          <span className="text-slate-300 text-[9px]">&gt;2.5k</span>
+          <span className="w-3.5 h-2.5 rounded-sm bg-[#148c28]" title={t.tcPlains} />
+          <span className="text-slate-300 text-[11px]">0-500m</span>
+          <span className="w-3.5 h-2.5 rounded-sm bg-[#eab308]" title={t.tcPlateaus} />
+          <span className="text-slate-300 text-[11px]">1.5k</span>
+          <span className="w-3.5 h-2.5 rounded-sm bg-[#a55f32]" title={t.tcHighlands} />
+          <span className="text-slate-300 text-[11px]">2.5k</span>
+          <span className="w-3.5 h-2.5 rounded-sm bg-[#f1f5f9]" title={t.tcAlpine} />
+          <span className="text-slate-300 text-[11px]">&gt;2.5k</span>
         </div>
         {showBarriers && (
-          <div className="flex items-center space-x-1.5 pt-1 text-rose-400 text-[9px]">
+          <div className="flex items-center space-x-1.5 pt-1 text-rose-400 text-[11px]">
             <span className="w-3 h-2 rounded-sm bg-rose-500/80" />
-            <span>Barrera Topográfica (&gt;15% pendiente)</span>
+            <span>{t.tcBarrier}</span>
           </div>
         )}
       </div>
@@ -597,33 +599,33 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
             top: Math.max(10, hoveredPoint.y - 110),
             pointerEvents: 'none',
           }}
-          className="z-30 bg-slate-950/95 backdrop-blur border border-sky-500/50 rounded-lg p-2.5 font-mono text-[10px] space-y-1 shadow-2xl w-[220px]"
+          className="z-30 bg-slate-950/95 backdrop-blur border border-sky-500/50 rounded-lg p-2.5 font-mono text-xs space-y-1 shadow-2xl w-[220px]"
         >
           <div className="font-bold text-white text-xs flex items-center justify-between">
             <span className="truncate">{hoveredPoint.facility.name}</span>
-            <span className="text-sky-400 text-[9px] uppercase">
+            <span className="text-sky-400 text-[11px] uppercase">
               {hoveredPoint.facility.facilityType.replace('_', ' ')}
             </span>
           </div>
           <div className="text-slate-300">
-            Altitud Terreno: <strong className="text-amber-300">{hoveredPoint.facility.altitudeMeters} m.s.n.m.</strong>
+            {t.tcTerrainAlt} <strong className="text-amber-300">{hoveredPoint.facility.altitudeMeters} m.s.n.m.</strong>
           </div>
           <div className="text-slate-300">
-            Capacidad Quirúrgica: <strong className={hoveredPoint.facility.cSectionCapable ? 'text-emerald-400' : 'text-rose-400'}>
-              {hoveredPoint.facility.cSectionCapable ? 'Cesárea 24/7' : 'Básica'}
+            {t.tcSurgicalCapacity} <strong className={hoveredPoint.facility.cSectionCapable ? 'text-emerald-400' : 'text-rose-400'}>
+              {hoveredPoint.facility.cSectionCapable ? t.tcCesarean : t.tcBasic}
             </strong>
           </div>
           <div className="text-slate-300">
-            Banco de Sangre: <strong className={hoveredPoint.facility.bloodBankReady ? 'text-emerald-400' : 'text-amber-400'}>
-              {hoveredPoint.facility.bloodBankReady ? 'Disponible' : 'Cadena Fría Débil'}
+            {t.tcBloodBank} <strong className={hoveredPoint.facility.bloodBankReady ? 'text-emerald-400' : 'text-amber-400'}>
+              {hoveredPoint.facility.bloodBankReady ? t.tcAvailable : t.tcColdChainWeak}
             </strong>
           </div>
         </div>
       )}
 
       {/* Navigation Helper Footer */}
-      <div className="absolute bottom-2 right-16 z-10 text-[9px] font-mono text-slate-500 hidden sm:block">
-        Arrastra para orbitar 3D | Shift+Arrastra para desplazar | Rueda para zoom
+      <div className="absolute bottom-2 right-16 z-10 text-[11px] font-mono text-slate-500 hidden sm:block">
+        {t.tcDragHelp}
       </div>
 
     </div>

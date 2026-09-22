@@ -13,6 +13,7 @@ import {
   FileSearch
 } from 'lucide-react';
 import { DistrictData } from '../types';
+import { useLanguage } from '../i18n/translations';
 
 interface AICopilotModalProps {
   isOpen: boolean;
@@ -35,11 +36,12 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
   selectedDistrict,
   activeScenarioId,
 }) => {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       sender: 'ai',
-      text: `Hello! I am your **Epidemiological System Dynamics AI Advisor** for Maternal and Child Health.\n\nI have loaded the digital twin model for **${selectedDistrict.name} (${selectedDistrict.country})** with active scenario **${activeScenarioId.toUpperCase()}**.\n\nYou can ask me about:\n- Key systemic bottlenecks (Phase 1, 2, and 3 delays)\n- Cost-effectiveness thresholds and ICER ($/DALY averted)\n- Equity impact across DHS Wealth Quintiles (Q1–Q5)\n- Or upload a **clinical logbook photo, partograph, or GIS bottleneck map** for multimodal diagnostic audit.`,
+      text: t.aiWelcomeMsg,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -59,7 +61,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
     const newMsg: ChatMessage = {
       id: userMsgId,
       sender: 'user',
-      text: text || 'Please analyze this uploaded clinical or spatial document.',
+      text: text || t.aiAnalyzeDoc,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       imagePreview: selectedImage?.preview,
     };
@@ -88,7 +90,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
           {
             id: (Date.now() + 1).toString(),
             sender: 'ai',
-            text: data.analysis || data.reply || (data.error ? `Notice: ${data.error}` : 'Image analyzed successfully.'),
+            text: data.analysis || data.reply || (data.error ? `Notice: ${data.error}` : t.aiImageAnalyzed),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
@@ -110,7 +112,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
           {
             id: (Date.now() + 1).toString(),
             sender: 'ai',
-            text: data.reply || (data.error ? `Notice: ${data.error}` : 'Analysis complete.'),
+            text: data.reply || (data.error ? `Notice: ${data.error}` : t.aiAnalysisComplete),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
@@ -121,7 +123,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
         {
           id: (Date.now() + 1).toString(),
           sender: 'ai',
-          text: 'Error communicating with Epidemiologist Copilot service. Defaulting to local System Dynamics heuristic analysis.',
+          text: t.aiError,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -148,10 +150,10 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
   };
 
   const quickPrompts = [
-    `What is the primary bottleneck in ${selectedDistrict.name}?`,
-    `Why is Scenario (d) more cost-effective than single interventions?`,
-    `How does user fee elimination benefit Quintile 1 (poorest)?`,
-    `What are the critical danger signs trained under Scenario (c)?`,
+    t.aiQuickPrompt1,
+    t.aiQuickPrompt2,
+    t.aiQuickPrompt3,
+    t.aiQuickPrompt4,
   ];
 
   return (
@@ -166,13 +168,13 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="font-bold text-white text-sm">Maternal Health Epidemiologist AI Copilot</h3>
+                <h3 className="font-bold text-white text-sm">{t.aiModalTitle}</h3>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-semibold border border-teal-500/30">
-                  Gemini Server-Side
+                  {t.aiBackend}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                Context: {selectedDistrict.name} ({selectedDistrict.country}) | Scenario: {activeScenarioId.toUpperCase()}
+                {t.aiContext} {selectedDistrict.name} ({selectedDistrict.country}) | {t.aiScenario} {activeScenarioId.toUpperCase()}
               </p>
             </div>
           </div>
@@ -225,7 +227,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
           {isLoading && (
             <div className="flex items-center space-x-2 text-xs text-teal-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800 w-fit">
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span>Epidemiologist AI is evaluating System Dynamics parameters...</span>
+              <span>{t.aiEvaluating}</span>
             </div>
           )}
         </div>
@@ -248,13 +250,13 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
           <div className="px-4 py-2 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs">
             <div className="flex items-center space-x-2">
               <ImageIcon className="w-4 h-4 text-teal-400" />
-              <span className="text-slate-300">Document/Map attached for Multimodal Audit</span>
+              <span className="text-slate-300">{t.aiDocAttached}</span>
             </div>
             <button
               onClick={() => setSelectedImage(null)}
               className="text-rose-400 hover:text-rose-300 text-xs font-semibold"
             >
-              Remove
+              {t.aiRemove}
             </button>
           </div>
         )}
@@ -271,7 +273,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            title="Upload labor register, partograph, or GIS map"
+            title={t.aiUploadTitle}
             className="p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition"
           >
             <Upload className="w-4 h-4" />
@@ -282,7 +284,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder="Ask a policy, calibration, or epidemiological question..."
+            placeholder={t.aiPlaceholder}
             className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
           />
 

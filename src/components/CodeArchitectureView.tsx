@@ -10,15 +10,19 @@ import {
   Check, 
   ExternalLink 
 } from 'lucide-react';
+import { useLanguage } from '../i18n/translations';
+import { useTheme } from '../context/ThemeContext';
 
 export const CodeArchitectureView: React.FC = () => {
+  const { t } = useLanguage();
+  const { theme } = useTheme();
   const [selectedFile, setSelectedFile] = useState<string>('backend/services/system_dynamics.py');
   const [copied, setCopied] = useState<boolean>(false);
 
   const fileContents: Record<string, { language: string; content: string; description: string }> = {
     'backend/services/system_dynamics.py': {
       language: 'python',
-      description: 'Core 5-Stock Differential Equation System solved with scipy.integrate.solve_ivp (RK45).',
+      description: t.caFile1Desc,
       content: `"""
 Maternal Health System Dynamics Differential Equation Solver
 5 Core Stocks (Conserved Continuum Population):
@@ -140,7 +144,7 @@ class SystemDynamicsEnginePy:
     },
     'backend/services/validation.py': {
       language: 'python',
-      description: 'Statistical validation suite: Kolmogorov-Smirnov, Wilcoxon Signed-Rank, and Sobol Sensitivity.',
+      description: t.caFile2Desc,
       content: `import numpy as np
 from scipy import stats
 from typing import Dict, Any, List
@@ -171,7 +175,7 @@ class StatisticalValidationPy:
     },
     'database/schema.sql': {
       language: 'sql',
-      description: 'PostgreSQL DDL with PostGIS geometry, TimescaleDB partitions, and RBAC tables.',
+      description: t.caFile3Desc,
       content: `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "postgis";
 
@@ -207,7 +211,7 @@ CREATE TABLE IF NOT EXISTS simulation_runs (
     },
     'docker-compose.yml': {
       language: 'yaml',
-      description: 'Container orchestration for PostgreSQL/PostGIS, Redis, FastAPI Backend, and React Frontend.',
+      description: t.caFile4Desc,
       content: `version: '3.8'
 
 services:
@@ -245,19 +249,19 @@ services:
     <div className="space-y-4">
       
       {/* Header Banner */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm">
+      <div className={`${theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/50 border-slate-800'} border rounded-lg p-3.5 shadow-sm`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase tracking-wider">
-                FULL-STACK MONOREPO REPOSITORY
+              <span className={`px-2 py-0.5 text-xs font-mono font-bold rounded ${theme === 'light' ? 'bg-sky-100' : 'bg-sky-500/20'} ${theme === 'light' ? 'text-sky-600' : 'text-sky-300'} border ${theme === 'light' ? 'border-sky-300' : 'border-sky-500/30'} uppercase tracking-wider`}>
+                {t.codeArchTitle}
               </span>
-              <h2 className="text-xs font-bold text-white uppercase tracking-tight">
+              <h2 className={`text-xs font-bold uppercase tracking-tight ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
                 Python FastAPI, PostGIS Database Schema &amp; System Dynamics ODE Engine
               </h2>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-              Inspect backend mathematical models, database DDL, and containerized deployment manifests.
+            <p className={`text-xs font-mono mt-0.5 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+              {t.codeArchSubtitle}
             </p>
           </div>
         </div>
@@ -267,10 +271,10 @@ services:
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         
         {/* Left 1 Col: File Directory Tree */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm space-y-2.5">
-          <div className="flex items-center space-x-2 text-xs font-bold text-slate-300 font-mono uppercase tracking-wider border-b border-slate-800 pb-2">
+        <div className={`${theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/50 border-slate-800'} border rounded-lg p-3.5 shadow-sm space-y-2.5`}>
+          <div className={`flex items-center space-x-2 text-xs font-bold font-mono uppercase tracking-wider pb-2 border-b ${theme === 'light' ? 'text-slate-700 border-slate-200' : 'text-slate-300 border-slate-800'}`}>
             <FolderTree className="w-4 h-4 text-sky-400" />
-            <span>Repository Manifest</span>
+            <span>{t.caRepoManifest}</span>
           </div>
 
           <div className="space-y-1 text-xs font-mono">
@@ -280,10 +284,10 @@ services:
                 <button
                   key={filePath}
                   onClick={() => setSelectedFile(filePath)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded transition flex items-center space-x-2 text-[11px] ${
+                  className={`w-full text-left px-2.5 py-1.5 rounded transition flex items-center space-x-2 text-xs ${
                     isSelected 
-                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold' 
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+                      ? `${theme === 'light' ? 'bg-sky-100 text-sky-600 border-sky-300' : 'bg-sky-500/20 text-sky-300 border-sky-500/40'} border font-bold` 
+                      : `${theme === 'light' ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100 border-transparent' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border-transparent'} border`
                   }`}
                 >
                   <FileCode className="w-3.5 h-3.5 shrink-0" />
@@ -295,23 +299,23 @@ services:
         </div>
 
         {/* Right 3 Cols: Code Inspector View */}
-        <div className="lg:col-span-3 bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm space-y-2.5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div className={`lg:col-span-3 ${theme === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/50 border-slate-800'} border rounded-lg p-3.5 shadow-sm space-y-2.5`}>
+          <div className={`flex items-center justify-between pb-2.5 border-b ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'}`}>
             <div>
-              <span className="font-mono text-xs font-bold text-sky-300">{selectedFile}</span>
-              <p className="text-[11px] text-slate-400 font-mono mt-0.5">{fileContents[selectedFile]?.description}</p>
+              <span className={`font-mono text-xs font-bold ${theme === 'light' ? 'text-sky-600' : 'text-sky-300'}`}>{selectedFile}</span>
+              <p className={`text-xs font-mono mt-0.5 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{fileContents[selectedFile]?.description}</p>
             </div>
 
             <button
               onClick={handleCopy}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded bg-[#0c0e12] hover:bg-slate-800 text-slate-300 text-xs font-mono border border-slate-800 transition cursor-pointer"
+              className={`flex items-center space-x-1 px-2.5 py-1 rounded ${theme === 'light' ? 'bg-slate-100 hover:bg-slate-200 text-slate-600' : 'bg-[#0c0e12] hover:bg-slate-800 text-slate-300'} text-xs font-mono border ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} transition cursor-pointer`}
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Copied' : 'Copy Code'}</span>
+              <span>{copied ? t.caCopied : t.caCopyCode}</span>
             </button>
           </div>
 
-          <div className="bg-[#0c0e12] p-3.5 rounded border border-slate-800 font-mono text-[11px] text-slate-300 overflow-x-auto max-h-[500px]">
+          <div className={`${theme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-[#0c0e12] border-slate-800 text-slate-300'} p-3.5 rounded border font-mono text-xs overflow-x-auto max-h-[500px]`}>
             <pre>{fileContents[selectedFile]?.content}</pre>
           </div>
         </div>

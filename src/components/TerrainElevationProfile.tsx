@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ObstetricReferralRoute, RouteWaypoint3D } from '../types';
+import { useLanguage } from '../i18n/translations';
+import { useTheme } from '../context/ThemeContext';
 import { Mountain, Clock, AlertTriangle, ArrowRight, Gauge, Activity } from 'lucide-react';
 
 interface TerrainElevationProfileProps {
@@ -11,6 +13,8 @@ export const TerrainElevationProfile: React.FC<TerrainElevationProfileProps> = (
   route,
   activeScenarioId,
 }) => {
+  const { t } = useLanguage();
+  const { theme } = useTheme();
   const [hoveredWaypoint, setHoveredWaypoint] = useState<RouteWaypoint3D | null>(null);
 
   if (!route || !route.waypoints || route.waypoints.length === 0) return null;
@@ -56,24 +60,24 @@ export const TerrainElevationProfile: React.FC<TerrainElevationProfileProps> = (
     : route.estimatedTravelTimeMinutesStandard;
 
   return (
-    <div className="bg-[#0c0e12] border border-slate-800 rounded-lg p-4 font-mono text-xs space-y-3">
+    <div className={`${theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#0c0e12] border-slate-800'} rounded-lg p-4 font-mono text-xs space-y-3`}>
       {/* Header with 3D vs 2D Summary Metrics */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
         <div className="flex items-center space-x-2">
           <Mountain className="w-4 h-4 text-sky-400" />
           <span className="font-bold text-white uppercase tracking-wider text-xs">
-            Perfil de Elevación Longitudinal (Ruta de Referencia 3D)
+            {t.epTitle}
           </span>
         </div>
         <div className="flex items-center space-x-3 text-[11px]">
           <span className="text-slate-400">
-            Dist. 2D Planar: <strong className="text-slate-200">{route.distance2dKm} km</strong>
+            {t.ep2dDist} <strong className="text-slate-200">{route.distance2dKm} km</strong>
           </span>
           <span className="text-slate-400">
-            Dist. 3D Terreno: <strong className="text-sky-300">{route.distance3dKm} km</strong> (+{Math.round(((route.distance3dKm - route.distance2dKm) / route.distance2dKm) * 100)}%)
+            {t.ep3dDist} <strong className="text-sky-300">{route.distance3dKm} km</strong> (+{Math.round(((route.distance3dKm - route.distance2dKm) / route.distance2dKm) * 100)}%)
           </span>
           <span className="text-slate-400">
-            Tiempo Estimado: <strong className={travelMinutes > 90 ? 'text-rose-400' : travelMinutes > 45 ? 'text-amber-300' : 'text-emerald-400'}>
+            {t.epTime} <strong className={travelMinutes > 90 ? 'text-rose-400' : travelMinutes > 45 ? 'text-amber-300' : 'text-emerald-400'}>
               {Math.floor(travelMinutes / 60)}h {travelMinutes % 60}m
             </strong>
           </span>
@@ -103,7 +107,7 @@ export const TerrainElevationProfile: React.FC<TerrainElevationProfileProps> = (
               return (
                 <g key={`grid-y-${factor}`}>
                   <line x1={paddingLeft} y1={y} x2={svgWidth - paddingRight} y2={y} />
-                  <text x={paddingLeft - 6} y={y + 3} fill="#64748b" fontSize="8" textAnchor="end">
+                  <text x={paddingLeft - 6} y={y + 3} fill="#64748b" fontSize="10" textAnchor="end">
                     {altVal}m
                   </text>
                 </g>
@@ -165,7 +169,7 @@ export const TerrainElevationProfile: React.FC<TerrainElevationProfileProps> = (
             const x = paddingLeft + f * plotWidth;
             const km = Math.round(f * totalDist * 10) / 10;
             return (
-              <text key={`dist-${f}`} x={x} y={svgHeight - 10} fill="#64748b" fontSize="8" textAnchor="middle">
+              <text key={`dist-${f}`} x={x} y={svgHeight - 10} fill="#64748b" fontSize="10" textAnchor="middle">
                 {km} km
               </text>
             );
@@ -174,28 +178,28 @@ export const TerrainElevationProfile: React.FC<TerrainElevationProfileProps> = (
 
         {/* Dynamic Tooltip on Waypoint Hover */}
         {hoveredWaypoint && (
-          <div className="absolute top-2 right-2 bg-slate-900/95 border border-sky-500/50 rounded p-2 text-[10px] space-y-0.5 shadow-lg max-w-[200px]">
+          <div className="absolute top-2 right-2 bg-slate-900/95 border border-sky-500/50 rounded p-2 text-xs space-y-0.5 shadow-lg max-w-[200px]">
             <div className="text-white font-bold">{hoveredWaypoint.terrainType}</div>
-            <div className="text-slate-300">Distancia: <strong className="text-sky-400">{hoveredWaypoint.distanceFromStartKm} km</strong></div>
-            <div className="text-slate-300">Altitud: <strong className="text-amber-300">{hoveredWaypoint.altitudeMeters} m.s.n.m.</strong></div>
-            <div className="text-slate-300">Pendiente: <strong className={hoveredWaypoint.slopePercent > 15 ? 'text-rose-400' : 'text-emerald-400'}>{hoveredWaypoint.slopePercent}%</strong></div>
+            <div className="text-slate-300">{t.tooltipDistance} <strong className="text-sky-400">{hoveredWaypoint.distanceFromStartKm} km</strong></div>
+            <div className="text-slate-300">{t.tooltipAltitude} <strong className="text-amber-300">{hoveredWaypoint.altitudeMeters} m.s.n.m.</strong></div>
+            <div className="text-slate-300">{t.tooltipSlope} <strong className={hoveredWaypoint.slopePercent > 15 ? 'text-rose-400' : 'text-emerald-400'}>{hoveredWaypoint.slopePercent}%</strong></div>
           </div>
         )}
       </div>
 
       {/* Cross-Section Legend & Bottleneck Warnings */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-[10px]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-xs">
         <div className="flex items-center space-x-1.5 text-slate-400">
           <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-          <span>Origen Comunitario: Manyatta ({waypoints[0]?.altitudeMeters}m)</span>
+          <span>{t.epOrigin} ({waypoints[0]?.altitudeMeters}m)</span>
         </div>
         <div className="flex items-center space-x-1.5 text-slate-400">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-          <span>Destino CEmONC: Hospital ({route.destinationFacility.altitudeMeters}m)</span>
+          <span>{t.epDestination} ({route.destinationFacility.altitudeMeters}m)</span>
         </div>
         <div className="flex items-center space-x-1.5 text-rose-400">
           <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-          <span>Cuellos de Botella (Pendiente &gt;15%): {route.bottlenecks.length} detectados</span>
+          <span>{t.epBottlenecks} {route.bottlenecks.length} {t.epDetected}</span>
         </div>
       </div>
     </div>

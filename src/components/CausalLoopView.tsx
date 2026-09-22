@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   Sliders
 } from 'lucide-react';
+import { useLanguage } from '../i18n/translations';
+import { useTheme } from '../context/ThemeContext';
 import { DistrictData } from '../types';
 
 interface CausalLoopViewProps {
@@ -18,6 +20,8 @@ interface CausalLoopViewProps {
 }
 
 export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
+  const { t } = useLanguage();
+  const { theme } = useTheme();
   const [selectedElement, setSelectedElement] = useState<string | null>('S1');
   const [activeTab, setActiveTab] = useState<'stock_flow' | 'causal_loops' | 'equations'>('stock_flow');
 
@@ -107,44 +111,44 @@ export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
     <div className="space-y-4">
       
       {/* Navigation and Concept Header */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm">
+      <div className={`bg-slate-900/50 ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border rounded-lg p-3.5 shadow-sm`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-              <h2 className="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-1.5">
+              <h2 className={`text-xs font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'} uppercase tracking-wider flex items-center space-x-1.5`}>
                 <span>SYSTEM DYNAMICS CONTINUUM TOPOLOGY &amp; FEEDBACK LOOPS</span>
               </h2>
             </div>
-            <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+            <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} font-mono mt-0.5`}>
               5-Stock Non-linear Differential Equation Model with Endogenous Feedback Loops (R1, B1, B2)
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1 bg-[#0c0e12] p-1 rounded border border-slate-800 text-xs font-mono">
+          <div className={`flex flex-wrap items-center gap-1 ${theme === 'light' ? 'bg-white' : 'bg-[#0c0e12]'} p-1 rounded ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border text-xs font-mono`}>
             <button
               onClick={() => setActiveTab('stock_flow')}
               className={`px-2 sm:px-2.5 py-1 rounded font-bold transition cursor-pointer text-[11px] sm:text-xs ${
-                activeTab === 'stock_flow' ? 'bg-sky-600 text-white shadow-md shadow-sky-900/30' : 'text-slate-400 hover:text-white'
+                activeTab === 'stock_flow' ? 'bg-sky-600 text-white shadow-md shadow-sky-900/30' : `${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} hover:${theme === 'light' ? 'text-slate-900' : 'text-white'}`
               }`}
             >
-              Stock &amp; Flow
+              {t.cdStockFlowTab}
             </button>
             <button
               onClick={() => setActiveTab('causal_loops')}
               className={`px-2 sm:px-2.5 py-1 rounded font-bold transition cursor-pointer text-[11px] sm:text-xs ${
-                activeTab === 'causal_loops' ? 'bg-sky-600 text-white shadow-md shadow-sky-900/30' : 'text-slate-400 hover:text-white'
+                activeTab === 'causal_loops' ? 'bg-sky-600 text-white shadow-md shadow-sky-900/30' : `${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} hover:${theme === 'light' ? 'text-slate-900' : 'text-white'}`
               }`}
             >
-              Feedback Loops
+              {t.cdFeedbackTab}
             </button>
             <button
               onClick={() => setActiveTab('equations')}
               className={`px-2 sm:px-2.5 py-1 rounded font-bold transition cursor-pointer text-[11px] sm:text-xs ${
-                activeTab === 'equations' ? 'bg-sky-600 text-white shadow-md shadow-sky-900/30' : 'text-slate-400 hover:text-white'
+                activeTab === 'equations' ? 'bg-sky-600 text-white shadow-md shadow-sky-900/30' : `${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} hover:${theme === 'light' ? 'text-slate-900' : 'text-white'}`
               }`}
             >
-              ODEs
+              {t.cdOdesTab}
             </button>
           </div>
         </div>
@@ -155,19 +159,19 @@ export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           
           {/* Interactive Visual Canvas (2 Cols) */}
-          <div className="lg:col-span-2 bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 text-xs font-mono">
-              <span className="font-bold text-slate-300 uppercase">INTERACTIVE CONTINUOUS FLOW MAP</span>
-              <span className="text-slate-500 text-[11px]">Click any compartment to inspect ODE parameters</span>
+          <div className={`lg:col-span-2 bg-slate-900/50 ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border rounded-lg p-4 shadow-sm space-y-3`}>
+            <div className={`flex items-center justify-between ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border-b pb-2 text-xs font-mono`}>
+              <span className={`font-bold ${theme === 'light' ? 'text-sky-600' : 'text-sky-300'} uppercase`}>{t.cdInteractiveMap}</span>
+              <span className={`${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} text-[11px]`}>{t.cdClickToInspect}</span>
             </div>
 
             {/* SVG Diagram Canvas */}
-            <div className="relative w-full bg-[#131a26] rounded-lg border border-slate-800 p-3 sm:p-4 flex flex-col justify-between overflow-hidden">
+            <div className={`relative w-full ${theme === 'light' ? 'bg-slate-100' : 'bg-[#131a26]'} rounded-lg ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border p-3 sm:p-4 flex flex-col justify-between overflow-hidden`}>
               
               {/* Inflow Label */}
-              <div className="flex items-center space-x-1.5 text-slate-400 text-[10px] font-mono mb-2">
+              <div className={`flex items-center space-x-1.5 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} text-xs font-mono mb-2`}>
                 <span className="animate-pulse w-2 h-2 rounded-full bg-sky-400" />
-                <span>FERTILITY &amp; PREGNANCIES INFLOW</span>
+                <span>{t.cdFertilityInflow}</span>
               </div>
 
               {/* Five Stock Boxes Row */}
@@ -191,8 +195,8 @@ export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
                       >
                         <span className="text-xs font-bold">{s.id}</span>
                         <span className="text-[10px] font-bold leading-tight">{s.name.split(':')[1]}</span>
-                        <span className="text-[8px] px-1 py-0.5 rounded bg-[#0c0e12] text-slate-300 font-mono">
-                          ACTIVE STOCK
+                        <span className={`text-[10px] px-1 py-0.5 rounded ${theme === 'light' ? 'bg-white' : 'bg-[#0c0e12]'} ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                          {t.cdActiveStock}
                         </span>
                       </button>
                     );
@@ -201,72 +205,72 @@ export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
               </div>
 
               {/* Feedback Loop Connectors Banner */}
-              <div className="bg-[#0c0e12]/90 border border-slate-800 rounded p-2 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-slate-300 z-10 mt-2">
+              <div className={`${theme === 'light' ? 'bg-white/90' : 'bg-[#0c0e12]/90'} ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border rounded p-2 flex flex-wrap items-center justify-between gap-2 text-xs font-mono ${theme === 'light' ? 'text-slate-900' : 'text-white'} z-10 mt-2`}>
                 <div className="flex items-center space-x-1.5">
-                  <RotateCw className="w-3.5 h-3.5 text-sky-400" />
-                  <span><strong>R1:</strong> Trust Loop</span>
+                  <RotateCw className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-sky-500' : 'text-sky-400'}`} />
+                  <span><strong>R1:</strong> {t.cdR1Label}</span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                  <span><strong>B1:</strong> Workload Balancing</span>
+                  <ShieldAlert className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
+                  <span><strong>B1:</strong> {t.cdB1Label}</span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <Zap className="w-3.5 h-3.5 text-rose-400" />
-                  <span><strong>B2:</strong> Phase 2 Transport Delay</span>
+                  <Zap className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-rose-600' : 'text-rose-400'}`} />
+                  <span><strong>B2:</strong> {t.cdB2Label}</span>
                 </div>
               </div>
 
             </div>
 
-            <div className="text-[10px] text-slate-400 bg-[#0c0e12] p-2.5 rounded border border-slate-800 font-mono">
-              💡 <strong>System Dynamics Rule:</strong> Stock variables accumulate individuals over time, while flow rates (valves) represent rates of transfer determined by maternal education, distance, clinic fees, and SBA capacity.
+            <div className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} ${theme === 'light' ? 'bg-white' : 'bg-[#0c0e12]'} p-2.5 rounded ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border font-mono`}>
+              💡 <strong>{t.cdSystemDynamicsRule}</strong> {t.cdSystemDynamicsDesc}
             </div>
           </div>
 
           {/* Element Inspector Drawer (1 Col) */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
+          <div className={`bg-slate-900/50 ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border rounded-lg p-4 shadow-sm space-y-3`}>
             {selectedElement && stockDetails[selectedElement] ? (
               <div className="space-y-3 font-mono">
-                <div className="border-b border-slate-800 pb-2">
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 uppercase border border-sky-500/30">
+                <div className={`${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border-b pb-2`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 ${theme === 'light' ? 'text-sky-600' : 'text-sky-300'} uppercase border border-sky-500/30`}>
                     {stockDetails[selectedElement].type}
                   </span>
-                  <h3 className="text-sm font-bold text-white mt-1">
+                  <h3 className={`text-sm font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'} mt-1`}>
                     {stockDetails[selectedElement].title}
                   </h3>
                 </div>
 
                 <div className="space-y-2.5 text-xs">
                   <div>
-                    <label className="text-[10px] text-slate-500 uppercase font-bold block mb-1">Differential Equation (ODE):</label>
-                    <div className="p-2 rounded bg-[#0c0e12] font-mono text-sky-300 text-[10px] border border-slate-800">
+                    <label className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} uppercase font-bold block mb-1`}>{t.cdOdeLabel}</label>
+                    <div className={`p-2 rounded ${theme === 'light' ? 'bg-white' : 'bg-[#0c0e12]'} font-mono ${theme === 'light' ? 'text-sky-600' : 'text-sky-300'} text-xs ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border`}>
                       {stockDetails[selectedElement].formula}
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] text-slate-500 uppercase font-bold block mb-1">District Magnitude:</label>
-                    <div className="text-xs font-bold text-slate-100">
+                    <label className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} uppercase font-bold block mb-1`}>{t.cdDistrictMagnitude}</label>
+                    <div className={`text-xs font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>
                       {stockDetails[selectedElement].currentVal}
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] text-slate-500 uppercase font-bold block mb-1">Behavioral Role:</label>
-                    <p className="text-slate-300 font-sans text-xs leading-relaxed">
+                    <label className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} uppercase font-bold block mb-1`}>{t.cdBehavioralRole}</label>
+                    <p className={`${theme === 'light' ? 'text-slate-900' : 'text-slate-300'} font-sans text-xs leading-relaxed`}>
                       {stockDetails[selectedElement].description}
                     </p>
                   </div>
 
-                  <div className="p-2.5 rounded bg-sky-950/30 border border-sky-500/30 text-sky-200 text-xs">
-                    <span className="font-bold block mb-0.5 text-[10px] uppercase">Calibration Driver:</span>
+                  <div className={`p-2.5 rounded bg-sky-950/30 border border-sky-500/30 ${theme === 'light' ? 'text-sky-900' : 'text-sky-200'} text-xs`}>
+                    <span className={`font-bold block mb-0.5 text-xs uppercase`}>{t.cdCalibrationDriver}</span>
                     <span>Modulated by {district.name}'s baseline SBA ratio ({district.skilledStaffRatio}/1k) &amp; ANC4 coverage ({district.anc4Coverage}%).</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-500 font-mono">
-                Select a stock component to view mathematical formulation
+              <div className={`h-full flex items-center justify-center text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} font-mono`}>
+                {t.cdSelectStockPrompt}
               </div>
             )}
           </div>
@@ -280,25 +284,25 @@ export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
           {feedbackLoops.map((loop) => (
             <div 
               key={loop.id}
-              className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3 flex flex-col justify-between"
+              className={`bg-slate-900/50 ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border rounded-lg p-4 shadow-sm space-y-3 flex flex-col justify-between`}
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
                     loop.type.includes('Reinforcing') 
-                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' 
-                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      ? `bg-sky-500/20 ${theme === 'light' ? 'text-sky-600' : 'text-sky-300'} border border-sky-500/30` 
+                      : `bg-rose-500/20 ${theme === 'light' ? 'text-rose-600' : 'text-rose-300'} border border-rose-500/30`
                   }`}>
                     {loop.type}
                   </span>
-                  <RotateCw className="w-3.5 h-3.5 text-slate-500" />
+                  <RotateCw className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-slate-500' : 'text-slate-500'}`} />
                 </div>
-                <h3 className="text-xs font-bold text-white uppercase">{loop.name}</h3>
+                <h3 className={`text-xs font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'} uppercase`}>{loop.name}</h3>
 
                 <div className="mt-3 space-y-1.5 text-xs">
                   {loop.steps.map((step, idx) => (
-                    <div key={idx} className="flex items-start space-x-2 text-slate-300">
-                      <span className="w-3.5 h-3.5 rounded bg-slate-800 text-sky-400 flex items-center justify-center shrink-0 text-[9px] font-mono font-bold">
+                    <div key={idx} className={`flex items-start space-x-2 ${theme === 'light' ? 'text-slate-900' : 'text-slate-300'}`}>
+                      <span className={`w-3.5 h-3.5 rounded ${theme === 'light' ? 'bg-slate-200' : 'bg-slate-800'} ${theme === 'light' ? 'text-sky-500' : 'text-sky-400'} flex items-center justify-center shrink-0 text-[9px] font-mono font-bold`}>
                         {idx + 1}
                       </span>
                       <span className="text-[11px]">{step}</span>
@@ -307,9 +311,9 @@ export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
                 </div>
               </div>
 
-              <div className="pt-2.5 border-t border-slate-800 text-xs font-mono">
-                <span className="text-slate-500 block text-[10px] uppercase font-bold mb-0.5">Mitigating Scenario:</span>
-                <span className="font-bold text-sky-400 text-[11px]">{loop.interventions}</span>
+              <div className={`pt-2.5 ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border-t text-xs font-mono`}>
+                <span className={`${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} block text-xs uppercase font-bold mb-0.5`}>{t.cdMitigatingScenario}</span>
+                <span className={`font-bold ${theme === 'light' ? 'text-sky-500' : 'text-sky-400'} text-[11px]`}>{loop.interventions}</span>
               </div>
             </div>
           ))}
@@ -318,31 +322,31 @@ export const CausalLoopView: React.FC<CausalLoopViewProps> = ({ district }) => {
 
       {/* VIEW TAB 3: MATHEMATICAL ODES */}
       {activeTab === 'equations' && (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">Full Non-Linear Differential Equation System</h3>
-          <p className="text-[11px] text-slate-400 font-mono">
-            Solved using Runge-Kutta 4th Order (RK4) numerical integration with time-step &Delta;t = 0.1 months:
+        <div className={`bg-slate-900/50 ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border rounded-lg p-4 shadow-sm space-y-3`}>
+          <h3 className={`text-xs font-bold ${theme === 'light' ? 'text-slate-900' : 'text-white'} uppercase tracking-wider`}>{t.cdFullOdeSystem}</h3>
+          <p className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'} font-mono`}>
+            {t.cdRk4Integration}
           </p>
 
-          <div className="space-y-2 font-mono text-[11px] text-sky-300 bg-[#0c0e12] p-4 rounded border border-slate-800 overflow-x-auto">
-            <div className="p-1.5 border-b border-slate-900">
-              <span className="text-slate-500 block text-[10px]">// 1. Pregnant Women Stock (S1)</span>
+          <div className={`space-y-2 font-mono text-[11px] ${theme === 'light' ? 'text-sky-600' : 'text-sky-300'} ${theme === 'light' ? 'bg-white' : 'bg-[#0c0e12]'} p-4 rounded ${theme === 'light' ? 'border-slate-200' : 'border-slate-800'} border overflow-x-auto`}>
+            <div className={`p-1.5 ${theme === 'light' ? 'border-slate-200' : 'border-slate-900'} border-b`}>
+              <span className={`${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} block text-xs`}>// 1. Pregnant Women Stock (S1)</span>
               <div>dW/dt = Inflow_Pregnancies - Flow_ANC(W, Trust, Distance) - Flow_Direct_Home(W) - Flow_Direct_Del(W)</div>
             </div>
-            <div className="p-1.5 border-b border-slate-900">
-              <span className="text-slate-500 block text-[10px]">// 2. Antenatal Care Stock (S2)</span>
+            <div className={`p-1.5 ${theme === 'light' ? 'border-slate-200' : 'border-slate-900'} border-b`}>
+              <span className={`${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} block text-xs`}>// 2. Antenatal Care Stock (S2)</span>
               <div>dA/dt = Flow_ANC(W) - Flow_ANC_to_Facility(A, Fees, Quality) - Flow_ANC_to_Home(A)</div>
             </div>
-            <div className="p-1.5 border-b border-slate-900">
-              <span className="text-slate-500 block text-[10px]">// 3. Facility Delivery Stock (S3)</span>
+            <div className={`p-1.5 ${theme === 'light' ? 'border-slate-200' : 'border-slate-900'} border-b`}>
+              <span className={`${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} block text-xs`}>// 3. Facility Delivery Stock (S3)</span>
               <div>dD/dt = Flow_ANC_to_Facility + Flow_Direct_Del + Flow_Emergency_Referral(C, MotoAmbulance) - (D / &tau;_delivery)</div>
             </div>
-            <div className="p-1.5 border-b border-slate-900">
-              <span className="text-slate-500 block text-[10px]">// 4. Obstetric Complications Stock (S5)</span>
+            <div className={`p-1.5 ${theme === 'light' ? 'border-slate-200' : 'border-slate-900'} border-b`}>
+              <span className={`${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} block text-xs`}>// 4. Obstetric Complications Stock (S5)</span>
               <div>dC/dt = Flow_Onset_Complications(Deliveries, Pre-eclampsia) - Flow_Emergency_Referral - Flow_Fatalities(C, Delay)</div>
             </div>
             <div className="p-1.5">
-              <span className="text-slate-500 block text-[10px]">// 5. Postpartum Monitoring Stock (S4)</span>
+              <span className={`${theme === 'light' ? 'text-slate-500' : 'text-slate-500'} block text-xs`}>// 5. Postpartum Monitoring Stock (S4)</span>
               <div>dP/dt = Flow_Recovered_Facility + Flow_Recovered_Complications + Flow_Recovered_Home - (P / &tau;_postpartum)</div>
             </div>
           </div>

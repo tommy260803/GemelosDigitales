@@ -73,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navGroups = [
     {
-      label: language === 'es' ? 'EXPLORAR' : 'EXPLORE',
+      label: t.groupExplore,
       items: [
         { id: 'dashboard', label: t.tabDashboard, icon: Activity },
         { id: 'gis-map', label: t.tabGISMap, icon: Map },
@@ -81,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       ],
     },
     {
-      label: language === 'es' ? 'ANALIZAR' : 'ANALYZE',
+      label: t.groupAnalyze,
       items: [
         { id: 'causal-model', label: t.tabCausal, icon: GitMerge },
         { id: 'scenarios', label: t.tabScenarios, icon: Layers },
@@ -90,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       ],
     },
     {
-      label: language === 'es' ? 'ENTREGABLES' : 'OUTPUTS',
+      label: t.groupOutputs,
       items: [
         { id: 'reports', label: t.tabReports, icon: FileText },
         { id: 'code-arch', label: t.tabCodeArch, icon: Code2 },
@@ -153,9 +153,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 const inCountry = districtsList.filter((d) => d && d.country === c);
                 if (inCountry.length === 0) return null;
                 return (
-                  <optgroup key={c} label={`${c.toUpperCase()}`}>
+                  <optgroup key={c} label={`${c.toUpperCase()}`} className={theme === 'dark' ? 'bg-slate-900 text-slate-300' : ''}>
                     {inCountry.map((dist) => dist && (
-                      <option key={dist.id} value={dist.id}>
+                      <option key={dist.id} value={dist.id} className={theme === 'dark' ? 'bg-slate-900 text-slate-200' : ''}>
                         {dist.name}
                       </option>
                     ))}
@@ -244,7 +244,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ? 'text-slate-600 hover:bg-white hover:text-slate-900'
                 : 'text-slate-400 hover:bg-slate-800 hover:text-white'
             }`}
-            title="Cambiar idioma"
+            title={t.switchLanguage}
           >
             <Globe className="w-3.5 h-3.5" />
             {isExpanded && <span>{language === 'es' ? 'ES' : 'EN'}</span>}
@@ -258,7 +258,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ? 'text-slate-600 hover:bg-white hover:text-slate-900'
                 : 'text-slate-400 hover:bg-slate-800 hover:text-white'
             }`}
-            title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+            title={theme === 'dark' ? t.themeLight : t.themeDark}
           >
             {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             {isExpanded && <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>}
@@ -278,7 +278,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <Download className="w-4 h-4" />
-            {isExpanded && <span>{language === 'es' ? 'Exportar' : 'Export'}</span>}
+            {isExpanded && <span>{t.exportLabel}</span>}
           </button>
           {isExportOpen && isExpanded && (
             <div className={`absolute bottom-full left-0 right-0 mb-1 rounded-xl border shadow-xl py-1 z-50 ${
@@ -346,7 +346,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {currentUser?.name}
               </p>
               <p className={`text-[10px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                {currentUser?.role === 'INVESTIGATOR' ? 'Investigador' : currentUser?.role === 'HEALTH_OFFICER' ? 'DHO' : 'Policymaker'}
+                {currentUser?.role === 'INVESTIGATOR' ? t.roleInvestigator : currentUser?.role === 'HEALTH_OFFICER' ? t.roleDHO : t.rolePolicymaker}
               </p>
             </div>
           )}
@@ -362,7 +362,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           }`}
         >
           <Settings className={`w-4 h-4 transition-transform ${isExpanded ? '' : 'rotate-90'}`} />
-          {isExpanded && <span>{language === 'es' ? 'Colapsar' : 'Collapse'}</span>}
+          {isExpanded && <span>{t.collapseSidebar}</span>}
         </button>
       </div>
     </aside>

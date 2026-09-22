@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../i18n/translations';
 
 interface Column<T> {
   key: string;
@@ -24,10 +25,11 @@ export function DataTable<T extends Record<string, any>>({
   onRowClick,
   selectedRowId,
   rowKey,
-  emptyMessage = 'No hay datos disponibles',
+  emptyMessage,
   className = '',
 }: DataTableProps<T>) {
   const { theme } = useTheme();
+  const { t } = useLanguage();
 
   const getRowId = (item: T) => rowKey ? rowKey(item) : item.id;
 
@@ -55,7 +57,7 @@ export function DataTable<T extends Record<string, any>>({
                 colSpan={columns.length}
                 className={`px-4 py-8 text-center text-sm ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}
               >
-                {emptyMessage}
+                {emptyMessage || t.emptyTableMessage}
               </td>
             </tr>
           ) : (
