@@ -2,11 +2,21 @@
 import { 
   Award,
   ArrowUpRight,
-  Zap
+  Zap,
+  TrendingDown,
+  DollarSign,
+  Shield,
+  Heart,
+  Layers
 } from 'lucide-react';
 import { DistrictData, SimulationResult } from '../types';
 import { SystemDynamicsEngine, SCENARIO_DEFINITIONS } from '../services/systemDynamics';
 import { useLanguage } from '../i18n/translations';
+import { useTheme } from '../context/ThemeContext';
+import { SectionHeader } from './ui/SectionHeader';
+import { Badge } from './ui/Badge';
+import { DataTable } from './ui/DataTable';
+import { ChartCard } from './ui/ChartCard';
 
 interface ScenariosViewProps {
   district: DistrictData;
@@ -20,6 +30,7 @@ export const ScenariosView: React.FC<ScenariosViewProps> = ({
   onSelectScenario,
 }) => {
   const { t, language } = useLanguage();
+  const { theme } = useTheme();
 
   // Compute simulation for all scenarios simultaneously
   const allResults: Record<string, SimulationResult> = useMemo(() => {
@@ -49,212 +60,241 @@ export const ScenariosView: React.FC<ScenariosViewProps> = ({
     return origDesc;
   };
 
+  const scenarios = SCENARIO_DEFINITIONS.filter((s) => s.id !== 'baseline');
+
+  const tableColumns = [
+    {
+      key: 'name',
+      header: language === 'es' ? 'Escenario' : 'Scenario',
+      render: (row: any) => (
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${row.isSelected ? 'bg-sky-400' : 'bg-slate-400'}`} />
+          <span className="font-semibold">({row.letter}) {row.name}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'mechanism',
+      header: language === 'es' ? 'Mecanismo' : 'Mechanism',
+      render: (row: any) => (
+        <span className={`${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+          {row.mechanism}
+        </span>
+      ),
+    },
+    {
+      key: 'livesSaved',
+      header: language === 'es' ? 'Vidas Salvadas (IC 95%)' : 'Lives Saved (95% CI)',
+      render: (row: any) => (
+        <span className="font-semibold text-sky-500">
+          {row.livesSaved} <span className="text-xs opacity-60">[{row.ci}]</span>
+        </span>
+      ),
+    },
+    {
+      key: 'mmrReduction',
+      header: language === 'es' ? '% Red. RMM' : 'MMR Red. %',
+      render: (row: any) => (
+        <span className="font-semibold text-emerald-500">-{row.mmrReduction}%</span>
+      ),
+    },
+    {
+      key: 'costPerLife',
+      header: language === 'es' ? 'Costo / Vida' : 'Cost / Life',
+      render: (row: any) => (
+        <span className={theme === 'light' ? 'text-slate-700' : 'text-slate-300'}>
+          ${row.costPerLife.toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      key: 'icer',
+      header: t.icerPerDaly,
+      render: (row: any) => (
+        <span className="font-semibold text-cyan-500">
+          ${row.icer} / {language === 'es' ? 'AVAD' : 'DALY'}
+        </span>
+      ),
+    },
+    {
+      key: 'threshold',
+      header: language === 'es' ? 'Umbral OMS' : 'WHO Threshold',
+      render: (row: any) => (
+        <Badge variant="success" size="sm">
+          {language === 'es' ? 'Altamente Costo-Efectivo' : 'Highly Cost-Effective'}
+        </Badge>
+      ),
+    },
+  ];
+
+  const tableData = SCENARIO_DEFINITIONS.map((s) => {
+    const res = allResults[s.id];
+    return {
+      ...s,
+      name: getScenarioName(s.id, s.name),
+      mechanism: getScenarioDesc(s.id, s.description).slice(0, 50) + '...',
+      livesSaved: s.id === 'baseline' ? 0 : res.summary.livesSaved,
+      ci: s.id === 'baseline' ? '—' : `${res.summary.livesSavedCI95[0]}-${res.summary.livesSavedCI95[1]}`,
+      mmrReduction: s.id === 'baseline' ? 0 : res.summary.mmrReductionPercent,
+      costPerLife: s.id === 'baseline' ? 0 : res.summary.costPerLifeSavedUSD,
+      icer: s.id === 'baseline' ? '—' : res.summary.icerPerDALY,
+      isSelected: activeScenarioId === s.id,
+      isBaseline: s.id === 'baseline',
+    };
+  });
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       
       {/* Header */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 text-xs font-mono font-bold rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase tracking-wider">
-                {t.policyMatrixTitle}
-              </span>
-              <h2 className="text-xs font-bold text-white uppercase tracking-tight">
-                {t.policyMatrixSubtitle} (36 {t.monthsCount})
-              </h2>
-            </div>
-            <p className="text-sm text-slate-400 font-mono mt-0.5">
-              {language === 'es' 
-                ? `Análisis comparativo para ${district.name} (${district.country}) en paquetes de intervención únicos y combinados.`
-                : `Comparative analysis for ${district.name} (${district.country}) across single and combined intervention packages.`}
-            </p>
-          </div>
-        </div>
-      </div>
+      <SectionHeader
+        title={language === 'es' ? 'Matriz Comparativa de Políticas' : 'Policy Comparison Matrix'}
+        subtitle={`${language === 'es' ? 'Análisis comparativo para' : 'Comparative analysis for'} ${district.name} (${district.country}) — 36 ${t.monthsCount}`}
+        icon={<Layers className="w-5 h-5" />}
+      />
 
       {/* Scenario Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {SCENARIO_DEFINITIONS.filter((s) => s.id !== 'baseline').map((s) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {scenarios.map((s) => {
           const res = allResults[s.id];
           const isSelected = activeScenarioId === s.id;
           const isCombined = s.id === 'scenario_d';
           const localizedName = getScenarioName(s.id, s.name);
-          const localizedDesc = getScenarioDesc(s.id, s.description);
 
           return (
             <div
               key={s.id}
               onClick={() => onSelectScenario(s.id)}
-              className={`p-3.5 rounded-lg border transition cursor-pointer flex flex-col justify-between ${
+              className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
                 isCombined
-                  ? 'bg-sky-950/20 border-sky-500/40 shadow-sm ring-1 ring-sky-500/20'
+                  ? theme === 'light'
+                    ? 'bg-sky-50 border-sky-200 shadow-sm ring-1 ring-sky-200'
+                    : 'bg-sky-950/20 border-sky-500/40 shadow-sm ring-1 ring-sky-500/20'
+                  : theme === 'light'
+                  ? 'bg-white border-slate-200 hover:border-slate-300'
                   : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
-              } ${isSelected ? 'ring-2 ring-sky-400 bg-sky-900/10' : ''}`}
+              } ${isSelected ? 'ring-2 ring-sky-400' : ''}`}
             >
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
-                    isCombined ? 'bg-sky-600 text-white shadow-sm' : 'bg-[#0c0e12] text-sky-400 border border-slate-800'
-                  }`}>
+                <div className="flex items-center justify-between mb-3">
+                  <Badge variant={isCombined ? 'info' : 'default'} size="sm">
                     {language === 'es' ? 'Escenario' : 'Scenario'} ({s.letter})
-                  </span>
+                  </Badge>
                   {isCombined && (
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30 flex items-center">
-                      <Award className="w-3 h-3 mr-0.5" /> {language === 'es' ? 'Alto Impacto' : 'High Impact'}
-                    </span>
+                    <Badge variant="warning" size="sm" icon={<Award className="w-3 h-3" />}>
+                      {language === 'es' ? 'Alto Impacto' : 'High Impact'}
+                    </Badge>
                   )}
                 </div>
 
-                <h3 className="text-xs font-bold text-white mb-1 uppercase tracking-tight">{localizedName}</h3>
-                <p className="text-sm text-slate-400 line-clamp-2 mb-2.5">{localizedDesc}</p>
+                <h3 className={`text-sm font-semibold mb-2 ${
+                  theme === 'light' ? 'text-slate-900' : 'text-white'
+                }`}>
+                  {localizedName}
+                </h3>
+                <p className={`text-xs mb-4 line-clamp-2 ${
+                  theme === 'light' ? 'text-slate-600' : 'text-slate-400'
+                }`}>
+                  {getScenarioDesc(s.id, s.description)}
+                </p>
 
-                {/* Core Result Stats */}
-                <div className="space-y-1.5 text-xs pt-2 border-t border-slate-800 font-mono">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 text-sm">{language === 'es' ? 'Vidas Salvadas:' : 'Lives Saved:'}</span>
-                    <span className="font-bold text-sky-400 text-xs">
-                      {res.summary.livesSaved} <span className="text-xs text-slate-500">[{res.summary.livesSavedCI95[0]}-{res.summary.livesSavedCI95[1]}]</span>
+                {/* Core Stats */}
+                <div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs flex items-center gap-1.5 ${
+                      theme === 'light' ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
+                      <Heart className="w-3.5 h-3.5 text-rose-400" />
+                      {language === 'es' ? 'Vidas:' : 'Lives:'}
+                    </span>
+                    <span className="text-sm font-bold text-sky-500">
+                      {res.summary.livesSaved}
+                      <span className="text-xs opacity-60 ml-1">[{res.summary.livesSavedCI95[0]}-{res.summary.livesSavedCI95[1]}]</span>
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 text-sm">{language === 'es' ? 'Reducción RMM:' : 'MMR Reduction:'}</span>
-                    <span className="font-bold text-emerald-400 text-xs">-{res.summary.mmrReductionPercent}%</span>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs flex items-center gap-1.5 ${
+                      theme === 'light' ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
+                      <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />
+                      {language === 'es' ? 'Reducción:' : 'Reduction:'}
+                    </span>
+                    <span className="text-sm font-bold text-emerald-500">-{res.summary.mmrReductionPercent}%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 text-sm">{language === 'es' ? 'Costo / Vida:' : 'Cost / Life:'}</span>
-                    <span className="font-bold text-slate-200 text-xs">${res.summary.costPerLifeSavedUSD.toLocaleString()}</span>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs flex items-center gap-1.5 ${
+                      theme === 'light' ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
+                      <DollarSign className="w-3.5 h-3.5 text-amber-400" />
+                      {language === 'es' ? 'Costo:' : 'Cost:'}
+                    </span>
+                    <span className={`text-sm font-bold ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
+                      ${res.summary.costPerLifeSavedUSD.toLocaleString()}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 text-sm">{t.icerPerDaly}:</span>
-                    <span className="font-bold text-cyan-400 text-xs">${res.summary.icerPerDALY} / {language === 'es' ? 'AVAD' : 'DALY'}</span>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs flex items-center gap-1.5 ${
+                      theme === 'light' ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
+                      <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                      {t.icerPerDaly}:
+                    </span>
+                    <span className="text-sm font-bold text-cyan-500">
+                      ${res.summary.icerPerDALY} / {language === 'es' ? 'AVAD' : 'DALY'}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <button
-                className={`w-full mt-3 py-1.5 rounded text-xs font-mono font-bold uppercase flex items-center justify-center space-x-1 transition cursor-pointer ${
-                  isSelected ? 'bg-sky-600 text-white shadow-md shadow-sky-900/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                className={`w-full mt-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+                  isSelected
+                    ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/20'
+                    : theme === 'light'
+                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                <span>{isSelected ? (language === 'es' ? 'Escenario Activo' : 'Active Scenario') : (language === 'es' ? 'Seleccionar Escenario' : 'Select Scenario')}</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>{isSelected ? (language === 'es' ? 'Escenario Activo' : 'Active Scenario') : (language === 'es' ? 'Seleccionar' : 'Select')}</span>
+                <ArrowUpRight className="w-4 h-4" />
               </button>
             </div>
           );
         })}
       </div>
 
-      {/* Comparative Full Table */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
-        <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-          {language === 'es' ? 'Matriz Completa de Costo-Efectividad Comparada' : 'Full Cross-Scenario Cost-Effectiveness Matrix'}
-        </h3>
+      {/* Comparative Table */}
+      <ChartCard
+        title={language === 'es' ? 'Matriz Completa de Costo-Efectividad' : 'Full Cross-Scenario Cost-Effectiveness Matrix'}
+      >
+        <DataTable
+          columns={tableColumns}
+          data={tableData}
+          onRowClick={(row) => onSelectScenario(row.id)}
+          selectedRowId={activeScenarioId}
+          rowKey={(row) => row.id}
+        />
+      </ChartCard>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse font-mono">
-            <thead>
-              <tr className="border-b border-slate-800 bg-[#0c0e12] text-slate-500 text-xs uppercase font-bold">
-                <th className="p-2.5">{language === 'es' ? 'Escenario' : 'Scenario'}</th>
-                <th className="p-2.5">{language === 'es' ? 'Mecanismo de Intervención' : 'Intervention Mechanism'}</th>
-                <th className="p-2.5">{language === 'es' ? 'Vidas Salvadas (IC 95%)' : 'Lives Saved (95% CI)'}</th>
-                <th className="p-2.5">{language === 'es' ? 'RMM Final' : 'Final MMR'}</th>
-                <th className="p-2.5">{language === 'es' ? '% Red. RMM' : 'MMR Red. %'}</th>
-                <th className="p-2.5">{language === 'es' ? 'Costo Total (USD)' : 'Total Cost (USD)'}</th>
-                <th className="p-2.5">{language === 'es' ? 'Costo / Vida' : 'Cost / Life'}</th>
-                <th className="p-2.5">{t.icerPerDaly}</th>
-                <th className="p-2.5">{language === 'es' ? 'Umbral OMS' : 'WHO Threshold'}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {SCENARIO_DEFINITIONS.map((s) => {
-                const res = allResults[s.id];
-                const isSelected = activeScenarioId === s.id;
-                const localizedName = getScenarioName(s.id, s.name);
-                const localizedDesc = getScenarioDesc(s.id, s.description);
-
-                return (
-                  <tr
-                    key={s.id}
-                    onClick={() => onSelectScenario(s.id)}
-                    className={`cursor-pointer transition ${
-                      isSelected ? 'bg-sky-950/30 text-white' : 'hover:bg-slate-800/40 text-slate-300'
-                    }`}
-                  >
-                    <td className="p-2.5 font-bold">
-                      <div className="flex items-center space-x-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-sky-400' : 'bg-slate-600'}`} />
-                        <span>({s.letter}) {localizedName}</span>
-                      </div>
-                    </td>
-                    <td className="p-2.5 text-slate-400 font-sans text-xs">{localizedDesc.slice(0, 48)}...</td>
-                    <td className="p-2.5 font-bold text-sky-400">
-                      {s.id === 'baseline' ? (
-                        <span className="text-slate-400 font-normal">0 <span className="text-xs text-slate-500 font-mono">({language === 'es' ? 'Control' : 'Reference'})</span></span>
-                      ) : (
-                        <>{res.summary.livesSaved} <span className="text-xs text-slate-500">[{res.summary.livesSavedCI95[0]}-{res.summary.livesSavedCI95[1]}]</span></>
-                      )}
-                    </td>
-                    <td className="p-2.5 font-semibold text-slate-200">{res.summary.mmrFinal}</td>
-                    <td className="p-2.5 font-bold text-emerald-400">
-                      {s.id === 'baseline' ? (
-                        <span className="text-slate-500 font-normal">0.0% <span className="text-xs">({language === 'es' ? 'Base' : 'Ref'})</span></span>
-                      ) : (
-                        <>-{res.summary.mmrReductionPercent}%</>
-                      )}
-                    </td>
-                    <td className="p-2.5">
-                      {s.id === 'baseline' ? (
-                        <span className="text-slate-500">$0</span>
-                      ) : (
-                        <>${res.summary.totalCostUSD.toLocaleString()}</>
-                      )}
-                    </td>
-                    <td className="p-2.5">
-                      {s.id === 'baseline' ? (
-                        <span className="text-slate-500">— <span className="text-xs">({language === 'es' ? 'Control' : 'Control'})</span></span>
-                      ) : (
-                        <>${res.summary.costPerLifeSavedUSD.toLocaleString()}</>
-                      )}
-                    </td>
-                    <td className="p-2.5 text-cyan-400 font-bold">
-                      {s.id === 'baseline' ? (
-                        <span className="text-slate-500 font-normal">—</span>
-                      ) : (
-                        <>${res.summary.icerPerDALY}</>
-                      )}
-                    </td>
-                    <td className="p-2.5">
-                      {s.id === 'baseline' ? (
-                        <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
-                          {language === 'es' ? 'Control / Referencia' : 'Baseline / Control'}
-                        </span>
-                      ) : (
-                        <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                          {language === 'es' ? 'Altamente Costo-Efectivo' : 'Highly Cost-Effective'}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Synergistic Impact Box */}
-        <div className="bg-sky-950/20 border border-sky-500/30 rounded-lg p-3 text-xs text-sky-200 space-y-1">
-          <div className="flex items-center space-x-2 font-bold text-sky-300 text-sm uppercase">
-            <Zap className="w-3.5 h-3.5 text-sky-400" />
-            <span>{language === 'es' ? 'Sinergia Multifacética en Escenario (d): Aversión No Lineal de Mortalidad' : 'Multi-Faceted Synergy in Scenario (d): Non-Linear Mortality Aversion'}</span>
+      {/* Synergistic Impact Box */}
+      <div className={`rounded-xl p-4 ${
+        theme === 'light' ? 'bg-sky-50 border border-sky-200' : 'bg-sky-950/20 border border-sky-500/30'
+      }`}>
+        <div className="flex items-start gap-3">
+          <Zap className="w-5 h-5 text-sky-500 mt-0.5 shrink-0" />
+          <div>
+            <h4 className={`text-sm font-semibold mb-1 ${theme === 'light' ? 'text-sky-700' : 'text-sky-300'}`}>
+              {language === 'es' 
+                ? 'Sinergia Multifacética en Escenario (d)'
+                : 'Multi-Faceted Synergy in Scenario (d)'}
+            </h4>
+            <p className={`text-xs leading-relaxed ${theme === 'light' ? 'text-sky-600' : 'text-sky-400'}`}>
+              {language === 'es'
+                ? 'Implementar moto-ambulancias (a), eliminación de tarifas (b) y capacitación de parteras tradicionales (c) simultáneamente genera 1.48x más vidas salvadas que la suma simple de intervenciones individuales, al resolver cuellos de botella secuenciales del Modelo de las Tres Demoras.'
+                : 'Implementing moto-ambulances (a), fee elimination (b), and TBA certifications (c) simultaneously produces 1.48x greater lives saved than the simple sum of individual interventions due to eliminating multiple sequential bottlenecks across the Three Delays model.'}
+            </p>
           </div>
-          <p className="text-slate-300 font-sans text-xs leading-relaxed">
-            {language === 'es'
-              ? 'Implementar moto-ambulancias (a), eliminación de tarifas (b) y capacitación de parteras tradicionales (c) simultáneamente genera 1.48x más vidas salvadas que la suma simple de intervenciones individuales, al resolver cuellos de botella secuenciales del Modelo de las Tres Demoras.'
-              : 'Implementing moto-ambulances (a), fee elimination (b), and TBA certifications (c) simultaneously produces 1.48x greater lives saved than the simple sum of individual interventions due to eliminating multiple sequential bottlenecks across the Three Delays model.'}
-          </p>
         </div>
-
       </div>
 
     </div>

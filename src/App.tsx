@@ -22,7 +22,6 @@ import { CodeArchitectureView } from './components/CodeArchitectureView';
 import { AICopilotModal } from './components/AICopilotModal';
 import { AuthModal } from './components/AuthModal';
 import { DHSImportModal } from './components/DHSImportModal';
-import { Sidebar } from './components/Sidebar';
 
 function AppContent() {
   const { t } = useLanguage();
@@ -36,7 +35,6 @@ function AppContent() {
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isDHSImportOpen, setIsDHSImportOpen] = useState<boolean>(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // RBAC and JWT Authentication state
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => AuthService.getCurrentProfile());
@@ -168,38 +166,31 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0e12] text-slate-200 font-sans selection:bg-sky-500 selection:text-slate-950 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#0c0e12] text-slate-200 font-sans selection:bg-sky-500 selection:text-slate-950 flex">
       
-      {/* Navigation Header */}
-      <div>
-        <Navbar
-          currentTab={currentTab}
-          onTabChange={setCurrentTab}
-          selectedDistrict={selectedDistrict}
-          onDistrictChange={setSelectedDistrict}
-          districtsList={districtsList}
-          currentUser={currentUser}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onOpenDHSImport={() => setIsDHSImportOpen(true)}
-          onOpenCopilot={() => setIsCopilotOpen(true)}
-          onExportPDF={handleExportPDF}
-          onExportExcel={handleExportExcel}
-          onExportWord={handleExportWord}
-           onRefreshDistricts={handleRefreshDistricts}
-           isRefreshing={isRefreshingDistricts}
-           onToggleSidebar={() => setIsSidebarOpen((open) => !open)}
-         />
+      {/* Sidebar Navigation */}
+      <Navbar
+        currentTab={currentTab}
+        onTabChange={setCurrentTab}
+        selectedDistrict={selectedDistrict}
+        onDistrictChange={setSelectedDistrict}
+        districtsList={districtsList}
+        currentUser={currentUser}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onOpenDHSImport={() => setIsDHSImportOpen(true)}
+        onOpenCopilot={() => setIsCopilotOpen(true)}
+        onExportPDF={handleExportPDF}
+        onExportExcel={handleExportExcel}
+        onExportWord={handleExportWord}
+        onRefreshDistricts={handleRefreshDistricts}
+        isRefreshing={isRefreshingDistricts}
+        onToggleSidebar={() => {}}
+      />
 
-        <div className="mx-auto flex w-full max-w-[1800px]">
-          <Sidebar
-            currentTab={currentTab}
-            onTabChange={setCurrentTab}
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-          />
-
-          {/* Main View Container */}
-          <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 xl:px-10">
+      {/* Main Content Area */}
+      <div className="flex-1 min-h-screen flex flex-col ml-64">
+        {/* Main View Container */}
+        <main className="flex-1 px-6 py-6 lg:px-8 xl:px-10">
           {currentTab === 'dashboard' && (
             <DashboardView
               district={selectedDistrict}
@@ -255,30 +246,29 @@ function AppContent() {
           {currentTab === 'code-arch' && (
             <CodeArchitectureView />
           )}
-          </main>
-        </div>
-      </div>
+        </main>
 
-      {/* Persistent High Density Footer with Telemetry Disclosures */}
-      <footer className="bg-[#0c0e12] border-t border-slate-800 py-3 mt-6">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500 font-mono gap-2">
-          <div className="flex items-center space-x-3">
-            <span className="flex items-center gap-1.5 text-slate-400 font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              {t.footerEngine}
-            </span>
-            <span className="text-slate-700">|</span>
-            <span>{t.footerProtocol}</span>
-            <span className="text-slate-700">|</span>
-            <span className="text-sky-400">{t.footerCalibration}</span>
+        {/* Footer */}
+        <footer className="border-t border-slate-800 py-3 mt-auto">
+          <div className="w-full px-6 lg:px-8 xl:px-10 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500 font-mono gap-2">
+            <div className="flex items-center space-x-3">
+              <span className="flex items-center gap-1.5 text-slate-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                {t.footerEngine}
+              </span>
+              <span className="text-slate-700">|</span>
+              <span>{t.footerProtocol}</span>
+              <span className="text-slate-700">|</span>
+              <span className="text-sky-400">{t.footerCalibration}</span>
+            </div>
+            <div className="flex items-center space-x-3 text-[10px] text-slate-500">
+              <span>{t.footerDistricts} ({districtsList.length} Distritos activos)</span>
+              <span className="text-slate-700">•</span>
+              <span>{t.footerTelemetry}</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-3 text-[10px] text-slate-500">
-            <span>{t.footerDistricts} ({districtsList.length} Distritos activos)</span>
-            <span className="text-slate-700">•</span>
-            <span>{t.footerTelemetry}</span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
 
       {/* AI Epidemiologist Copilot Modal */}
       <AICopilotModal

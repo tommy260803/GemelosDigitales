@@ -8,17 +8,26 @@ import {
   ShieldCheck, 
   TrendingUp,
   Award,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  Clock,
+  Target
 } from 'lucide-react';
 import { DistrictData, ValidationMetrics } from '../types';
 import { StatisticalValidationService } from '../services/statistics';
 import { SUB_SAHARAN_DISTRICTS } from '../data/districts';
+import { useTheme } from '../context/ThemeContext';
+import { SectionHeader } from './ui/SectionHeader';
+import { Badge } from './ui/Badge';
+import { ChartCard } from './ui/ChartCard';
+import { StatCard } from './ui/StatCard';
 
 interface ValidationViewProps {
   district: DistrictData;
 }
 
 export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
+  const { theme } = useTheme();
   const [selectedHoldoutId, setSelectedHoldoutId] = useState<string>('ug-moroto');
   const [mcIterations, setMcIterations] = useState<number>(10000);
   const [mcProgress, setMcProgress] = useState<number>(0);
@@ -54,369 +63,333 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       
-      {/* Header Banner */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 text-xs font-mono font-bold rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase tracking-wider">
-                EPIDEMIOLOGICAL VALIDATION SUITE
-              </span>
-              <h2 className="text-xs font-bold text-white uppercase tracking-tight">
-                Statistical Testing, Sobol Global Sensitivity &amp; Countdown 2030 Goodness-of-Fit
-              </h2>
-            </div>
-            <p className="text-sm text-slate-400 font-mono mt-0.5">
-              Empirical validation against DHS cluster GPS surveys, DHIS2 monthly registries, and WHO benchmarks.
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-1.5 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded text-emerald-300 text-xs font-mono font-bold uppercase">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Hypothesis H1 Confirmed</span>
-          </div>
-        </div>
-      </div>
+      {/* Header */}
+      <SectionHeader
+        title="Suite de Validación Epidemiológica"
+        subtitle="Pruebas estadísticas, Sobol Global Sensitivity y Countdown 2030 Goodness-of-Fit"
+        icon={<CheckCircle2 className="w-5 h-5" />}
+        badge={
+          <Badge variant="success" size="sm" icon={<CheckCircle2 className="w-3 h-3" />}>
+            Hipótesis H1 Confirmada
+          </Badge>
+        }
+      />
 
       {/* Top 3 Statistical Test Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        {/* 1. Kolmogorov-Smirnov Test Card */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm space-y-2.5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs mb-1 font-mono">
-              <span className="font-bold text-sky-400 text-xs uppercase">1. Kolmogorov-Smirnov</span>
-              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-sky-500/20 text-sky-300 uppercase">
-                Transit Times
-              </span>
-            </div>
-            <p className="text-sm text-slate-400">
-              Two-sample KS test comparing model-simulated emergency transit vs empirical DHS cluster GPS data.
-            </p>
-
-            <div className="mt-3 space-y-1.5 text-xs bg-[#0c0e12] p-2.5 rounded border border-slate-800 font-mono">
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">KS Statistic (D):</span>
-                <span className="text-slate-200 font-bold">{ksResult.statisticD}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Critical (Î±=0.05):</span>
-                <span className="text-slate-200">{ksResult.criticalValue}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Asymptotic p-val:</span>
-                <span className="text-emerald-400 font-bold">{ksResult.pValue}</span>
+        {/* 1. Kolmogorov-Smirnov Test */}
+        <ChartCard
+          title="1. Kolmogorov-Smirnov"
+          subtitle="Two-sample KS test comparing model vs DHS cluster GPS data"
+          actions={<Badge variant="info" size="sm">Transit Times</Badge>}
+        >
+          <div className="space-y-3">
+            <div className={`p-3 rounded-lg ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-950/40'}`}>
+              <div className="space-y-2 text-xs font-mono">
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>KS Statistic (D):</span>
+                  <span className={`font-semibold ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{ksResult.statisticD}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>Critical (α=0.05):</span>
+                  <span className={theme === 'light' ? 'text-slate-700' : 'text-slate-300'}>{ksResult.criticalValue}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>Asymptotic p-val:</span>
+                  <span className="font-semibold text-emerald-500">{ksResult.pValue}</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="pt-2 border-t border-slate-800 text-sm text-emerald-400 font-mono flex items-center space-x-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-            <span>Distributions equivalent (p &gt; 0.05)</span>
-          </div>
-        </div>
-
-        {/* 2. Wilcoxon Signed-Rank Test Card */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm space-y-2.5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs mb-1 font-mono">
-              <span className="font-bold text-cyan-400 text-xs uppercase">2. Wilcoxon Signed-Rank</span>
-              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-300 uppercase">
-                25 Districts
-              </span>
-            </div>
-            <p className="text-sm text-slate-400">
-              Paired non-parametric test validating predicted vs observed MMR across all 25 Sub-Saharan health districts.
-            </p>
-
-            <div className="mt-3 space-y-1.5 text-xs bg-[#0c0e12] p-2.5 rounded border border-slate-800 font-mono">
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Test Stat (W):</span>
-                <span className="text-slate-200 font-bold">{wilcoxonResult.statisticW}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Z-Score:</span>
-                <span className="text-slate-200">{wilcoxonResult.zScore}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Two-tailed p-val:</span>
-                <span className="text-emerald-400 font-bold">{wilcoxonResult.pValue}</span>
-              </div>
+            <div className="flex items-center gap-2 text-sm text-emerald-500">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>Distributions equivalent (p &gt; 0.05)</span>
             </div>
           </div>
+        </ChartCard>
 
-          <div className="pt-2 border-t border-slate-800 text-sm text-emerald-400 font-mono flex items-center space-x-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-            <span>Zero systematic calibration bias</span>
+        {/* 2. Wilcoxon Signed-Rank Test */}
+        <ChartCard
+          title="2. Wilcoxon Signed-Rank"
+          subtitle="Paired non-parametric test across 25 Sub-Saharan health districts"
+          actions={<Badge variant="info" size="sm">25 Districts</Badge>}
+        >
+          <div className="space-y-3">
+            <div className={`p-3 rounded-lg ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-950/40'}`}>
+              <div className="space-y-2 text-xs font-mono">
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>Test Stat (W):</span>
+                  <span className={`font-semibold ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{wilcoxonResult.statisticW}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>Z-Score:</span>
+                  <span className={theme === 'light' ? 'text-slate-700' : 'text-slate-300'}>{wilcoxonResult.zScore}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>Two-tailed p-val:</span>
+                  <span className="font-semibold text-emerald-500">{wilcoxonResult.pValue}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-emerald-500">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>Zero systematic calibration bias</span>
+            </div>
           </div>
-        </div>
+        </ChartCard>
 
         {/* 3. Goodness of Fit & Countdown 2030 */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-3.5 shadow-sm space-y-2.5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs mb-1 font-mono">
-              <span className="font-bold text-indigo-400 text-xs uppercase">3. Countdown 2030 Fit</span>
-              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 uppercase">
-                Holdout Test
-              </span>
-            </div>
-            <p className="text-sm text-slate-400">
-              External validation on uncalibrated holdout district ({externalResult.testDistrict}, {externalResult.country}).
-            </p>
-
-            <div className="mt-3 space-y-1.5 text-xs bg-[#0c0e12] p-2.5 rounded border border-slate-800 font-mono">
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Determ. (R²):</span>
-                <span className="text-emerald-400 font-bold">{externalResult.rSquared}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">RMSE (/100k):</span>
-                <span className="text-slate-200">{externalResult.rmse}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 text-sm">Correlation (r):</span>
-                <span className="text-indigo-300 font-bold">{externalResult.countdown2030Correlation}</span>
+        <ChartCard
+          title="3. Countdown 2030 Fit"
+          subtitle={`External validation on holdout district (${externalResult.testDistrict})`}
+          actions={<Badge variant="purple" size="sm">Holdout Test</Badge>}
+        >
+          <div className="space-y-3">
+            <div className={`p-3 rounded-lg ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-950/40'}`}>
+              <div className="space-y-2 text-xs font-mono">
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>Determ. (R²):</span>
+                  <span className="font-semibold text-emerald-500">{externalResult.rSquared}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>RMSE (/100k):</span>
+                  <span className={theme === 'light' ? 'text-slate-700' : 'text-slate-300'}>{externalResult.rmse}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>Correlation (r):</span>
+                  <span className="font-semibold text-indigo-500">{externalResult.countdown2030Correlation}</span>
+                </div>
               </div>
             </div>
+            <div className="flex items-center gap-2 text-sm text-indigo-500">
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span>High external generalizability (R² &gt; 0.90)</span>
+            </div>
           </div>
-
-          <div className="pt-2 border-t border-slate-800 text-sm text-indigo-300 font-mono flex items-center space-x-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-            <span>High external generalizability (R² &gt; 0.90)</span>
-          </div>
-        </div>
+        </ChartCard>
 
       </div>
 
-      {/* Sobol Global Sensitivity Analysis (Variance Decomposition) */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
-          <div>
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-2">
-              <BarChart2 className="w-4 h-4 text-sky-400" />
-              <span>Sobol Global Sensitivity Analysis (Saltelli Variance Decomposition)</span>
-            </h3>
-            <p className="text-sm text-slate-400 font-mono">
-              Quantifies First-Order (S1) and Total-Order (ST) parameter contributions to Maternal Mortality variance.
-            </p>
-          </div>
-        </div>
-
-        {/* Sensitivity Bars */}
-        <div className="space-y-3 pt-1">
+      {/* Sobol Global Sensitivity Analysis */}
+      <ChartCard
+        title="Análisis de Sensibilidad Global Sobol (Decomposición de Varianza Saltelli)"
+        subtitle="Quantifies First-Order (S1) and Total-Order (ST) parameter contributions to MMR variance"
+        actions={<Badge variant="info" size="sm">Saltelli</Badge>}
+      >
+        <div className="space-y-4">
           {sobolResult.parameters.map((param, idx) => {
             const s1 = sobolResult.firstOrderIndices[idx];
             const st = sobolResult.totalOrderIndices[idx];
             const ci = sobolResult.confidenceIntervals[idx];
 
             return (
-              <div key={param} className="space-y-1 text-xs">
-                <div className="flex justify-between text-slate-300">
-                  <span className="font-bold text-xs">{param}</span>
-                  <div className="space-x-3 font-mono text-xs">
-                    <span className="text-sky-400">S1: {s1} [95% CI: {ci[0]}-{ci[1]}]</span>
-                    <span className="text-cyan-400 font-bold">ST: {st}</span>
+              <div key={param} className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className={`text-sm font-medium ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
+                    {param}
+                  </span>
+                  <div className="flex items-center gap-4 text-xs font-mono">
+                    <span className="text-sky-500">S1: {s1} [95% CI: {ci[0]}-{ci[1]}]</span>
+                    <span className="font-semibold text-cyan-500">ST: {st}</span>
                   </div>
                 </div>
-
-                {/* Stacked bar showing S1 and interaction effect */}
-                <div className="w-full h-2.5 bg-[#0c0e12] rounded-full overflow-hidden flex border border-slate-800">
-                  {/* S1 Main effect */}
-                  <div
-                    className="h-full bg-sky-500 rounded-l-full"
-                    style={{ width: `${Math.round(s1 * 100)}%` }}
-                    title={`First Order S1: ${s1}`}
-                  />
-                  {/* ST Interaction effect */}
-                  <div
-                    className="h-full bg-cyan-600 rounded-r-full"
-                    style={{ width: `${Math.round((st - s1) * 100)}%` }}
-                    title={`Higher Order Interactions: ${Math.round((st - s1) * 100)}%`}
-                  />
+                <div className={`w-full h-3 rounded-full overflow-hidden flex border ${
+                  theme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'
+                }`}>
+                  <div className="h-full bg-sky-500 rounded-l-full" style={{ width: `${Math.round(s1 * 100)}%` }} />
+                  <div className="h-full bg-cyan-600 rounded-r-full" style={{ width: `${Math.round((st - s1) * 100)}%` }} />
                 </div>
               </div>
             );
           })}
-        </div>
 
-        {/* Sobol Conclusion */}
-        <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800 text-xs text-slate-300 flex items-start space-x-2 font-mono">
-          <Award className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold text-white block text-xs">Dominant Variance Drivers Identified:</span>
-            <span className="text-slate-400 text-sm font-sans">
-              {sobolResult.topVarianceContributors.join(' • ')}. Targeted interventions on these 3 variables achieve the greatest systemic mortality reduction.
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Formal Hypothesis Testing (H0 vs H1 Certification) */}
-      {hypothesisResult && (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+          <div className={`flex items-start gap-3 p-3 rounded-lg border ${
+            theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/40 border-slate-800'
+          }`}>
+            <Award className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="px-2 py-0.5 text-xs font-mono font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
-                  STATISTICAL CERTIFICATION
-                </span>
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  Formal Hypothesis Testing: Systemic Bottlenecks &amp; Variance Explained
-                </h3>
-              </div>
-              <p className="text-sm text-slate-400 font-mono mt-0.5">
-                Verifying whether the digital twin identifies 2-3 bottleneck parameters explaining ≥20% variance and achieving ≥15% MMR reduction.
+              <p className={`text-sm font-semibold mb-1 ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
+                Dominant Variance Drivers Identified:
+              </p>
+              <p className={`text-xs ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                {sobolResult.topVarianceContributors.join(' • ')}. Targeted interventions on these 3 variables achieve the greatest systemic mortality reduction.
               </p>
             </div>
-
-            <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-1 rounded text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                H₀ REJECTED (p &lt; 0.0001)
-              </span>
-              <span className="px-2.5 py-1 rounded text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                Hâ‚ CONFIRMED
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 font-mono text-xs">
-            {hypothesisResult.bottlenecks.map((b) => (
-              <div key={b.rank} className="bg-[#0c0e12] p-3 rounded-lg border border-slate-800 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-sky-400 uppercase">Bottleneck #{b.rank}</span>
-                  <span className="text-emerald-400 font-bold text-xs">{b.varianceSharePercent}% Variance</span>
-                </div>
-                <div className="font-bold text-white text-xs">{b.name}</div>
-                <div className="text-xs text-slate-400">{b.phase}</div>
-                <div className="text-xs text-sky-300 bg-sky-950/30 p-1.5 rounded border border-sky-800/40">
-                  ⚡ <strong>Action:</strong> {b.mitigationAction}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-3 bg-[#0c0e12] rounded border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
-            <div>
-              <span className="text-slate-400">Total Variance Explained by Top 3 Bottlenecks:</span>{' '}
-              <strong className="text-emerald-400 text-sm">{hypothesisResult.top3VarianceExplainedPercent}%</strong>{' '}
-              <span className="text-slate-500">(Required Threshold: ≥ 20.0%)</span>
-            </div>
-            <div>
-              <span className="text-slate-400">Achieved Scenario D MMR Reduction:</span>{' '}
-              <strong className="text-sky-300 text-sm">-{hypothesisResult.observedScenarioDReductionPercent}%</strong>{' '}
-              <span className="text-slate-500">(Required: ≥ 15.0%)</span>
-            </div>
           </div>
         </div>
+      </ChartCard>
+
+      {/* 4. Formal Hypothesis Testing */}
+      {hypothesisResult && (
+        <ChartCard
+          title="Certificación Estadística: Prueba Formal de Hipótesis"
+          subtitle="Verifying whether the digital twin identifies 2-3 bottleneck parameters explaining ≥20% variance"
+          actions={
+            <div className="flex items-center gap-2">
+              <Badge variant="danger" size="sm">H₀ REJECTED (p &lt; 0.0001)</Badge>
+              <Badge variant="success" size="sm">H₁ CONFIRMED</Badge>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {hypothesisResult.bottlenecks.map((b) => (
+                <div key={b.rank} className={`p-4 rounded-lg border ${
+                  theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/40 border-slate-800'
+                }`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="info" size="sm">Bottleneck #{b.rank}</Badge>
+                    <span className="text-sm font-semibold text-emerald-500">{b.varianceSharePercent}% Variance</span>
+                  </div>
+                  <h4 className={`text-sm font-semibold mb-1 ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
+                    {b.name}
+                  </h4>
+                  <p className={`text-xs mb-2 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {b.phase}
+                  </p>
+                  <div className={`p-2 rounded text-xs ${
+                    theme === 'light' ? 'bg-sky-50 text-sky-700' : 'bg-sky-950/30 text-sky-300'
+                  }`}>
+                    <strong>Action:</strong> {b.mitigationAction}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border ${
+              theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/40 border-slate-800'
+            }`}>
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-sky-500" />
+                <span className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                  Total Variance Explained:
+                </span>
+                <span className="text-lg font-bold text-emerald-500">{hypothesisResult.top3VarianceExplainedPercent}%</span>
+                <span className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>(Required: ≥ 20.0%)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-sky-500" />
+                <span className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                  Scenario D MMR Reduction:
+                </span>
+                <span className="text-lg font-bold text-sky-500">-{hypothesisResult.observedScenarioDReductionPercent}%</span>
+                <span className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>(Required: ≥ 15.0%)</span>
+              </div>
+            </div>
+          </div>
+        </ChartCard>
       )}
 
       {/* 5. Asynchronous High-Volume Monte Carlo Engine */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="px-2 py-0.5 text-xs font-mono font-bold rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider">
-                ASYNC BATCH ENGINE
-              </span>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                Mass Monte Carlo Parameter Space Exploration (N = 1,000 to 25,000)
-              </h3>
-            </div>
-            <p className="text-sm text-slate-400 font-mono mt-0.5">
-              High-throughput async background worker validating MCMC convergence (Gelman-Rubin RÌ‚ &lt; 1.05) and Monte Carlo Standard Error (MCSE).
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2 font-mono text-xs">
+      <ChartCard
+        title="Motor Monte Carlo Asíncrono de Alto Volumen"
+        subtitle="High-throughput async background worker validating MCMC convergence and Monte Carlo Standard Error"
+        actions={
+          <div className="flex items-center gap-2">
             <select
               value={mcIterations}
               onChange={(e) => setMcIterations(Number(e.target.value))}
               disabled={isMcRunning}
-              className="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2.5 py-1 focus:outline-none"
+              className={`text-xs rounded-lg px-2 py-1 border focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-slate-50 border-slate-200 text-slate-700'
+                  : 'bg-slate-800 border-slate-700 text-slate-200'
+              } ${isMcRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <option value={1000}>N = 1,000</option>
               <option value={5000}>N = 5,000</option>
               <option value={10000}>N = 10,000</option>
               <option value={25000}>N = 25,000</option>
             </select>
-
             <button
               onClick={handleRunAsyncMonteCarlo}
               disabled={isMcRunning}
-              className={`px-3 py-1 rounded font-bold transition flex items-center space-x-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                 isMcRunning
-                  ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                   : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'
               }`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isMcRunning ? 'animate-spin' : ''}`} />
-              <span>{isMcRunning ? `Simulando ${mcProgress}%...` : 'Ejecutar Monte Carlo'}</span>
+              <RefreshCw className={`w-4 h-4 ${isMcRunning ? 'animate-spin' : ''}`} />
+              {isMcRunning ? `${mcProgress}%...` : 'Ejecutar'}
             </button>
           </div>
-        </div>
-
-        {/* Progress indicator during run */}
+        }
+      >
+        {/* Progress indicator */}
         {isMcRunning && (
-          <div className="space-y-1.5 font-mono text-xs bg-[#0c0e12] p-3 rounded border border-slate-800">
-            <div className="flex justify-between text-sm text-slate-300">
-              <span>Progreso de Simulación: {mcProgress}%</span>
-              <span className="text-cyan-400 font-bold">{mcThroughput.toLocaleString()} iter/seg</span>
+          <div className={`mb-4 p-3 rounded-lg border ${
+            theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/40 border-slate-800'
+          }`}>
+            <div className="flex justify-between text-sm mb-2">
+              <span className={theme === 'light' ? 'text-slate-700' : 'text-slate-300'}>
+                Progreso: {mcProgress}%
+              </span>
+              <span className="font-semibold text-cyan-500">
+                {mcThroughput.toLocaleString()} iter/seg
+              </span>
             </div>
-            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-cyan-500 transition-all duration-150"
-                style={{ width: `${mcProgress}%` }}
-              />
+            <div className={`w-full h-2 rounded-full overflow-hidden ${theme === 'light' ? 'bg-slate-200' : 'bg-slate-800'}`}>
+              <div className="h-full bg-cyan-500 transition-all duration-150" style={{ width: `${mcProgress}%` }} />
             </div>
           </div>
         )}
 
-        {/* Monte Carlo Results Display */}
+        {/* Results */}
         {asyncMcResult && (
-          <div className="space-y-3 pt-1">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
-              <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800">
-                <span className="text-xs text-slate-500 uppercase block">Iteraciones:</span>
-                <span className="text-white font-bold">{asyncMcResult.iterations.toLocaleString()}</span>
-                <span className="text-xs text-slate-500 block">{asyncMcResult.durationMs}ms ({asyncMcResult.throughputIterSec.toLocaleString()} it/s)</span>
-              </div>
-              <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800">
-                <span className="text-xs text-slate-500 uppercase block">Gelman-Rubin (RÌ‚):</span>
-                <span className="text-emerald-400 font-bold">{asyncMcResult.gelmanRubinR}</span>
-                <span className="text-xs text-emerald-500 block">Convergencia &lt; 1.05</span>
-              </div>
-              <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800">
-              <span className="text-xs text-slate-500 uppercase block">Error Estándar (MCSE):</span>
-                 <span className="text-sky-300 font-bold">±{asyncMcResult.mcStandardError}</span>
-                <span className="text-xs text-slate-400 block">&lt; 1.2% varianza</span>
-              </div>
-              <div className="bg-[#0c0e12] p-2.5 rounded border border-slate-800">
-                <span className="text-xs text-slate-500 uppercase block">IC 95% Vidas Salvadas:</span>
-                <span className="text-emerald-300 font-bold">[{asyncMcResult.ci95[0]} - {asyncMcResult.ci95[1]}]</span>
-                <span className="text-xs text-slate-400 block">Media: {asyncMcResult.distributionMean}</span>
-              </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatCard
+                label="Iteraciones"
+                value={asyncMcResult.iterations.toLocaleString()}
+                subtitle={`${asyncMcResult.durationMs}ms (${asyncMcResult.throughputIterSec.toLocaleString()} it/s)`}
+                variant="default"
+              />
+              <StatCard
+                label="Gelman-Rubin (R̂)"
+                value={asyncMcResult.gelmanRubinR}
+                subtitle="Convergencia < 1.05"
+                variant="success"
+              />
+              <StatCard
+                label="Error Estándar (MCSE)"
+                value={`±${asyncMcResult.mcStandardError}`}
+                subtitle="< 1.2% varianza"
+                variant="info"
+              />
+              <StatCard
+                label="IC 95% Vidas Salvadas"
+                value={`[${asyncMcResult.ci95[0]} - ${asyncMcResult.ci95[1]}]`}
+                subtitle={`Media: ${asyncMcResult.distributionMean}`}
+                variant="highlight"
+              />
             </div>
 
-            {/* Distribution Frequency Histogram */}
-            <div className="bg-[#0c0e12] p-3 rounded border border-slate-800 space-y-2 font-mono text-xs">
-              <div className="flex justify-between text-sm text-slate-400">
-                <span>Distribución de Densidad de Probabilidad (12 Bins Empíricos):</span>
-                <span className="text-cyan-400 font-bold">N={asyncMcResult.iterations.toLocaleString()}</span>
+            {/* Distribution Histogram */}
+            <div className={`p-4 rounded-lg border ${
+              theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/40 border-slate-800'
+            }`}>
+              <div className="flex justify-between text-sm mb-3">
+                <span className={theme === 'light' ? 'text-slate-600' : 'text-slate-400'}>
+                  Distribución de Densidad de Probabilidad (12 Bins Empíricos):
+                </span>
+                <span className="font-semibold text-cyan-500">N={asyncMcResult.iterations.toLocaleString()}</span>
               </div>
-
-              <div className="grid grid-cols-12 gap-1 items-end h-20 pt-2 border-b border-slate-800 pb-1">
+              <div className="grid grid-cols-12 gap-1 items-end h-24 pt-2 border-b border-slate-200 dark:border-slate-800 pb-1">
                 {asyncMcResult.histogramBins.map((bin, i) => {
                   const maxFreq = Math.max(...asyncMcResult.histogramBins.map((b) => b.freq));
                   const heightPct = maxFreq > 0 ? (bin.freq / maxFreq) * 100 : 0;
                   return (
-                    <div key={i} className="flex flex-col items-center h-full justify-end group relative">
+                    <div key={i} className="flex flex-col items-center h-full justify-end">
                       <div
                         className="w-full bg-cyan-500 hover:bg-cyan-400 rounded-t transition-all"
                         style={{ height: `${Math.max(4, heightPct)}%` }}
                       />
-                      <span className="text-xs text-slate-500 truncate w-full text-center mt-1">
+                      <span className={`text-[9px] truncate w-full text-center mt-1 ${
+                        theme === 'light' ? 'text-slate-500' : 'text-slate-400'
+                      }`}>
                         {bin.bin.split('-')[0]}
                       </span>
                     </div>
@@ -426,7 +399,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
             </div>
           </div>
         )}
-      </div>
+      </ChartCard>
 
     </div>
   );
