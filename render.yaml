@@ -27,6 +27,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: BACKEND_URL
-        value: http://maternal-health-api:8000
+        value: https://maternal-health-api.onrender.com
       - key: API_URL
-        value: http://maternal-health-api:8000
+        value: https://maternal-health-api.onrender.com

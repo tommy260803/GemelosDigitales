@@ -93,11 +93,11 @@ GEMINI_API_KEY=<opcional>
 
 ```text
 NODE_ENV=production
-BACKEND_URL=http://maternal-health-api:8000
-API_URL=http://maternal-health-api:8000
+BACKEND_URL=https://maternal-health-api.onrender.com
+API_URL=https://maternal-health-api.onrender.com
 ```
 
-Si Render asigna un hostname interno distinto, reemplaza ambas variables por la dirección privada que aparece en **Connect** del servicio FastAPI.
+En el plan Free, usa la URL pública HTTPS del servicio FastAPI. No uses `http://maternal-health-api:8000`: los Web Services Free no reciben tráfico por la red privada de Render desde otro Web Service Free. Si Render asigna un hostname público distinto, reemplaza ambas variables por esa URL pública.
 
 ### Opción manual
 
@@ -132,10 +132,10 @@ Root Directory: .
 - Plan: Free
 - Health check path: `/api/health`
 - `NODE_ENV=production`
-- `BACKEND_URL=http://maternal-health-api:8000`
-- `API_URL=http://maternal-health-api:8000`
+- `BACKEND_URL=https://maternal-health-api.onrender.com`
+- `API_URL=https://maternal-health-api.onrender.com`
 
-Mantén ambos servicios en la misma región de Render, preferiblemente `Oregon`, para usar la red privada y reducir latencia.
+Mantén ambos servicios en la misma región de Render, preferiblemente `Oregon`, aunque el frontend Free debe llamar al backend mediante su URL pública HTTPS.
 
 ## 4. Verificar el despliegue
 
@@ -161,7 +161,7 @@ La aplicación React no necesita conocer directamente la URL pública de FastAPI
 
 - Revisa que `maternal-health-api` esté **Live**.
 - Revisa `BACKEND_URL` en el servicio web.
-- Usa el hostname interno de Render, no `localhost`.
+- Usa la URL pública HTTPS del backend, no `localhost` ni un hostname interno de Render.
 - Espera el despertar del servicio Free y recarga la página.
 
 ### FastAPI se reinicia durante el arranque
