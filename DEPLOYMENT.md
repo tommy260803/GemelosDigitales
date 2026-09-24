@@ -146,6 +146,7 @@ Cuando los dos servicios estén activos:
 
 ```text
 https://TU_FRONTEND.onrender.com/api/health
+https://TU_FRONTEND.onrender.com/api/backend-health
 https://TU_API.onrender.com/health
 https://TU_FRONTEND.onrender.com/api/districts
 ```
@@ -163,6 +164,7 @@ La aplicación React no necesita conocer directamente la URL pública de FastAPI
 - Revisa `BACKEND_URL` en el servicio web.
 - Usa la URL pública HTTPS del backend, no `localhost` ni un hostname interno de Render.
 - Espera el despertar del servicio Free y recarga la página.
+- Abre `/api/backend-health` en el frontend: `backendUrl` debe ser el hostname público real de FastAPI y `backendHealthy` debe ser `true`.
 
 ### FastAPI se reinicia durante el arranque
 

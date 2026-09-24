@@ -28,6 +28,10 @@ const BACKEND_URL = /^https?:\/\//i.test(configuredBackendUrl)
   ? configuredBackendUrl
   : `https://${configuredBackendUrl}`;
 
+function backendUrlFor(pathname: string): string {
+  return `${BACKEND_URL.replace(/\/$/, '')}${pathname}`;
+}
+
 async function startServer() {
   const app = express();
   const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -48,12 +52,31 @@ async function startServer() {
     });
   });
 
+  app.get('/api/backend-health', async (_req, res) => {
+    try {
+      const response = await fetch(backendUrlFor('/health'));
+      return res.status(response.ok ? 200 : 502).json({
+        frontend: 'operational',
+        backendUrl: BACKEND_URL,
+        backendStatus: response.status,
+        backendHealthy: response.ok,
+      });
+    } catch (error: any) {
+      return res.status(502).json({
+        frontend: 'operational',
+        backendUrl: BACKEND_URL,
+        backendHealthy: false,
+        error: error?.cause?.code || error?.code || error?.message || 'Backend request failed',
+      });
+    }
+  });
+
   // =========================================================
   // GEOSPATIAL 3D ROUTES (Express-only, calls FastAPI for district data)
   // =========================================================
   const getDistrict = async (districtId: unknown) => {
     if (typeof districtId !== 'string') throw new Error('districtId is required');
-    const response = await fetch(`${BACKEND_URL}/districts/${encodeURIComponent(districtId)}`);
+    const response = await fetch(backendUrlFor(`/districts/${encodeURIComponent(districtId)}`));
     if (!response.ok) throw new Error(`FastAPI district request failed: ${response.status}`);
     return response.json();
   };
@@ -202,7 +225,7 @@ async function startServer() {
       return res.status(response.status).type(contentType || 'text').send(text);
     } catch (err: any) {
       console.error(`[PROXY ERROR] ${req.originalUrl}:`, err.message);
-      return res.status(502).json({ error: 'Backend service unavailable', detail: err.message });
+      return res.status(502).json({ error: 'Backend service unavailable', detail: err.message, backendUrl: BACKEND_URL });
     }
   };
 
@@ -225,7 +248,7 @@ async function startServer() {
       return res.status(response.status).type(contentType || 'text').send(text);
     } catch (err: any) {
       console.error(`[PROXY ERROR] ${req.originalUrl}:`, err.message);
-      return res.status(502).json({ error: 'Backend service unavailable', detail: err.message });
+      return res.status(502).json({ error: 'Backend service unavailable', detail: err.message, backendUrl: BACKEND_URL });
     }
   };
 
