@@ -7,8 +7,13 @@ RESTful API for System Dynamics Simulation Engine
 import os
 import uuid
 from dataclasses import asdict
+from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -445,11 +450,13 @@ async def get_scenarios():
 # =========================================================
 
 @app.post("/agent/chat")
-async def agent_chat(req: AgentChatRequest):
+def agent_chat(req: AgentChatRequest):
     """Multi-turn conversational agent with tool access.
 
     The agent can call simulation tools, query district data, and produce
     evidence-based epidemiological analysis grounded in real model outputs.
+    Runs as a sync endpoint so FastAPI executes it in the threadpool and the
+    event loop stays responsive for the rest of the app.
     """
     try:
         result = run_agent(
@@ -467,7 +474,7 @@ async def agent_chat(req: AgentChatRequest):
         raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
 
 @app.post("/agent/analyze")
-async def agent_analyze(req: AgentAnalyzeRequest):
+def agent_analyze(req: AgentAnalyzeRequest):
     """Predefined multi-step analysis for a district.
 
     analysis_type:

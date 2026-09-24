@@ -131,6 +131,7 @@ async function startServer() {
       const response = await fetch(`${BACKEND_URL}/agent/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(120_000),
         body: JSON.stringify({
           message,
           conversation_history,
@@ -154,9 +155,16 @@ async function startServer() {
         tools_used: data.tools_used,
       });
     } catch (err: any) {
+      const isTimeout =
+        err?.name === 'TimeoutError' ||
+        err?.name === 'AbortError' ||
+        err?.cause?.code === 'UND_ERR_HEADERS_TIMEOUT' ||
+        err?.cause?.code === 'UND_ERR_BODY_TIMEOUT';
       console.error('Agent proxy error:', err?.message, err?.cause);
-      return res.status(502).json({
-        error: 'Agent service unavailable',
+      return res.status(504).json({
+        error: isTimeout
+          ? 'Agent timed out after 120s — try a narrower question'
+          : 'Agent service unavailable',
         detail: err?.cause?.code || err?.code || err?.message || 'Backend request failed',
         backendUrl: BACKEND_URL,
       });
@@ -181,7 +189,7 @@ async function startServer() {
       return res.json({ analysis: fallbackAudit });
     }
 
-    const candidateModels = ['gemini-2.0-flash', 'gemini-2.5-flash'];
+    const candidateModels = [process.env.GEMINI_MODEL || 'gemini-3.6-flash', 'gemini-2.5-flash'];
     for (const model of candidateModels) {
       try {
         const imagePart = {

@@ -582,6 +582,14 @@ export interface Translations {
   aiRemove: string;
   aiUploadTitle: string;
   aiPlaceholder: string;
+  aiStop: string;
+  aiCopy: string;
+  aiCopied: string;
+  aiSendHint: string;
+  aiNewChat: string;
+  aiOnline: string;
+  aiClose: string;
+  aiImageTooBig: string;
 
   // AuthModal
   authTitle: string;
@@ -1244,7 +1252,7 @@ export const translations: Record<Language, Translations> = {
     aiQuickPrompt3: '¿Cómo beneficia la eliminación de tarifas a los Quintiles 1 (más pobres)?',
     aiQuickPrompt4: '¿Cuáles son los signos de peligro críticos que se capacitan bajo el Escenario (c)?',
     aiModalTitle: 'Copiloto IA de Epidemiología Materna',
-    aiBackend: 'Gemini Server-Side',
+    aiBackend: 'LangGraph · Gemini + Groq',
     aiContext: 'Contexto:',
     aiScenario: 'Escenario:',
     aiEvaluating: 'El Copiloto Epidemiológico está evaluando parámetros de Dinámica de Sistemas...',
@@ -1252,6 +1260,14 @@ export const translations: Record<Language, Translations> = {
     aiRemove: 'Eliminar',
     aiUploadTitle: 'Subir registro de trabajo, partograma o mapa GIS',
     aiPlaceholder: 'Haz una pregunta sobre políticas, calibración o epidemiología...',
+    aiStop: 'Detener respuesta',
+    aiCopy: 'Copiar respuesta',
+    aiCopied: 'Copiado',
+    aiSendHint: 'Enter para enviar · Mayús + Enter para nueva línea',
+    aiNewChat: 'Nueva conversación',
+    aiOnline: 'Agente en línea',
+    aiClose: 'Cerrar copiloto',
+    aiImageTooBig: 'La imagen supera el límite de 10 MB.',
 
     // AuthModal
     authTitle: 'Autenticación & Control de Acceso (RBAC / JWT)',
@@ -1912,7 +1928,7 @@ export const translations: Record<Language, Translations> = {
     aiQuickPrompt3: 'How does user fee elimination benefit Quintile 1 (poorest)?',
     aiQuickPrompt4: 'What are the critical danger signs trained under Scenario (c)?',
     aiModalTitle: 'Maternal Health Epidemiologist AI Copilot',
-    aiBackend: 'Gemini Server-Side',
+    aiBackend: 'LangGraph · Gemini + Groq',
     aiContext: 'Context:',
     aiScenario: 'Scenario:',
     aiEvaluating: 'Epidemiologist AI is evaluating System Dynamics parameters...',
@@ -1920,6 +1936,14 @@ export const translations: Record<Language, Translations> = {
     aiRemove: 'Remove',
     aiUploadTitle: 'Upload labor register, partograph, or GIS map',
     aiPlaceholder: 'Ask a policy, calibration, or epidemiological question...',
+    aiStop: 'Stop response',
+    aiCopy: 'Copy reply',
+    aiCopied: 'Copied',
+    aiSendHint: 'Enter to send · Shift + Enter for a new line',
+    aiNewChat: 'New conversation',
+    aiOnline: 'Agent online',
+    aiClose: 'Close copilot',
+    aiImageTooBig: 'The image exceeds the 10 MB limit.',
 
     // AuthModal
     authTitle: 'Authentication & Role-Based Access Control',
