@@ -27,6 +27,12 @@ services:
       - key: NODE_ENV
         value: production
       - key: BACKEND_URL
-        value: https://maternal-health-api.onrender.com
+        fromService:
+          name: maternal-health-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
       - key: API_URL
-        value: https://maternal-health-api.onrender.com
+        fromService:
+          name: maternal-health-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME

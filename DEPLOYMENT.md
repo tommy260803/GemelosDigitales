@@ -93,11 +93,11 @@ GEMINI_API_KEY=<opcional>
 
 ```text
 NODE_ENV=production
-BACKEND_URL=https://maternal-health-api.onrender.com
-API_URL=https://maternal-health-api.onrender.com
+BACKEND_URL=<hostname público de maternal-health-api>
+API_URL=<hostname público de maternal-health-api>
 ```
 
-En el plan Free, usa la URL pública HTTPS del servicio FastAPI. No uses `http://maternal-health-api:8000`: los Web Services Free no reciben tráfico por la red privada de Render desde otro Web Service Free. Si Render asigna un hostname público distinto, reemplaza ambas variables por esa URL pública.
+En el plan Free, usa la URL pública HTTPS del servicio FastAPI. No uses `http://maternal-health-api:8000`: los Web Services Free no reciben tráfico por la red privada de Render desde otro Web Service Free. El `render.yaml` ya referencia automáticamente `RENDER_EXTERNAL_HOSTNAME` del servicio API; Express añade `https://` cuando Render entrega sólo el hostname. Si creas los servicios manualmente, copia el hostname público real en ambas variables.
 
 ### Opción manual
 
@@ -132,8 +132,8 @@ Root Directory: .
 - Plan: Free
 - Health check path: `/api/health`
 - `NODE_ENV=production`
-- `BACKEND_URL=https://maternal-health-api.onrender.com`
-- `API_URL=https://maternal-health-api.onrender.com`
+- `BACKEND_URL=<hostname público de maternal-health-api>`
+- `API_URL=<hostname público de maternal-health-api>`
 
 Mantén ambos servicios en la misma región de Render, preferiblemente `Oregon`, aunque el frontend Free debe llamar al backend mediante su URL pública HTTPS.
 

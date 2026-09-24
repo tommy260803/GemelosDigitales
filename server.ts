@@ -23,7 +23,10 @@ function getAI(): GoogleGenAI | null {
   return aiClient;
 }
 
-const BACKEND_URL = process.env.BACKEND_URL || process.env.API_URL || (process.env.NODE_ENV === 'production' ? 'http://backend:8000' : 'http://localhost:8000');
+const configuredBackendUrl = process.env.BACKEND_URL || process.env.API_URL || (process.env.NODE_ENV === 'production' ? 'http://backend:8000' : 'http://localhost:8000');
+const BACKEND_URL = /^https?:\/\//i.test(configuredBackendUrl)
+  ? configuredBackendUrl
+  : `https://${configuredBackendUrl}`;
 
 async function startServer() {
   const app = express();
