@@ -23,6 +23,7 @@ from services.system_dynamics import (
 from services.validation import StatisticalValidationPy
 from services.calibrator import ModelCalibratorPy
 from services.model_inputs import districts_from_datasets
+from services.analysis_agent import run_agent
 
 # =========================================================
 # APP CONFIGURATION
@@ -64,6 +65,18 @@ class CalibrationRequest(BaseModel):
 class ValidationRequest(BaseModel):
     district_id: str
     test_type: str = 'KS'  # KS, WILCOXON, SOBOL, BOOTSTRAP
+
+class AgentChatRequest(BaseModel):
+    message: str
+    conversation_id: Optional[str] = None
+    conversation_history: Optional[List[Dict[str, str]]] = None
+    district_id: Optional[str] = None
+    scenario_id: Optional[str] = None
+
+class AgentAnalyzeRequest(BaseModel):
+    district_id: str
+    analysis_type: str = 'bottleneck'  # bottleneck, comparison, intervention
+    months: int = Field(default=36, ge=12, le=240)
 
 class DistrictResponse(BaseModel):
     id: str
@@ -207,6 +220,9 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
             ))
     except Exception as e:
         print(f"Database unavailable, using versioned model-input datasets: {e}")
+        districts = districts_from_datasets()
+    if not districts:
+        print("Database returned zero districts, falling back to versioned model-input datasets.")
         districts = districts_from_datasets()
     return districts
 
@@ -391,9 +407,124 @@ async def bootstrap_confidence(req: ValidationRequest):
 async def external_validation(district_id: str):
     raise HTTPException(status_code=410, detail="Disabled: no independent external comparator is configured.")
 
+@app.get("/validation/convergence/{district_id}")
+async def rk4_convergence(district_id: str, scenario_id: str = "scenario_d", months: int = 36):
+    """Validate numerical convergence across integration timesteps (dt=0.1, 0.05, 0.025)."""
+    district = fetch_district_from_db(district_id)
+    if not district:
+        raise HTTPException(status_code=404, detail=f"District {district_id} not found")
+    
+    if scenario_id not in [s['id'] for s in SCENARIO_DEFINITIONS]:
+        raise HTTPException(status_code=400, detail=f"Invalid scenario_id: {scenario_id}")
+        
+    c = SystemDynamicsEngine.convergence_check(district, scenario_id, months)
+    coarse, fine = c['0.1'], c['0.025']
+    rel_error = abs(coarse['horizon_mmr'] - fine['horizon_mmr']) / max(1e-6, fine['horizon_mmr'])
+    is_convergent = rel_error < 0.01
+    
+    return {
+        "district_id": district_id,
+        "district_name": district.name,
+        "scenario_id": scenario_id,
+        "integrator": "RK4 (Classic 4th-order Runge-Kutta)",
+        "timesteps": c,
+        "relative_error_mmr": round(float(rel_error), 6),
+        "relative_error_percent": round(float(rel_error * 100), 4),
+        "is_convergent": bool(is_convergent),
+        "tolerance": 0.01,
+        "order_of_convergence": 4.0,
+        "status": "PASS" if is_convergent else "FAIL"
+    }
+
 @app.get("/scenarios")
 async def get_scenarios():
     return SCENARIO_DEFINITIONS
+
+# =========================================================
+# AGENT ENDPOINTS (LangGraph Analyst Agent)
+# =========================================================
+
+@app.post("/agent/chat")
+async def agent_chat(req: AgentChatRequest):
+    """Multi-turn conversational agent with tool access.
+
+    The agent can call simulation tools, query district data, and produce
+    evidence-based epidemiological analysis grounded in real model outputs.
+    """
+    try:
+        result = run_agent(
+            user_message=req.message,
+            conversation_history=req.conversation_history,
+            district_id=req.district_id,
+            scenario_id=req.scenario_id,
+        )
+        return {
+            "reply": result["reply"],
+            "tools_used": result["tools_used"],
+            "conversation_id": req.conversation_id or str(uuid.uuid4()),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
+
+@app.post("/agent/analyze")
+async def agent_analyze(req: AgentAnalyzeRequest):
+    """Predefined multi-step analysis for a district.
+
+    analysis_type:
+      - bottleneck: Identifies systemic delays and bottlenecks
+      - comparison: Compares all intervention scenarios
+      - intervention: Recommends optimal intervention package
+    """
+    district = fetch_district_from_db(req.district_id)
+    if not district:
+        raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")
+
+    analysis_prompts = {
+        "bottleneck": (
+            f"Analyze the systemic bottlenecks in {district.name} ({district.country}). "
+            f"Run the baseline simulation and identify which of the Three-Delays phases "
+            f"is the most critical bottleneck. Use the simulation data to quantify each "
+            f"delay component and recommend which intervention scenario would most "
+            f"effectively address the primary bottleneck."
+        ),
+        "comparison": (
+            f"Compare all five intervention scenarios for {district.name} ({district.country}). "
+            f"Run simulations for baseline, scenario_a, scenario_b, scenario_c, and scenario_d. "
+            f"Provide a comprehensive comparison of MMR reduction, cost-effectiveness, and "
+            f"equity implications. Recommend the most cost-effective scenario."
+        ),
+        "intervention": (
+            f"Based on the epidemiological profile of {district.name} ({district.country}), "
+            f"recommend the optimal intervention package. Consider the district's specific "
+            f"bottlenecks: travel time ({district.avg_travel_time_hours}h), ANC4 coverage "
+            f"({district.anc4_coverage}%), skilled staff ratio ({district.skilled_staff_ratio}), "
+            f"and baseline MMR ({district.baseline_mmr}). Run relevant simulations to "
+            f"support your recommendation."
+        ),
+    }
+
+    prompt = analysis_prompts.get(req.analysis_type)
+    if not prompt:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid analysis_type '{req.analysis_type}'. Must be: bottleneck, comparison, intervention",
+        )
+
+    try:
+        result = run_agent(
+            user_message=prompt,
+            district_id=req.district_id,
+            scenario_id="baseline",
+        )
+        return {
+            "analysis_type": req.analysis_type,
+            "district_id": district.id,
+            "district_name": district.name,
+            "reply": result["reply"],
+            "tools_used": result["tools_used"],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent analysis failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

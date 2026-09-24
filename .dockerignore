@@ -5,8 +5,6 @@ dist
 .env
 *.log
 .antigravity
-backend
-database
 README.md
 BASES.md
 *.pbtxt

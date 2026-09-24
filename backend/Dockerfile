@@ -55,10 +55,10 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+    CMD python -c "import os, urllib.request; urllib.request.urlopen('http://localhost:' + os.environ.get('PORT', '8000') + '/health')"
 
 # Create __init__.py files for proper Python imports
 RUN touch backend/services/__init__.py
 
 WORKDIR /app/backend
-CMD ["sh", "-c", "python ../scripts/load_model_inputs.py && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "python ../scripts/load_model_inputs.py && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

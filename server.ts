@@ -1,14 +1,13 @@
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
-import { createProxyMiddleware } from 'http-proxy-middleware';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
-import { TerrainService } from './src/services/terrainService.ts';
+import { TerrainService } from './frontend/src/services/terrainService.ts';
 
 dotenv.config();
 
-// Lazy Gemini client helper
+// Lazy Gemini client helper (kept for multimodal image analysis only)
 let aiClient: GoogleGenAI | null = null;
 function getAI(): GoogleGenAI | null {
   if (!aiClient && process.env.GEMINI_API_KEY) {
@@ -24,6 +23,8 @@ function getAI(): GoogleGenAI | null {
   return aiClient;
 }
 
+const BACKEND_URL = process.env.BACKEND_URL || process.env.API_URL || (process.env.NODE_ENV === 'production' ? 'http://backend:8000' : 'http://localhost:8000');
+
 async function startServer() {
   const app = express();
   const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -32,11 +33,9 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   // =========================================================
-  // EXPRESS-ONLY ROUTES (FastAPI does NOT serve these)
+  // HEALTH CHECK (Express-only)
   // =========================================================
-
-  // Health Check
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', (_req, res) => {
     res.json({
       status: 'operational',
       engine: 'System Dynamics 5-Stock Runge-Kutta 4th Order',
@@ -46,13 +45,16 @@ async function startServer() {
     });
   });
 
-  // Geospatial 3D: DEM Grid & Topographical Accessibility KPIs
+  // =========================================================
+  // GEOSPATIAL 3D ROUTES (Express-only, calls FastAPI for district data)
+  // =========================================================
   const getDistrict = async (districtId: unknown) => {
     if (typeof districtId !== 'string') throw new Error('districtId is required');
-    const response = await fetch(`${process.env.BACKEND_URL || 'http://backend:8000'}/districts/${encodeURIComponent(districtId)}`);
+    const response = await fetch(`${BACKEND_URL}/districts/${encodeURIComponent(districtId)}`);
     if (!response.ok) throw new Error(`FastAPI district request failed: ${response.status}`);
     return response.json();
   };
+
   app.get('/api/geospatial/dem', async (req, res) => {
     try {
       const { districtId } = req.query;
@@ -66,7 +68,6 @@ async function startServer() {
     }
   });
 
-  // Geospatial 3D: Health Facilities (EmONC & CEmONC with Altitude)
   app.get('/api/geospatial/health-facilities', async (req, res) => {
     try {
       const { districtId } = req.query;
@@ -79,7 +80,6 @@ async function startServer() {
     }
   });
 
-  // Geospatial 3D: Obstetric Referral Route over Topographic Relief
   app.get('/api/geospatial/referral-route', async (req, res) => {
     try {
       const { districtId } = req.query;
@@ -92,89 +92,43 @@ async function startServer() {
     }
   });
 
-  // Gemini AI Public Health Copilot Chat
+  // =========================================================
+  // AI AGENT PROXY — Chat routed to FastAPI LangGraph agent
+  // =========================================================
   app.post('/api/gemini/chat', async (req, res) => {
-    const { message, conversationHistory, contextDistrict, activeScenario } = req.body;
-    const ai = getAI();
+    try {
+      const message = req.body.message || '';
+      const conversation_history = req.body.conversation_history || req.body.conversationHistory || [];
+      const district_id = req.body.district_id || req.body.contextDistrict?.id || null;
+      const scenario_id = req.body.scenario_id || req.body.activeScenario || null;
 
-    // Helper to generate dynamic epidemiological analysis if API is offline or 503 unavailable
-    const generateFallbackReply = (notice?: string) => {
-      const distName = contextDistrict?.name || 'Garissa';
-      const distCountry = contextDistrict?.country || 'Kenya';
-      const distMMR = contextDistrict?.baselineMMR || 500;
-      const travelTime = contextDistrict?.avgTravelTimeHours || 3.4;
-      const anc4 = contextDistrict?.anc4Coverage || 42;
-      const staffRatio = contextDistrict?.skilledStaffRatio || 0.38;
-
-      let msg = notice ? `${notice}\n\n` : '';
-      msg += `### Epidemiological System Dynamics Evaluation for **${distName} (${distCountry})**\n\n`;
-      msg += `**Key Epidemiological Profile**:\n`;
-      msg += `• **Baseline MMR**: ${distMMR} per 100,000 live births (WHO High/Very High Risk Category)\n`;
-      msg += `• **Phase 2 Delay (Transit Friction)**: Average transit to CEmONC facility is **${travelTime} hours**\n`;
-      msg += `• **ANC 4+ Continuity**: ${anc4}% | **Skilled Attendant Coverage**: ${(staffRatio * 100).toFixed(1)}%\n\n`;
-      msg += `**Systemic Delay Diagnosis (Three-Delays Model)**:\n`;
-      msg += `1. **Phase 1 Delay (Decision to Seek Care)**: Community perception and upfront delivery cost burdens delay care-seeking in the lowest wealth quintiles ($Q_1$ & $Q_2$).\n`;
-      msg += `2. **Phase 2 Delay (Reaching Care)**: Road unpavedness and lack of motorized obstetric dispatch increase complication progression during postpartum hemorrhage (PPH).\n`;
-      msg += `3. **Phase 3 Delay (Receiving Quality Care)**: Stockouts of oxytocin/misoprostol and limited blood bank storage compound maternal mortality.\n\n`;
-      msg += `**Evidence-Based Policy Prescription (${activeScenario ? activeScenario.toUpperCase() : 'SCENARIO D'})**:\n`;
-      msg += `• **Combined Intervention Package D**: Bundles 24/7 solar-equipped motorcycle ambulance dispatch with conditional user fee elimination and certified TBA alarm recognition.\n`;
-      msg += `• **Projected Impact**: Reduces MMR by **~42% to 48%** within 36 months, saving an estimated **420+ maternal lives per 100,000 live births** at an Incremental Cost-Effectiveness Ratio (ICER) well below the national GDP per capita threshold (Highly Cost-Effective per WHO standards).`;
-
-      return msg;
-    };
-
-    if (!ai) {
-      return res.json({
-        reply: generateFallbackReply('*(Advisor Notice: Operating in Local Epidemiological Heuristic Mode)*'),
+      const response = await fetch(`${BACKEND_URL}/agent/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          conversation_history,
+          district_id,
+          scenario_id,
+        }),
       });
-    }
-
-    const systemInstruction = `You are a Senior Public Health Epidemiologist and System Dynamics Modeler specialized in Maternal and Child Health in Sub-Saharan Africa (Kenya, Tanzania, Uganda, Ghana, Ethiopia).
-Your goal is to provide evidence-based, mathematically rigorous, and policy-actionable advice to district health officers, WHO advisors, and public health researchers.
-Context:
-- Selected District: ${contextDistrict?.name || 'Garissa'} (${contextDistrict?.country || 'Kenya'})
-- Population: ${contextDistrict?.population || 'N/A'}, Annual Births: ${contextDistrict?.annualBirths || 'N/A'}
-- Baseline MMR: ${contextDistrict?.baselineMMR || 500} per 100,000 live births
-- Active Scenario: ${activeScenario || 'Scenario D (Combined Package)'}
-- Five Model Stocks: (S1) Pregnant Women, (S2) In ANC, (S3) In Facility Delivery, (S4) In Postpartum, (S5) With Complications.
-- Feedback Loops: R1 Community Trust Loop, B1 Facility Congestion Loop, B2 Geographic Referral Delay Loop.
-
-Provide concise, highly professional responses with specific data points, policy insights, and health system recommendations.`;
-
-    // Attempt generation with primary model, then fallback model if 503/429/unavailable occurs
-    const candidateModels = ['gemini-2.0-flash', 'gemini-2.5-flash'];
-    let lastError: any = null;
-
-    for (const model of candidateModels) {
-      try {
-        const response = await ai.models.generateContent({
-          model,
-          contents: message,
-          config: {
-            systemInstruction,
-            temperature: 0.7,
-          },
-        });
-
-        if (response && response.text) {
-          return res.json({ reply: response.text });
-        }
-      } catch (err: any) {
-        lastError = err;
-        console.warn(`Attempt with ${model} encountered issue:`, err?.message || err);
-        // Wait 300ms before trying the fallback model
-        await new Promise((resolve) => setTimeout(resolve, 300));
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('FastAPI agent error:', errText);
+        return res.status(502).json({ error: 'Agent service unavailable' });
       }
+      const data = await response.json();
+      return res.json({
+        reply: data.reply,
+        tools_used: data.tools_used,
+      });
+    } catch (err: any) {
+      console.error('Agent proxy error:', err?.message);
+      return res.status(502).json({ error: 'Agent service unavailable' });
     }
-
-    // If both models experienced 503 or transient upstream spikes, deliver high-quality synthesis
-    console.error('All live Gemini models unavailable, returning structured epidemiological synthesis:', lastError?.message);
-    return res.json({
-      reply: generateFallbackReply('*(Advisor Notice: Upstream AI model temporarily experiencing high demand. Delivering verified System Dynamics ODE analysis:)*'),
-    });
   });
 
-  // Gemini Multimodal Image Analysis (Logbook audits, GIS bottlenecks, Facility road maps)
+  // Gemini Multimodal Image Analysis
   app.post('/api/gemini/analyze-image', async (req, res) => {
     const { imageBase64, mimeType, prompt } = req.body;
     const ai = getAI();
@@ -227,23 +181,74 @@ Provide concise, highly professional responses with specific data points, policy
   });
 
   // =========================================================
-  // PROXY TO FASTAPI BACKEND
-  // Catches all /api/* routes NOT handled by Express above:
-  //   /api/districts, /api/simulation/*, /api/validation/*
+  // FASTAPI PROXY — districts, simulation, validation, agent, scenarios
+  // Manual fetch-based proxy to avoid http-proxy-middleware body issues
   // =========================================================
-  const apiProxyTarget = process.env.API_URL || 'http://localhost:8000';
-  const apiProxy = createProxyMiddleware({
-    target: apiProxyTarget,
-    changeOrigin: true,
-    pathRewrite: { '^/api': '' },
-  } as any);
-  app.use('/api', apiProxy);
+  const proxyGet = async (req: express.Request, res: express.Response) => {
+    try {
+      const backendPath = req.path.replace(/^\/api/, '');
+      const url = `${BACKEND_URL}${backendPath}${req.url.includes('?') ? '?' + req.url.split('?')[1] : ''}`;
+      console.log(`[PROXY GET] ${req.method} ${req.originalUrl} -> ${url}`);
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        return res.status(response.status).json(data);
+      }
+      const text = await response.text();
+      return res.status(response.status).type(contentType || 'text').send(text);
+    } catch (err: any) {
+      console.error(`[PROXY ERROR] ${req.originalUrl}:`, err.message);
+      return res.status(502).json({ error: 'Backend service unavailable', detail: err.message });
+    }
+  };
+
+  const proxyPost = async (req: express.Request, res: express.Response) => {
+    try {
+      const backendPath = req.path.replace(/^\/api/, '');
+      const url = `${BACKEND_URL}${backendPath}`;
+      console.log(`[PROXY POST] ${req.originalUrl} -> ${url}`);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body),
+      });
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        return res.status(response.status).json(data);
+      }
+      const text = await response.text();
+      return res.status(response.status).type(contentType || 'text').send(text);
+    } catch (err: any) {
+      console.error(`[PROXY ERROR] ${req.originalUrl}:`, err.message);
+      return res.status(502).json({ error: 'Backend service unavailable', detail: err.message });
+    }
+  };
+
+  app.get('/api/districts', proxyGet);
+  app.get('/api/districts/:id', proxyGet);
+  app.get('/api/scenarios', proxyGet);
+  app.post('/api/simulation/run', proxyPost);
+  app.post('/api/validation/run', proxyPost);
+  app.post('/api/validation/ks', proxyPost);
+  app.post('/api/validation/sobol', proxyPost);
+  app.post('/api/validation/bootstrap', proxyPost);
+  app.get('/api/validation/external/*', proxyGet);
+  app.get('/api/validation/convergence/*', proxyGet);
+  app.get('/api/validation/report', proxyGet);
+  app.post('/api/agent/chat', proxyPost);
+  app.post('/api/agent/analyze', proxyPost);
+  app.get('/api/agent/*', proxyGet);
+  app.post('/api/agent/*', proxyPost);
 
   // =========================================================
   // VITE MIDDLEWARE (dev) OR STATIC FILES (production)
   // =========================================================
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
+      root: path.resolve(process.cwd(), 'frontend'),
+      configFile: path.resolve(process.cwd(), 'frontend/vite.config.ts'),
       server: { middlewareMode: true },
       appType: 'spa',
     });
@@ -251,7 +256,7 @@ Provide concise, highly professional responses with specific data points, policy
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

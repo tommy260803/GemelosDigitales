@@ -1,5 +1,0 @@
-import React from 'react';
-import { Scale } from 'lucide-react';
-import { DistrictData } from '../types';
-interface EquityViewProps { district: DistrictData; activeScenarioId: 'baseline'|'scenario_a'|'scenario_b'|'scenario_c'|'scenario_d'; }
-export const EquityView: React.FC<EquityViewProps> = ({ district }) => <div className="space-y-4"><div className="flex gap-3 bg-amber-950/30 border border-amber-500/40 rounded-lg p-5"><Scale className="text-amber-300 shrink-0"/><div><h2 className="font-semibold">Equity outputs are not computed for this simulation</h2><p className="text-sm text-slate-400 mt-1">The prior quintile results used static shares and multipliers. They have been removed rather than presented as empirical inequality. Audited microdata may support separate national or DHS-region descriptive analyses after provenance and survey-design processing.</p><p className="text-xs text-slate-500 mt-2">Territory: {district.name}. No region-DHS-to-territory mapping is assumed.</p></div></div></div>;

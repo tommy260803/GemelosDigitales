@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tests for FastAPI API endpoints.
 """
 
@@ -140,6 +140,18 @@ class TestValidationEndpoints:
     def test_validation_external(self, client):
         response = client.get("/validation/external/ke-garissa")
         assert response.status_code == 410
+
+    def test_validation_convergence(self, client):
+        response = client.get("/validation/convergence/ke-garissa?scenario_id=scenario_d&months=12")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["district_id"] == "ke-garissa"
+        assert data["is_convergent"] is True
+        assert data["status"] == "PASS"
+        assert "timesteps" in data
+        assert "0.1" in data["timesteps"]
+        assert "0.025" in data["timesteps"]
+        assert data["relative_error_mmr"] < 0.01
 
 
 class TestScenariosEndpoint:

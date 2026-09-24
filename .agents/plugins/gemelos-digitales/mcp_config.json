@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "postgres-maternal-db": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://twin_admin:secure_twin_password_2026@localhost:5433/maternal_twin_db"
+      ]
+    },
+    "filesystem-data": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "d:/Proyects/GemelosDigitales/data",
+        "d:/Proyects/GemelosDigitales/database"
+      ]
+    },
+    "fetch-scientific-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-fetch"
+      ]
+    },
+    "memory-knowledge-graph": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    }
+  }
+}

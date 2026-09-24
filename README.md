@@ -67,6 +67,7 @@ $$\frac{dS_5}{dt} = \text{Recuperación} - \text{Salida}$$
 
 ### Frontend (React)
 - **Stack**: React 19 + Vite 6 + Tailwind CSS v4
+- **Ubicación**: `frontend/` (`frontend/src`, `frontend/index.html`, `frontend/vite.config.ts`)
 - **9 vistas interactivas**:
   1. **Resumen del Distrito** - KPIs + gráfico SVG de stocks + cuellos de botella sistémicos
   2. **Mapa Geoespacial (GIS)** - Mapa interactivo de 25 distritos con lat/lng

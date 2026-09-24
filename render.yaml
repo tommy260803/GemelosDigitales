@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: maternal-health-api
+    runtime: docker
+    rootDir: .
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: web
+    name: maternal-health-web
+    runtime: docker
+    rootDir: .
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile.frontend
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BACKEND_URL
+        value: http://maternal-health-api:8000
+      - key: API_URL
+        value: http://maternal-health-api:8000

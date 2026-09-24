@@ -43,7 +43,7 @@ class ModelCalibratorPy:
             )
             
             # Compare final MMR to empirical series
-            simulated_mmr = result.summary.mmr_final
+            simulated_mmr = result.summary.horizon_mmr
             
             # RMSE across all empirical points
             errors = [(simulated_mmr - obs) ** 2 for obs in empirical_mmr_series]
@@ -95,5 +95,5 @@ class ModelCalibratorPy:
                 "affordability_index": round(calibrated_affordability, 3),
             },
             "baseline_mmr": district.baseline_mmr,
-            "simulated_mmr": final_sim.summary.mmr_final,
+            "simulated_mmr": final_sim.summary.horizon_mmr,
         }

@@ -1,0 +1,268 @@
+@import "tailwindcss";
+@theme {
+  /* Keep utility sizes compact so dense scientific dashboards remain scannable. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  /* Design tokens */
+  --color-primary:   #38bdf8;
+  --color-success:   #34d399;
+  --color-warning:   #fbbf24;
+  --color-danger:    #f43f5e;
+  --radius-card:     0.75rem;
+  --shadow-card:     0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+}
+
+/* ─── Keyframe Animations ─────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@layer utilities {
+  .animate-fade-in       { animation: fade-in       0.2s ease both; }
+  .animate-slide-up      { animation: slide-up      0.25s ease both; }
+  .animate-slide-in-right{ animation: slide-in-right 0.2s ease both; }
+  .animate-scale-in      { animation: scale-in      0.15s ease both; }
+
+  /* Skeleton shimmer */
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgb(51 65 85 / 0.6) 25%,
+      rgb(71 85 105 / 0.5) 50%,
+      rgb(51 65 85 / 0.6) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Thin scrollbars for data-dense panels */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(71 85 105) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar       { width: 5px; height: 5px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: rgb(71 85 105); border-radius: 99px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgb(100 116 139); }
+
+  /* Tab content transition */
+  .tab-content-enter {
+    animation: fade-in 0.18s ease both, slide-up 0.18s ease both;
+  }
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  html {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  html.light {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    min-width: 320px;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  button,
+  select,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  /* Improved focus ring — higher contrast, matches brand */
+  :focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Smooth scroll for main content */
+  main {
+    scroll-behavior: smooth;
+  }
+}
+
+
+/* Light Mode Overrides */
+html.light,
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#0c0e12\],
+html.light .bg-\[\#0c0e12\]\/95,
+html.light .bg-\[\#080a0f\],
+html.light .bg-\[\#080a0f\]\/95,
+html.light .bg-slate-950 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+html.light .bg-slate-800,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/70,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/90 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-800\/60:hover,
+html.light .hover\:bg-slate-800\/70:hover,
+html.light .hover\:bg-slate-700:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .hover\:bg-slate-900\/40:hover,
+html.light .hover\:bg-slate-900:hover {
+  background-color: #f8fafc !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-slate-700,
+html.light .border-slate-700\/60,
+html.light .border-slate-700\/80 {
+  border-color: #cbd5e1 !important;
+}
+
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light select,
+html.light input,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light select option,
+html.light select optgroup {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/70 {
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}
+
+html.light line[stroke="#1e293b"] {
+  stroke: #e2e8f0 !important;
+}
+
+html.light path[stroke="#1e293b"] {
+  stroke: #e2e8f0 !important;
+}
+
+html.light text[fill="#94a3b8"],
+html.light text[fill="#64748b"],
+html.light text[fill="#475569"] {
+  fill: #475569 !important;
+}
+
+html.light pre,
+html.light code {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .shadow-inner {
+  box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .bg-\[\#131a26\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .text-slate-600 {
+  color: #475569 !important;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 0.875rem;
+  }
+}

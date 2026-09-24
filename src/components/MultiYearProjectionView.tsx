@@ -1,2 +1,0 @@
-import React from 'react'; import { DistrictData } from '../types';
-export const MultiYearProjectionView:React.FC<{district:DistrictData}>=({district})=><div className="p-6 bg-slate-900/60 border border-slate-800 rounded-lg"><h2 className="text-xl font-bold">Multi-year projection</h2><p className="text-slate-400 mt-2">Backend-only projections require an explicit API request. No frontend model fallback is available for {district.name}.</p></div>;
