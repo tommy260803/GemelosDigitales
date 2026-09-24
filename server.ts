@@ -141,7 +141,12 @@ async function startServer() {
       if (!response.ok) {
         const errText = await response.text();
         console.error('FastAPI agent error:', errText);
-        return res.status(502).json({ error: 'Agent service unavailable' });
+        return res.status(502).json({
+          error: 'Agent service unavailable',
+          backendStatus: response.status,
+          detail: errText.slice(0, 1000),
+          backendUrl: BACKEND_URL,
+        });
       }
       const data = await response.json();
       return res.json({
@@ -149,8 +154,12 @@ async function startServer() {
         tools_used: data.tools_used,
       });
     } catch (err: any) {
-      console.error('Agent proxy error:', err?.message);
-      return res.status(502).json({ error: 'Agent service unavailable' });
+      console.error('Agent proxy error:', err?.message, err?.cause);
+      return res.status(502).json({
+        error: 'Agent service unavailable',
+        detail: err?.cause?.code || err?.code || err?.message || 'Backend request failed',
+        backendUrl: BACKEND_URL,
+      });
     }
   });
 

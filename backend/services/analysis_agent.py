@@ -284,8 +284,16 @@ def run_agent(
         "context_scenario": scenario_id,
     }
 
-    graph = get_agent_graph()
-    result = graph.invoke(initial_state)
+    try:
+        graph = get_agent_graph()
+        result = graph.invoke(initial_state)
+    except Exception as exc:
+        return {
+            "reply": f"*(Advisor Notice: AI model temporarily unavailable. Local mode active.)*\n\n{_fallback_synthesis(initial_state)}",
+            "tools_used": [],
+            "message_count": len(messages),
+            "error": str(exc),
+        }
 
     # Extract the final AI reply
     final_reply = ""

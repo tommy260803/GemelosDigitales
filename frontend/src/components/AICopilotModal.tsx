@@ -139,7 +139,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
           {
             id: `msg-${++msgIdCounter.current}`,
             sender: 'ai',
-            text: data.reply || (data.error ? `Notice: ${data.error}` : t.aiAnalysisComplete),
+            text: data.reply || (data.error ? `Notice: ${data.error}${data.detail ? ` (${data.detail})` : ''}` : t.aiAnalysisComplete),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             toolsUsed: data.tools_used || [],
           },

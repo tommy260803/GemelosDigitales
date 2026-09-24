@@ -14,6 +14,8 @@ interface KPICardProps {
   className?: string;
 }
 
+const formatMetric = (value: number) => Number(value.toFixed(2)).toString();
+
 export const KPICard: React.FC<KPICardProps> = ({
   title,
   value,
@@ -73,7 +75,7 @@ export const KPICard: React.FC<KPICardProps> = ({
             </p>
             {trend && (
               <span className={`text-xs font-semibold ${trend.isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
-                {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
+                {trend.isPositive ? '↑' : '↓'} {formatMetric(Math.abs(trend.value))}%
               </span>
             )}
           </div>

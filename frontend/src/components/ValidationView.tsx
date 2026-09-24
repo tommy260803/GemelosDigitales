@@ -306,8 +306,8 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         title="Prueba de Kolmogorov-Smirnov (Dos Muestras)"
         subtitle="Equivalencia distribucional entre la RMM simulada y la empírica DHS"
         actions={
-          <button onClick={runKS} disabled={loading.ks} className="text-sm text-sky-400 hover:text-sky-300">
-            {loading.ks ? 'Ejecutando...' : 'Ejecutar KS'}
+          <button onClick={runKS} disabled={loading.ks || unavailable.ks} className="text-sm text-sky-400 hover:text-sky-300 disabled:text-slate-500 disabled:cursor-not-allowed">
+            {loading.ks ? 'Ejecutando...' : unavailable.ks ? 'No disponible' : 'Ejecutar KS'}
           </button>
         }
       >
@@ -344,7 +344,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           </div>
         ) : (
           <div className="text-sm text-slate-500 py-4 text-center">
-            Haga clic en "Ejecutar KS" para comparar las distribuciones simuladas vs. empíricas.
+            {unavailable.ks ? 'Configure microdatos DHS empíricos para habilitar esta prueba.' : 'Ejecute KS para comparar las distribuciones simuladas y empíricas.'}
           </div>
         )}
       </ChartCard>
@@ -354,8 +354,8 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         title="Análisis de Sensibilidad Global de Sobol"
         subtitle="Descomposición de varianza de primer orden (S1) y orden total (ST)"
         actions={
-          <button onClick={runSobol} disabled={loading.sobol} className="text-sm text-sky-400 hover:text-sky-300">
-            {loading.sobol ? 'Ejecutando...' : 'Ejecutar Sobol'}
+          <button onClick={runSobol} disabled={loading.sobol || unavailable.sobol} className="text-sm text-sky-400 hover:text-sky-300 disabled:text-slate-500 disabled:cursor-not-allowed">
+            {loading.sobol ? 'Ejecutando...' : unavailable.sobol ? 'No disponible' : 'Ejecutar Sobol'}
           </button>
         }
       >
@@ -406,7 +406,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           </div>
         ) : (
           <div className="text-sm text-slate-500 py-4 text-center">
-            Haga clic en "Ejecutar Sobol" para calcular índices de sensibilidad de los parámetros del modelo.
+            {unavailable.sobol ? 'Documente rangos de parámetros y habilite un diseño de sensibilidad para usar Sobol.' : 'Ejecute Sobol para calcular índices de sensibilidad.'}
           </div>
         )}
       </ChartCard>
@@ -416,8 +416,8 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         title="Intervalos de Confianza Bootstrap"
         subtitle="Cuantificación de incertidumbre por remuestreo no paramétrico (Escenario D)"
         actions={
-          <button onClick={runBootstrap} disabled={loading.bootstrap} className="text-sm text-sky-400 hover:text-sky-300">
-            {loading.bootstrap ? 'Ejecutando...' : 'Ejecutar Bootstrap'}
+          <button onClick={runBootstrap} disabled={loading.bootstrap || unavailable.bootstrap} className="text-sm text-sky-400 hover:text-sky-300 disabled:text-slate-500 disabled:cursor-not-allowed">
+            {loading.bootstrap ? 'Ejecutando...' : unavailable.bootstrap ? 'No disponible' : 'Ejecutar Bootstrap'}
           </button>
         }
       >
@@ -462,7 +462,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           </div>
         ) : (
           <div className="text-sm text-slate-400 py-4 text-center">
-            Haga clic en "Ejecutar Bootstrap" para calcular intervalos de confianza por remuestreo.
+            {unavailable.bootstrap ? 'Configure incertidumbre paramétrica y datos de salida para habilitar Bootstrap.' : 'Ejecute Bootstrap para calcular intervalos de confianza.'}
           </div>
         )}
       </ChartCard>
@@ -472,8 +472,8 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         title="Validación Externa vs. Datos Observados"
         subtitle="Comparación en distrito holdout con estándares empíricos DHS Countdown 2030"
         actions={
-          <button onClick={runExternal} disabled={loading.external} className="text-sm font-semibold text-sky-400 hover:text-sky-300">
-            {loading.external ? 'Ejecutando...' : 'Ejecutar Validación'}
+          <button onClick={runExternal} disabled={loading.external || unavailable.external} className="text-sm font-semibold text-sky-400 hover:text-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed">
+            {loading.external ? 'Ejecutando...' : unavailable.external ? 'No disponible' : 'Ejecutar Validación'}
           </button>
         }
       >
@@ -510,7 +510,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           </div>
         ) : (
           <div className="text-sm text-slate-500 py-4 text-center">
-            Haga clic en "Ejecutar Validación" para comparar las predicciones del modelo con observaciones DHS.
+            {unavailable.external ? 'Configure un comparador DHS independiente para habilitar esta validación.' : 'Ejecute la validación para comparar el modelo con observaciones DHS.'}
           </div>
         )}
       </ChartCard>

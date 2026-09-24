@@ -25,6 +25,8 @@ const VARIANT_ICON_BG: Record<string, string> = {
   info:      'bg-sky-500/20 text-sky-400 border border-sky-500/30',
 };
 
+const formatMetric = (value: number) => Number(value.toFixed(2)).toString();
+
 export const StatCard: React.FC<StatCardProps> = ({
   label,
   value,
@@ -118,7 +120,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           </p>
           {change && (
             <p className={`text-sm mt-1.5 font-semibold ${change.value >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {change.value >= 0 ? '↑' : '↓'} {Math.abs(change.value)}% {change.label}
+              {change.value >= 0 ? '↑' : '↓'} {formatMetric(Math.abs(change.value))}% {change.label}
             </p>
           )}
           {subtitle && (

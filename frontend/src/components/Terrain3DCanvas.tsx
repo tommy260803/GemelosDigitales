@@ -122,11 +122,18 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
     setIsDragging(false);
   };
 
-  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+  const handleWheel = (e: WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.08 : 0.08;
     setZoom((prev) => Math.max(0.6, Math.min(2.6, prev + delta)));
   };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // 3D Isometric / Perspective Transformation Function
   const project3D = useCallback((
@@ -508,7 +515,6 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
         className="w-full h-full cursor-grab active:cursor-grabbing block"
       />
 
