@@ -46,7 +46,9 @@ def test_scenario_rules_are_explicit(garissa_district):
     assert SystemDynamicsEngine.effective_parameters(garissa_district,'scenario_b').facility_delivery_fee_usd == 0
     assert SystemDynamicsEngine.effective_parameters(garissa_district,'scenario_c').tba_influence_factor <= base.tba_influence_factor
     d=SystemDynamicsEngine.effective_parameters(garissa_district,'scenario_d')
-    assert d.blood_availability_rate>=.92 and d.oxytocin_misoprostol_stock_rate>=.95 and d.skilled_staff_ratio>=2.2
+    assert d.blood_availability_rate == .95
+    assert d.oxytocin_misoprostol_stock_rate == .95
+    assert d.staff_247_availability_rate == .95
     assert len(SCENARIO_DEFINITIONS)==5
 
 def test_equity_is_not_synthetic_output(garissa_district):

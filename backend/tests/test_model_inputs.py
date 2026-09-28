@@ -32,7 +32,7 @@ def test_api_runtime_district_matches_versioned_input(client):
     assert payload['avgTravelTimeHours']==expected.avg_travel_time_hours
 
 def test_frontend_has_no_runtime_territory_or_scientific_engine_source():
-    root=Path(__file__).resolve().parents[2]
-    assert not (root/'src/services/systemDynamics.ts').exists()
-    assert 'SUB_SAHARAN_DISTRICTS' not in (root/'src/data/districts.ts').read_text(encoding='utf-8')
-    assert "from './data/districts'" not in (root/'src/App.tsx').read_text(encoding='utf-8')
+    frontend=Path(__file__).resolve().parents[2]/'frontend'/'src'
+    assert not (frontend/'services/systemDynamics.ts').exists()
+    assert 'SUB_SAHARAN_DISTRICTS' not in (frontend/'data/districts.ts').read_text(encoding='utf-8')
+    assert "from './data/districts'" not in (frontend/'App.tsx').read_text(encoding='utf-8')

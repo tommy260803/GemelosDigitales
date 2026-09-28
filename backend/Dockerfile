@@ -45,6 +45,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY backend ./backend
 COPY data/model_inputs ./data/model_inputs
 COPY scripts/load_model_inputs.py ./scripts/load_model_inputs.py
+COPY database/migrations/003_staff_247_availability.sql ./database/migrations/003_staff_247_availability.sql
 
 # Environment
 ENV PYTHONDONTWRITEBYTECODE=1

@@ -1,0 +1,16 @@
+country,indicator,value,unit,survey_year_start,survey_year_end,facility_universe,numerator_definition,denominator_definition,source_document,source_table,source_page,proxy_description
+et,Blood availability,0.1,probability,2021,2022,Facilities excluding health posts,Function performed past 3 months,All surveyed facilities excluding health posts,ESPA 2021-22 Final Report,Table 7.5,163,None
+et,Uterotonic availability,0.91,probability,2021,2022,Delivery facilities,Injectable oxytocin observed in stock,All normal delivery facilities,ESPA 2021-22 Final Report,Table 7.3.1,166,None
+et,Staff 24/7 availability,0.85,probability,2021,2022,Delivery facilities,Skilled provider 24/7 onsite/on-call with observed schedule,All normal delivery facilities,ESPA 2021-22 Final Report,Table 7.2,163,None
+gh,Blood availability,0.15,probability,2002,2002,Delivery facilities,Offers blood transfusion services,All normal delivery facilities,GSPA 2002,Table A-6.18,100,None
+gh,Uterotonic availability,0.92,probability,2002,2002,Delivery facilities,Injectable oxytocic observed in stock,All normal delivery facilities,GSPA 2002,Table A-6.17,98,None
+gh,Staff 24/7 availability,0.52,probability,2002,2002,Delivery facilities,Provider onsite 24h with observed schedule,All normal delivery facilities,GSPA 2002,Table 6.9,98,None
+ke,Blood availability,0.14,probability,2010,2010,Delivery facilities,Offers blood transfusion services,All normal delivery facilities,KSPA 2010,Table A-6.36,222,None
+ke,Uterotonic availability,0.71,probability,2010,2010,Delivery facilities,Injectable oxytocic in delivery area,All normal delivery facilities,KSPA 2010,Table A-6.35,115,None
+ke,Staff 24/7 availability,0.46,probability,2010,2010,Delivery facilities,Provider onsite 24h with observed schedule,All normal delivery facilities,KSPA 2010,Table A-6.34,219,None
+tz,Blood availability,0.05,probability,2014,2015,All facilities,Reports offering blood transfusion services,All surveyed facilities,TSPA 2014-15,Table 3.1,31,None
+tz,Uterotonic availability,0.79,probability,2014,2015,Delivery facilities,Injectable uterotonic (oxytocin) observed,All normal delivery facilities,TSPA 2014-15,Table 7.3,139,None
+tz,Staff 24/7 availability,0.3,probability,2014,2015,Delivery facilities,Provider 24h onsite/on-call with observed schedule,All normal delivery facilities,TSPA 2014-15,Table 7.2,139,None
+ug,Blood availability,0.15,probability,2007,2007,Hospitals HC-IVs and HC-IIIs offering delivery services,Ever performed blood transfusion,Hospitals HC-IVs and HC-IIIs offering delivery services,USPA 2007,Table A-6.36.2,121,None
+ug,Uterotonic availability,0.73,probability,2007,2007,Delivery facilities,Injectable ergometrine/methergine in stock,All normal delivery facilities,USPA 2007,Figure 6.11,117,Used ergometrine proxy (oxytocin was 17%)
+ug,Staff 24/7 availability,0.55,probability,2007,2007,Delivery facilities,Provider onsite 24h with observed schedule,All normal delivery facilities,USPA 2007,Table A-6.34,115,None

@@ -69,12 +69,13 @@ export async function runSimulation(
   districtId: string,
   scenarioId: string = 'baseline',
   months: number = 36,
-  customParams?: Record<string, number>
+  customParams?: Record<string, number>,
+  clinicalCapacityModel: 'legacy' | 'spa_247' = 'spa_247'
 ): Promise<SimulationResult> {
   const response = await fetchWithTimeout(`${API_BASE}/simulation/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ district_id: districtId, scenario_id: scenarioId, months, custom_params: customParams }),
+    body: JSON.stringify({ district_id: districtId, scenario_id: scenarioId, months, custom_params: customParams, clinical_capacity_model: clinicalCapacityModel }),
   });
 
   if (!response.ok) {
@@ -167,7 +168,30 @@ function transformApiSimulationResult(data: any): SimulationResult {
     country: data.country,
     scenarioId: data.scenario_id,
     scenarioName: data.scenario_name,
-    parameters: {} as any, // Parameters are computed on backend
+    parameters: {
+      avgDistanceKm: data.run_metadata?.effective_parameters?.avg_distance_km,
+      travelTimeHours: data.run_metadata?.effective_parameters?.travel_time_hours,
+      roadQualityIndex: data.run_metadata?.effective_parameters?.road_quality_index,
+      facilityDeliveryFeeUSD: data.run_metadata?.effective_parameters?.facility_delivery_fee_usd,
+      transportCostUSD: data.run_metadata?.effective_parameters?.transport_cost_usd,
+      insuranceCoverageRate: data.run_metadata?.effective_parameters?.insurance_coverage_rate,
+      skilledStaffRatio: data.run_metadata?.effective_parameters?.skilled_staff_ratio,
+      skilledStaffDensityPer10k: data.run_metadata?.effective_parameters?.skilled_staff_ratio,
+      staff247AvailabilityRate: data.run_metadata?.effective_parameters?.staff_247_availability_rate,
+      non247RelativeCapacity: data.run_metadata?.effective_parameters?.non247_relative_capacity,
+      bloodAvailabilityRate: data.run_metadata?.effective_parameters?.blood_availability_rate,
+      oxytocinMisoprostolStockRate: data.run_metadata?.effective_parameters?.oxytocin_misoprostol_stock_rate,
+      bedCapacityRatio: data.run_metadata?.effective_parameters?.bed_capacity_ratio,
+      maternalEducationRate: data.run_metadata?.effective_parameters?.maternal_education_rate,
+      tbaInfluenceFactor: data.run_metadata?.effective_parameters?.tba_influence_factor,
+      communityTrustBaseline: data.run_metadata?.effective_parameters?.community_trust_baseline,
+      baselineComplicationRate: data.run_metadata?.effective_parameters?.baseline_complication_rate,
+      severePPHFraction: data.run_metadata?.effective_parameters?.severe_pph_fraction,
+      preEclampsiaFraction: data.run_metadata?.effective_parameters?.pre_eclampsia_fraction,
+      sepsisFraction: data.run_metadata?.effective_parameters?.sepsis_fraction,
+      obstructedLaborFraction: data.run_metadata?.effective_parameters?.obstructed_labor_fraction,
+    },
+    runMetadata: data.run_metadata,
     trajectories: (data.trajectories || []).map((x: any) => ({
       timeMonth: x.time_month,
       pregnantWomen: x.pregnant_women,
@@ -185,6 +209,10 @@ function transformApiSimulationResult(data: any): SimulationResult {
       facilityCongestionIndex: x.facility_congestion_index,
       phase2DelayHours: x.phase2_delay_hours,
       phase3DelayHours: x.facility_delay_index,
+      nominalCapacity: x.nominal_capacity,
+      effectiveCapacity: x.effective_capacity,
+      effectiveStaffAvailability: x.effective_staff_availability,
+      qualityFactor: x.quality_factor,
     })),
     summary: {
       totalBirths: summary.total_births,

@@ -1,0 +1,7 @@
+# Install only for the offline routing analysis; not needed by the API runtime.
+geopandas>=0.14,<2
+pyogrio>=0.8,<1
+rasterio>=1.3,<2
+shapely>=2,<3
+scipy>=1.12,<2
+numpy>=1.26,<3

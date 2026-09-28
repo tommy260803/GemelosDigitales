@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, JSON, Text
 from sqlalchemy.ext.declarative import declarative_base
@@ -82,6 +82,7 @@ class SimulationRequest(BaseModel):
     scenario_id: Optional[str] = Field("baseline", example="scenario_d")
     months: Optional[int] = Field(36, ge=12, le=240)
     custom_params: Optional[Dict[str, float]] = None
+    clinical_capacity_model: Literal["legacy", "spa_247"] = "spa_247"
 
 class ScenarioComparisonRequest(BaseModel):
     district_id: str

@@ -14,7 +14,9 @@ export interface DistrictData {
   cSectionRate: number; // %
   avgDistanceToEmONC: number; // km from OpenStreetMap
   avgTravelTimeHours: number; // hours to comprehensive EmONC
-  skilledStaffRatio: number; // doctors/midwives per 1,000 pregnant women
+  skilledStaffRatio: number; // legacy alias: model density per 10,000 population
+  skilledStaffDensityPer10k?: number; // structured model input, not an SPA percentage
+  staff247AvailabilityRate?: number | null; // SPA national facility-coverage proxy, 0–1
   bloodBankAvailability: number; // % units with reliable cold-chain blood
   essentialDrugsAvailability: number; // % (oxytocin, misoprostol, MgSO4)
   insuranceCoverage: number; // %
@@ -42,8 +44,8 @@ export interface DistrictData {
 
 /** FastAPI territorial payload; territorial values are never bundled in the client. */
 export type Territory = DistrictData;
-export interface SimulationRequest { district_id: string; scenario_id: string; months: number; custom_params?: Record<string, number>; }
-export interface RunMetadata { timestamp: string; integrator: 'RK4'; dt_months: number; simulation_months: number; effective_parameters: Record<string, number>; deterministic: boolean; random_seed: null; }
+export interface SimulationRequest { district_id: string; scenario_id: string; months: number; custom_params?: Record<string, number>; clinical_capacity_model?: 'legacy' | 'spa_247'; }
+export interface RunMetadata { timestamp: string; integrator: 'RK4'; dt_months: number; simulation_months: number; clinical_capacity_model: 'legacy' | 'spa_247'; effective_parameters: Record<string, number | null>; deterministic: boolean; random_seed: null; }
 
 export interface SDParameters {
   // Geographic Access
@@ -57,7 +59,10 @@ export interface SDParameters {
   insuranceCoverageRate: number; // 0 to 1
   
   // Health System Quality & Capacity
-  skilledStaffRatio: number; // per 1000
+  skilledStaffRatio: number; // model density per 10,000, not 24/7 coverage
+  skilledStaffDensityPer10k?: number;
+  staff247AvailabilityRate?: number | null;
+  non247RelativeCapacity?: number | null; // explicit scenario assumption, 0 to 1
   bloodAvailabilityRate: number; // 0 to 1
   oxytocinMisoprostolStockRate: number; // 0 to 1
   bedCapacityRatio: number; // 0 to 1
@@ -94,6 +99,10 @@ export interface StockState {
   facilityCongestionIndex: number;
   phase2DelayHours: number;
   phase3DelayHours: number;
+  nominalCapacity?: number;
+  effectiveCapacity?: number | null;
+  effectiveStaffAvailability?: number | null;
+  qualityFactor?: number;
 }
 
 export interface SimulationResult {
@@ -103,6 +112,7 @@ export interface SimulationResult {
   scenarioId: 'baseline' | 'scenario_a' | 'scenario_b' | 'scenario_c' | 'scenario_d';
   scenarioName: string;
   parameters: SDParameters;
+  runMetadata?: RunMetadata;
   trajectories: StockState[];
   summary: {
     totalBirths: number;

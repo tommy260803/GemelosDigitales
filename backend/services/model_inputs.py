@@ -10,7 +10,7 @@ INPUT_DIR = ROOT / "data" / "model_inputs"
 FILES = {
     "demographics": ("territorial_demographics.csv", {"territory_id","territory_name","country","region","latitude","longitude","population","annual_births","baseline_mmr"}),
     "context": ("maternal_health_context.csv", {"territory_id","anc1_rate","anc4_rate","institutional_delivery_rate","cesarean_rate","insurance_coverage_rate","poverty_rate","female_education_rate","tba_prevalence"}),
-    "capacity": ("health_system_capacity.csv", {"territory_id","skilled_staff_per_10k","blood_availability","essential_drugs_availability","health_facilities_count"}),
+    "capacity": ("health_system_capacity.csv", {"territory_id","skilled_staff_per_10k","staff_247_availability_rate","blood_availability","essential_drugs_availability","health_facilities_count"}),
     "access": ("geographic_access.csv", {"territory_id","avg_distance_to_emonc_km","avg_travel_time_hours","road_quality_index","transport_cost_usd"}),
     "model": ("model_context.csv", {"territory_id","community_trust_baseline","facility_delivery_fee_usd","baseline_complication_rate","wealth_quintiles_mmr"}),
 }
@@ -53,5 +53,17 @@ def districts_from_datasets() -> List[DistrictData]:
     data=load_rows(); result=[]
     for ident,d in data["demographics"].items():
         c,a,m=data["context"][ident],data["access"][ident],data["model"][ident]; h=data["capacity"][ident]
-        result.append(DistrictData(ident,d["territory_name"],d["country"],d["region"],int(d["population"]),int(d["annual_births"]),float(d["baseline_mmr"]),float(c["anc1_rate"])*100,float(c["anc4_rate"])*100,float(c["institutional_delivery_rate"])*100,float(c["cesarean_rate"])*100,float(a["avg_distance_to_emonc_km"]),float(a["avg_travel_time_hours"]),float(h["skilled_staff_per_10k"]),float(h["blood_availability"])*100,float(h["essential_drugs_availability"])*100,float(c["insurance_coverage_rate"])*100,float(c["poverty_rate"])*100,float(c["female_education_rate"])*100,float(c["tba_prevalence"])*100,float(d["latitude"]),float(d["longitude"]),int(h["health_facilities_count"]),json.loads(m["wealth_quintiles_mmr"])))
+        result.append(DistrictData(
+            id=ident,name=d["territory_name"],country=d["country"],region=d["region"],
+            population=int(d["population"]),annual_births=int(d["annual_births"]),baseline_mmr=float(d["baseline_mmr"]),
+            anc1_coverage=float(c["anc1_rate"])*100,anc4_coverage=float(c["anc4_rate"])*100,
+            institutional_delivery_rate=float(c["institutional_delivery_rate"])*100,c_section_rate=float(c["cesarean_rate"])*100,
+            avg_distance_to_emonc=float(a["avg_distance_to_emonc_km"]),avg_travel_time_hours=float(a["avg_travel_time_hours"]),
+            skilled_staff_ratio=float(h["skilled_staff_per_10k"]),blood_bank_availability=float(h["blood_availability"])*100,
+            essential_drugs_availability=float(h["essential_drugs_availability"])*100,insurance_coverage=float(c["insurance_coverage_rate"])*100,
+            poverty_rate=float(c["poverty_rate"])*100,female_secondary_education=float(c["female_education_rate"])*100,
+            traditional_birth_attendant_prevalence=float(c["tba_prevalence"])*100,lat=float(d["latitude"]),lng=float(d["longitude"]),
+            osm_health_facilities_count=int(h["health_facilities_count"]),wealth_quintile_mmr=json.loads(m["wealth_quintiles_mmr"]),
+            staff_247_availability_rate=float(h["staff_247_availability_rate"]),
+        ))
     return result

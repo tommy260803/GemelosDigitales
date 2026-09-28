@@ -5,6 +5,27 @@ Tests for FastAPI API endpoints.
 from unittest.mock import patch
 
 
+def test_spa_staff_coverage_is_exposed_without_replacing_density(client):
+    district = client.get('/districts/ke-garissa')
+    assert district.status_code == 200
+    assert district.json()['staff247AvailabilityRate'] == 0.46
+    assert district.json()['skilledStaffDensityPer10k'] == district.json()['skilledStaffRatio']
+
+
+def test_spa_capacity_model_uses_documented_default_and_allows_override(client):
+    request = {'district_id': 'ke-garissa', 'months': 12, 'clinical_capacity_model': 'spa_247'}
+    default = client.post('/simulation/run', json=request)
+    assert default.status_code == 200
+    assert default.json()['run_metadata']['effective_parameters']['non247_relative_capacity'] == 0.33
+    request['custom_params'] = {'non247_relative_capacity': 0.5}
+    response = client.post('/simulation/run', json=request)
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload['run_metadata']['clinical_capacity_model'] == 'spa_247'
+    assert payload['run_metadata']['effective_parameters']['staff_247_availability_rate'] == 0.46
+    assert payload['trajectories'][-1]['effective_staff_availability'] == 0.73
+
+
 class TestHealthEndpoints:
     """Tests for health and root endpoints."""
 

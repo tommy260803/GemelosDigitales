@@ -1,0 +1,14 @@
+{
+  "source": "Malaria Atlas Project / Weiss et al. (2020) speed-profile assumption supplied by project owner",
+  "source_type": "PARAMETRIC_ASSUMPTION",
+  "speeds_kmh": {
+    "primary": 60,
+    "secondary": 40,
+    "tertiary": 20,
+    "unclassified": 20,
+    "residential": 20,
+    "track": 20,
+    "path": 20
+  },
+  "notes": "These are modeled speeds, not observed journey times. Verify road-class mapping and country applicability before scientific use."
+}

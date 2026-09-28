@@ -56,6 +56,10 @@ ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS transport_cost_usd NUMERIC
 ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS community_trust_baseline NUMERIC(4,3);
 ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS facility_delivery_fee_usd NUMERIC(8,2);
 ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS baseline_complication_rate NUMERIC(5,4);
+-- Facility-level coverage with an observed 24-hour skilled-provider rota.
+-- Distinct from skilled_staff_ratio, which is the legacy density input per 10,000.
+ALTER TABLE health_districts ADD COLUMN IF NOT EXISTS staff_247_availability_rate NUMERIC(5,4)
+    CHECK (staff_247_availability_rate BETWEEN 0 AND 1);
 
 -- 3. System Dynamics Model Parameter Sets
 CREATE TABLE IF NOT EXISTS sd_model_parameters (

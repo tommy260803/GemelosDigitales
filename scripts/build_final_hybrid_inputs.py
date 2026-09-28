@@ -301,13 +301,20 @@ def build(dry_run: bool = False) -> None:
     # Record all non-anchored values as structured model inputs, plus complete context provenance.
     anchored_names = set(ANCHORS)
     for filename in INPUT_FILES:
-        for row in _read_csv(BASELINE / filename):
+        # The DHS snapshot is the baseline only for maternal context; later
+        # geospatial/clinical inputs must retain their current versioned values.
+        source = BASELINE / filename if filename == "maternal_health_context.csv" else INPUT / filename
+        for row in _read_csv(source):
             for name, value in row.items():
                 if name == "territory_id" or (filename == "maternal_health_context.csv" and name in anchored_names):
                     continue
-                provenance.append({"territory_id": row["territory_id"], "variable_name": name, "source_type": "MODEL_INPUT", "source_file": f"pre_hybrid_phase_2_1/{filename}", "derivation_method": "retained structured model input", "original_value": value, "final_value": value, "transformation": "identity", "notes": "Not directly derived from current DHS microdata."})
+                provenance.append({"territory_id": row["territory_id"], "variable_name": name, "source_type": "MODEL_INPUT", "source_file": str(source.relative_to(ROOT)), "derivation_method": "retained structured model input", "original_value": value, "final_value": value, "transformation": "identity", "notes": "Not directly derived from current DHS microdata."})
     _write_csv(INPUT / "maternal_health_context.csv", context)
     _write_csv(INPUT / "input_provenance.csv", provenance, ["territory_id", "variable_name", "source_type", "source_file", "derivation_method", "original_value", "final_value", "transformation", "notes"])
+    from build_spa_inputs import prepare, build_provenance, write_csv
+    capacity_rows, _, spa = prepare()
+    spa_provenance, fields = build_provenance(capacity_rows, spa)
+    write_csv(INPUT / "input_provenance.csv", spa_provenance, fields)
     print(f"Built hybrid inputs: {len(reports)} country rows, {len(regions)} regional rows, {len(provenance)} provenance rows.")
 
 

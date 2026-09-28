@@ -8,7 +8,7 @@ import os
 import uuid
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Literal
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
@@ -28,7 +28,11 @@ from services.system_dynamics import (
 from services.validation import StatisticalValidationPy
 from services.calibrator import ModelCalibratorPy
 from services.model_inputs import districts_from_datasets
-from services.analysis_agent import run_agent
+
+def run_agent(*args, **kwargs):
+    """Load the optional AI copilot only when its endpoint is invoked."""
+    from services.analysis_agent import run_agent as service_run_agent
+    return service_run_agent(*args, **kwargs)
 
 # =========================================================
 # APP CONFIGURATION
@@ -50,7 +54,7 @@ app.add_middleware(
 
 # Database connection helper
 def get_db_connection():
-    db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@localhost:5433/maternal_twin_db')
+    db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@localhost:5434/maternal_twin_db')
     return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
 
 # =========================================================
@@ -62,6 +66,7 @@ class SimulationRequest(BaseModel):
     scenario_id: str = 'baseline'
     months: int = Field(default=36, ge=12, le=240)
     custom_params: Optional[Dict[str, float]] = None
+    clinical_capacity_model: Literal['legacy','spa_247'] = 'spa_247'
 
 class CalibrationRequest(BaseModel):
     district_id: str
@@ -98,6 +103,7 @@ class DistrictResponse(BaseModel):
     avg_distance_to_emonc: float
     avg_travel_time_hours: float
     skilled_staff_ratio: float
+    staff_247_availability_rate: Optional[float] = None
     blood_bank_availability: float
     essential_drugs_availability: float
     insurance_coverage: float
@@ -135,7 +141,7 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
         cur.execute("""
             SELECT id, name, country, region, population, annual_births, baseline_mmr,
                    anc1_coverage, anc4_coverage, institutional_delivery_rate, c_section_rate,
-                   avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio,
+                   avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio, staff_247_availability_rate,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
                    ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr
@@ -170,7 +176,8 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
                 lat=float(row['lat']),
                 lng=float(row['lng']),
                 osm_health_facilities_count=row['osm_health_facilities_count'],
-                wealth_quintile_mmr=row['wealth_quintiles_mmr']
+                wealth_quintile_mmr=row['wealth_quintiles_mmr'],
+                staff_247_availability_rate=float(row['staff_247_availability_rate']) if row['staff_247_availability_rate'] is not None else None,
             )
     except Exception as e:
         print(f"Database unavailable, using versioned model-input datasets: {e}")
@@ -186,7 +193,7 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
         cur.execute("""
             SELECT id, name, country, region, population, annual_births, baseline_mmr,
                    anc1_coverage, anc4_coverage, institutional_delivery_rate, c_section_rate,
-                   avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio,
+                   avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio, staff_247_availability_rate,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
                    ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr
@@ -221,7 +228,8 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
                 lat=float(row['lat']),
                 lng=float(row['lng']),
                 osm_health_facilities_count=row['osm_health_facilities_count'],
-                wealth_quintile_mmr=row['wealth_quintiles_mmr']
+                wealth_quintile_mmr=row['wealth_quintiles_mmr'],
+                staff_247_availability_rate=float(row['staff_247_availability_rate']) if row['staff_247_availability_rate'] is not None else None,
             ))
     except Exception as e:
         print(f"Database unavailable, using versioned model-input datasets: {e}")
@@ -268,6 +276,8 @@ async def get_districts(country: Optional[str] = None):
         "avgDistanceToEmONC": d.avg_distance_to_emonc,
         "avgTravelTimeHours": d.avg_travel_time_hours,
         "skilledStaffRatio": d.skilled_staff_ratio,
+        "skilledStaffDensityPer10k": d.skilled_staff_ratio,
+        "staff247AvailabilityRate": d.staff_247_availability_rate,
         "bloodBankAvailability": d.blood_bank_availability,
         "essentialDrugsAvailability": d.essential_drugs_availability,
         "insuranceCoverage": d.insurance_coverage,
@@ -300,6 +310,8 @@ async def get_district(district_id: str):
         "avgDistanceToEmONC": district.avg_distance_to_emonc,
         "avgTravelTimeHours": district.avg_travel_time_hours,
         "skilledStaffRatio": district.skilled_staff_ratio,
+        "skilledStaffDensityPer10k": district.skilled_staff_ratio,
+        "staff247AvailabilityRate": district.staff_247_availability_rate,
         "bloodBankAvailability": district.blood_bank_availability,
         "essentialDrugsAvailability": district.essential_drugs_availability,
         "insuranceCoverage": district.insurance_coverage,
@@ -320,7 +332,8 @@ async def run_simulation(req: SimulationRequest):
     
     try:
         result = SystemDynamicsEngine.simulate(
-            district, req.scenario_id, req.custom_params or {}, req.months
+            district, req.scenario_id, req.custom_params or {}, req.months,
+            clinical_capacity_model=req.clinical_capacity_model,
         )
         return {
             "district_id": result.district_id,
@@ -342,6 +355,7 @@ async def run_simulation(req: SimulationRequest):
                 "integrator": result.summary.integrator,
                 "dt_months": result.summary.dt_months,
                 "simulation_months": result.summary.simulation_months,
+                "clinical_capacity_model": result.summary.clinical_capacity_model,
             },
             "equity_disaggregation": [],
             "equity_status": "not_computed_without_empirical stratification data",
@@ -351,12 +365,15 @@ async def run_simulation(req: SimulationRequest):
                 "integrator": result.summary.integrator,
                 "dt_months": result.summary.dt_months,
                 "simulation_months": result.summary.simulation_months,
+                "clinical_capacity_model": result.summary.clinical_capacity_model,
                 "effective_parameters": asdict(result.parameters),
                 "random_seed": None,
                 "deterministic": True,
             },
             "trajectory_count": len(result.trajectories),
         }
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
