@@ -104,10 +104,10 @@ export async function runKolmogorovSmirnov(districtId: string): Promise<any> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ district_id: districtId, test_type: 'KS' }),
-  });
+  }, 60000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`KS test failed: ${response.status}`);
-  return readJsonResponse(response, 'External validation failed');
+  return readJsonResponse(response, 'KS validation failed');
 }
 
 export async function runSobolSensitivity(districtId: string): Promise<any> {
@@ -115,25 +115,25 @@ export async function runSobolSensitivity(districtId: string): Promise<any> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ district_id: districtId, test_type: 'SOBOL' }),
-  });
+  }, 60000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`Sobol analysis failed: ${response.status}`);
-  return readJsonResponse(response, 'RK4 convergence validation failed');
+  return readJsonResponse(response, 'Sobol validation failed');
 }
 
 export async function runBootstrap(districtId: string, scenarioId: string = 'scenario_d'): Promise<any> {
   const response = await fetchWithTimeout(`${API_BASE}/validation/bootstrap`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ district_id: districtId, test_type: 'BOOTSTRAP' }),
-  });
+    body: JSON.stringify({ district_id: districtId, test_type: 'BOOTSTRAP', scenario_id: scenarioId }),
+  }, 60000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`Bootstrap failed: ${response.status}`);
   return response.json();
 }
 
 export async function runExternalValidation(districtId: string): Promise<any> {
-  const response = await fetchWithTimeout(`${API_BASE}/validation/external/${districtId}`);
+  const response = await fetchWithTimeout(`${API_BASE}/validation/external/${districtId}`, {}, 60000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`External validation failed: ${response.status}`);
   return response.json();
@@ -181,15 +181,10 @@ function transformApiSimulationResult(data: any): SimulationResult {
       non247RelativeCapacity: data.run_metadata?.effective_parameters?.non247_relative_capacity,
       bloodAvailabilityRate: data.run_metadata?.effective_parameters?.blood_availability_rate,
       oxytocinMisoprostolStockRate: data.run_metadata?.effective_parameters?.oxytocin_misoprostol_stock_rate,
-      bedCapacityRatio: data.run_metadata?.effective_parameters?.bed_capacity_ratio,
       maternalEducationRate: data.run_metadata?.effective_parameters?.maternal_education_rate,
       tbaInfluenceFactor: data.run_metadata?.effective_parameters?.tba_influence_factor,
       communityTrustBaseline: data.run_metadata?.effective_parameters?.community_trust_baseline,
       baselineComplicationRate: data.run_metadata?.effective_parameters?.baseline_complication_rate,
-      severePPHFraction: data.run_metadata?.effective_parameters?.severe_pph_fraction,
-      preEclampsiaFraction: data.run_metadata?.effective_parameters?.pre_eclampsia_fraction,
-      sepsisFraction: data.run_metadata?.effective_parameters?.sepsis_fraction,
-      obstructedLaborFraction: data.run_metadata?.effective_parameters?.obstructed_labor_fraction,
     },
     runMetadata: data.run_metadata,
     trajectories: (data.trajectories || []).map((x: any) => ({

@@ -16,6 +16,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { DistrictData } from '../types';
+import { useLanguage } from '../i18n/translations';
 import { useTheme } from '../context/ThemeContext';
 import { SectionHeader } from './ui/SectionHeader';
 import { StatCard } from './ui/StatCard';
@@ -75,6 +76,7 @@ interface RK4ConvergenceResult {
 
 export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
   const { theme } = useTheme();
+  const { t } = useLanguage();
 
   const [convergenceResult, setConvergenceResult] = useState<RK4ConvergenceResult | null>(null);
   const [ksResult, setKsResult] = useState<KSResult | null>(null);
@@ -84,10 +86,10 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [unavailable, setUnavailable] = useState<Record<string, boolean>>({
-    ks: true,
-    sobol: true,
-    bootstrap: true,
-    external: true,
+    ks: false,
+    sobol: false,
+    bootstrap: false,
+    external: false,
   });
 
   const handleValidationError = (key: string, e: any) => {
@@ -95,7 +97,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
       setUnavailable((p) => ({ ...p, [key]: true }));
       setErrors((p) => ({ ...p, [key]: '' }));
     } else {
-      setErrors((p) => ({ ...p, [key]: e.message || 'Test failed' }));
+      setErrors((p) => ({ ...p, [key]: e.message || t.rvTestFailed }));
     }
   };
   const runConvergence = async () => {
@@ -105,7 +107,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
       const data = await ApiClient.runRK4Convergence(district.id, 'scenario_d', 36);
       setConvergenceResult(data);
     } catch (e: any) {
-      setErrors((p) => ({ ...p, convergence: e.message || 'Error en validación de convergencia' }));
+      setErrors((p) => ({ ...p, convergence: e.message || t.rvConvergError }));
     } finally {
       setLoading((p) => ({ ...p, convergence: false }));
     }
@@ -177,13 +179,13 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
     <div className="space-y-4">
       {/* Header */}
       <SectionHeader
-        title="Suite de Validación Científica y Numérica"
-        subtitle={`Distrito: ${district.name} · Integración RK4 y verificación de estabilidad`}
+        title={t.rvSuiteTitle}
+        subtitle={`Distrito: ${district.name} · ${t.rvSuiteSub}`}
         icon={<ShieldCheck className="w-5 h-5" />}
         badge={
           hasResults
-            ? <Badge variant="success" size="sm"><CheckCircle2 className="w-3 h-3" /> Resultados cargados</Badge>
-            : <Badge variant="warning" size="sm"><Clock className="w-3 h-3" /> Esperando ejecución</Badge>
+            ? <Badge variant="success" size="sm"><CheckCircle2 className="w-3 h-3" /> {t.rvResultsLoaded}</Badge>
+            : <Badge variant="warning" size="sm"><Clock className="w-3 h-3" /> {t.rvAwaitingRun}</Badge>
         }
       />
 
@@ -195,14 +197,14 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 rounded-lg text-sm font-medium transition-colors"
         >
           <RefreshCw className={`w-4 h-4 ${Object.values(loading).some(Boolean) ? 'animate-spin' : ''}`} />
-          Ejecutar Todas las Pruebas de Validación
+          {t.rvRunAll}
         </button>
       </div>
 
       {/* RK4 Numerical Convergence Card */}
       <ChartCard
-        title="Verificación de Convergencia Numérica RK4 (Runge-Kutta 4to Orden)"
-        subtitle="Evaluación matemática del paso continuo (dt = 0.1, 0.05, 0.025 meses) bajo el criterio de Cauchy"
+        title={t.rvRk4Title}
+        subtitle={t.rvRk4Sub}
         actions={
           <button
             onClick={runConvergence}
@@ -210,7 +212,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
             className="text-sm text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1"
           >
             {loading.convergence ? <RefreshCw className="w-3 h-3 animate-spin" /> : null}
-            {loading.convergence ? 'Verificando...' : 'Re-verificar RK4'}
+            {loading.convergence ? t.rvVerifying : t.rvReverifyRk4}
           </button>
         }
       >
@@ -225,33 +227,33 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
             {/* Top KPI Metrics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
               <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 shadow-sm">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Algoritmo Integrador</div>
-                <div className="text-base font-mono font-bold text-sky-400">RK4 Clásico</div>
-                <div className="text-xs text-slate-400 mt-1 font-mono">Orden de precisión: O(Δt⁴)</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvIntegrator}</div>
+                <div className="text-base font-mono font-bold text-sky-400">{t.rvRk4Classic}</div>
+                <div className="text-xs text-slate-400 mt-1 font-mono">{t.rvPrecisionOrder}</div>
               </div>
 
               <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 shadow-sm">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Error Relativo Discretización</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvRelDiscError}</div>
                 <div className="text-xl font-mono font-extrabold text-emerald-400">
                   {convergenceResult.relative_error_percent.toFixed(4)}%
                 </div>
-                <div className="text-xs text-slate-400 mt-1 font-mono">Tolerancia máx: &lt;1.000%</div>
+                <div className="text-xs text-slate-400 mt-1 font-mono">{t.rvMaxTol}</div>
               </div>
 
               <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 shadow-sm">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Criterio de Cauchy</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvCauchyCriterion}</div>
                 <div className="text-xl font-mono font-extrabold text-emerald-400">
-                  {convergenceResult.is_convergent ? 'SATISFECHO' : 'NO CONVERGE'}
+                  {convergenceResult.is_convergent ? t.rvSatisfied : t.rvNotConverge}
                 </div>
                 <div className="text-xs text-slate-400 mt-1 font-mono">dt=0.1 vs dt=0.025</div>
               </div>
 
               <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5 shadow-sm">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Estado de Validación</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvValidationStatus}</div>
                 <div className="text-xl font-extrabold text-emerald-400 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-5 h-5" /> CONVERGE
+                  <CheckCircle2 className="w-5 h-5" /> {t.rvConverges}
                 </div>
-                <div className="text-xs text-slate-400 mt-1">Estabilidad numérica continua</div>
+                <div className="text-xs text-slate-400 mt-1">{t.rvStability}</div>
               </div>
             </div>
 
@@ -260,12 +262,12 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-slate-800/70 border-b border-slate-700 text-slate-300">
-                    <th className="text-left py-2 px-3 font-semibold">Paso de Tiempo (Δt)</th>
-                    <th className="text-right py-2 px-3 font-semibold">Pasos Totales (36m)</th>
-                    <th className="text-right py-2 px-3 font-semibold">Nacimientos Acumulados</th>
-                    <th className="text-right py-2 px-3 font-semibold">Muertes Acumuladas</th>
-                    <th className="text-right py-2 px-3 font-semibold">RMM Horizonte (/100k)</th>
-                    <th className="text-right py-2 px-3 font-semibold">Diferencia Relativa</th>
+                    <th className="text-left py-2 px-3 font-semibold">{t.rvColTimestep}</th>
+                    <th className="text-right py-2 px-3 font-semibold">{t.rvColTotalSteps}</th>
+                    <th className="text-right py-2 px-3 font-semibold">{t.rvColBirthsAcc}</th>
+                    <th className="text-right py-2 px-3 font-semibold">{t.rvColDeathsAcc}</th>
+                    <th className="text-right py-2 px-3 font-semibold">{t.rvColHorizon}</th>
+                    <th className="text-right py-2 px-3 font-semibold">{t.rvColRelDiff}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
@@ -275,13 +277,13 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
                     const diff = Math.abs(vals.horizon_mmr - baselineMMR) / baselineMMR * 100;
                     return (
                       <tr key={dtKey} className="hover:bg-slate-800/40">
-                        <td className="py-2 px-3 font-mono font-medium text-sky-400">Δt = {dtKey} mes</td>
-                        <td className="text-right py-2 px-3 font-mono text-slate-400">{stepNum} pasos</td>
+                        <td className="py-2 px-3 font-mono font-medium text-sky-400">Δt = {dtKey} {t.rvUnitMonth}</td>
+                        <td className="text-right py-2 px-3 font-mono text-slate-400">{stepNum} {t.rvUnitSteps}</td>
                         <td className="text-right py-2 px-3 font-mono text-slate-300">{Math.round(vals.births).toLocaleString()}</td>
                         <td className="text-right py-2 px-3 font-mono text-slate-300">{vals.deaths.toFixed(1)}</td>
                         <td className="text-right py-2 px-3 font-mono font-bold text-slate-200">{vals.horizon_mmr.toFixed(2)}</td>
                         <td className="text-right py-2 px-3 font-mono text-emerald-400">
-                          {dtKey === '0.025' ? 'Paso de Referencia' : `${diff.toFixed(4)}%`}
+                          {dtKey === '0.025' ? t.rvRefStep : `${diff.toFixed(4)}%`}
                         </td>
                       </tr>
                     );
@@ -291,23 +293,23 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
             </div>
 
             <p className="text-sm text-slate-400 italic">
-              * Nota Metodológica: El método Runge-Kutta de cuarto orden (RK4) discretiza las 5 ecuaciones diferenciales ordinarias del continuo materno. Al cuadruplicar la resolución temporal (de 0.1 a 0.025 mes), la trayectoria de RMM se mantiene invariante dentro de un margen inferior a 0.01%, descartando inestabilidad numérica o artefactos computacionales.
+              * {t.rvMethodNote}
             </p>
           </div>
         ) : (
           <div className="text-sm text-slate-500 py-4 text-center">
-            {loading.convergence ? 'Ejecutando convergencia numérica RK4...' : 'Haga clic en "Re-verificar RK4" para evaluar la estabilidad del motor.'}
+            {loading.convergence ? t.rvRunConvergence : t.rvClickReverify}
           </div>
         )}
       </ChartCard>
 
       {/* KS Test */}
       <ChartCard
-        title="Prueba de Kolmogorov-Smirnov (Dos Muestras)"
-        subtitle="Equivalencia distribucional entre la RMM simulada y la empírica DHS"
+        title={t.rvKsTwoSample}
+        subtitle={t.rvKsEquivDesc}
         actions={
           <button onClick={runKS} disabled={loading.ks || unavailable.ks} className="text-sm text-sky-400 hover:text-sky-300 disabled:text-slate-500 disabled:cursor-not-allowed">
-            {loading.ks ? 'Ejecutando...' : unavailable.ks ? 'No disponible' : 'Ejecutar KS'}
+            {loading.ks ? t.rvRunning : unavailable.ks ? t.rvNotAvailable : t.rvRunKs}
           </button>
         }
       >
@@ -318,44 +320,44 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         )}
         {unavailable.ks && (
           <div className="flex gap-2 items-center text-amber-400 text-sm mb-3">
-            <AlertTriangle className="w-4 h-4" /> Validación estadística empírica deshabilitada en este build (sin microdatos DHS locales).
+            <AlertTriangle className="w-4 h-4" /> {t.rvKsDisabled}
           </div>
         )}
         {ksResult ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-slate-800/50 rounded-lg p-3">
-              <div className="text-xs text-slate-400 mb-1">Estadístico KS (D)</div>
+              <div className="text-xs text-slate-400 mb-1">{t.rvStatKs}</div>
               <div className="text-xl font-mono font-bold">{ksResult.statistic_d.toFixed(4)}</div>
             </div>
             <div className="bg-slate-800/50 rounded-lg p-3">
-              <div className="text-xs text-slate-400 mb-1">Valor P</div>
+              <div className="text-xs text-slate-400 mb-1">{t.rvPValue}</div>
               <div className="text-xl font-mono font-bold">{ksResult.p_value.toFixed(4)}</div>
             </div>
             <div className="bg-slate-800/50 rounded-lg p-3">
-              <div className="text-xs text-slate-400 mb-1">Valor Crítico</div>
+              <div className="text-xs text-slate-400 mb-1">{t.rvCriticalValue}</div>
               <div className="text-xl font-mono font-bold">{ksResult.critical_value.toFixed(4)}</div>
             </div>
             <div className="bg-slate-800/50 rounded-lg p-3">
-              <div className="text-xs text-slate-400 mb-1">Resultado</div>
+              <div className="text-xs text-slate-400 mb-1">{t.rvOutcome}</div>
               <div className={`text-xl font-bold ${ksResult.is_statistically_equivalent ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {ksResult.is_statistically_equivalent ? 'APROBADO' : 'NO APROBADO'}
+                {ksResult.is_statistically_equivalent ? t.rvApproved : t.rvNotApproved}
               </div>
             </div>
           </div>
         ) : (
           <div className="text-sm text-slate-500 py-4 text-center">
-            {unavailable.ks ? 'Configure microdatos DHS empíricos para habilitar esta prueba.' : 'Ejecute KS para comparar las distribuciones simuladas y empíricas.'}
+            {unavailable.ks ? t.rvConfigureDhs : t.rvRunKsHint}
           </div>
         )}
       </ChartCard>
 
       {/* Sobol Sensitivity */}
       <ChartCard
-        title="Análisis de Sensibilidad Global de Sobol"
-        subtitle="Descomposición de varianza de primer orden (S1) y orden total (ST)"
+        title={t.rvSobolTitle}
+        subtitle={t.rvSobolSub}
         actions={
           <button onClick={runSobol} disabled={loading.sobol || unavailable.sobol} className="text-sm text-sky-400 hover:text-sky-300 disabled:text-slate-500 disabled:cursor-not-allowed">
-            {loading.sobol ? 'Ejecutando...' : unavailable.sobol ? 'No disponible' : 'Ejecutar Sobol'}
+            {loading.sobol ? t.rvRunning : unavailable.sobol ? t.rvNotAvailable : t.rvRunSobol}
           </button>
         }
       >
@@ -366,7 +368,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         )}
         {unavailable.sobol && (
           <div className="flex gap-2 items-center text-amber-400 text-sm mb-3">
-            <AlertTriangle className="w-4 h-4" /> Análisis de sensibilidad de Sobol no disponible en este build.
+            <AlertTriangle className="w-4 h-4" /> {t.rvSobolDisabled}
           </div>
         )}
         {sobolResult ? (
@@ -375,9 +377,9 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700">
-                    <th className="text-left py-2 px-3 text-xs text-slate-400">Parámetro</th>
-                    <th className="text-right py-2 px-3 text-xs text-slate-400">Primer Orden (S1)</th>
-                    <th className="text-right py-2 px-3 text-xs text-slate-400">Orden Total (ST)</th>
+                    <th className="text-left py-2 px-3 text-xs text-slate-400">{t.rvParam}</th>
+                    <th className="text-right py-2 px-3 text-xs text-slate-400">{t.rvFirstOrder}</th>
+                    <th className="text-right py-2 px-3 text-xs text-slate-400">{t.rvTotalOrder}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -397,7 +399,7 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
             </div>
             {sobolResult.top_variance_contributors.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                <span className="text-xs text-slate-400">Mayores contribuyentes a la varianza:</span>
+                <span className="text-xs text-slate-400">{t.rvTopVariance}</span>
                 {sobolResult.top_variance_contributors.map((p) => (
                   <Badge key={p} variant="info" size="sm">{p}</Badge>
                 ))}
@@ -406,18 +408,18 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           </div>
         ) : (
           <div className="text-sm text-slate-500 py-4 text-center">
-            {unavailable.sobol ? 'Documente rangos de parámetros y habilite un diseño de sensibilidad para usar Sobol.' : 'Ejecute Sobol para calcular índices de sensibilidad.'}
+            {unavailable.sobol ? t.rvConfigureRanges : t.rvRunSobolHint}
           </div>
         )}
       </ChartCard>
 
       {/* Bootstrap Confidence Intervals */}
       <ChartCard
-        title="Intervalos de Confianza Bootstrap"
-        subtitle="Cuantificación de incertidumbre por remuestreo no paramétrico (Escenario D)"
+        title={t.rvBootTitle}
+        subtitle={t.rvBootSub}
         actions={
           <button onClick={runBootstrap} disabled={loading.bootstrap || unavailable.bootstrap} className="text-sm text-sky-400 hover:text-sky-300 disabled:text-slate-500 disabled:cursor-not-allowed">
-            {loading.bootstrap ? 'Ejecutando...' : unavailable.bootstrap ? 'No disponible' : 'Ejecutar Bootstrap'}
+            {loading.bootstrap ? t.rvRunning : unavailable.bootstrap ? t.rvNotAvailable : t.rvRunBootstrap}
           </button>
         }
       >
@@ -428,31 +430,31 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         )}
         {unavailable.bootstrap && (
           <div className="flex gap-2 items-center text-amber-400 text-sm mb-3">
-            <AlertTriangle className="w-4 h-4" /> Intervalos de confianza Bootstrap no disponibles en este build.
+            <AlertTriangle className="w-4 h-4" /> {t.rvBootDisabled}
           </div>
         )}
         {bootstrapResult ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Iteraciones</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvIterations}</div>
               <div className="text-2xl font-mono font-extrabold text-white">{bootstrapResult.iterations}</div>
             </div>
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Media Vidas Salvadas</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvMeanLives}</div>
               <div className="text-2xl font-mono font-extrabold text-emerald-400">{bootstrapResult.mean_lives_saved.toFixed(0)}</div>
               <div className="text-xs font-mono text-slate-300 mt-1">
-                IC 95%: [{bootstrapResult.ci95_lives_saved[0].toFixed(0)}, {bootstrapResult.ci95_lives_saved[1].toFixed(0)}]
+                {t.rvCi95} [{bootstrapResult.ci95_lives_saved[0].toFixed(0)}, {bootstrapResult.ci95_lives_saved[1].toFixed(0)}]
               </div>
             </div>
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Media Costo/Vida</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvMeanCostLife}</div>
               <div className="text-2xl font-mono font-extrabold text-sky-400">${bootstrapResult.mean_cost_per_life_saved.toFixed(0)}</div>
               <div className="text-xs font-mono text-slate-300 mt-1">
-                IC 95%: [${bootstrapResult.ci95_cost_per_life_saved[0].toFixed(0)}, ${bootstrapResult.ci95_cost_per_life_saved[1].toFixed(0)}]
+                {t.rvCi95} [${bootstrapResult.ci95_cost_per_life_saved[0].toFixed(0)}, ${bootstrapResult.ci95_cost_per_life_saved[1].toFixed(0)}]
               </div>
             </div>
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Razón Ancho IC</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvIcWidthRatio}</div>
               <div className="text-2xl font-mono font-extrabold text-white">
                 {bootstrapResult.mean_lives_saved > 0
                   ? ((bootstrapResult.ci95_lives_saved[1] - bootstrapResult.ci95_lives_saved[0]) / bootstrapResult.mean_lives_saved * 100).toFixed(0) + '%'
@@ -462,18 +464,18 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
           </div>
         ) : (
           <div className="text-sm text-slate-400 py-4 text-center">
-            {unavailable.bootstrap ? 'Configure incertidumbre paramétrica y datos de salida para habilitar Bootstrap.' : 'Ejecute Bootstrap para calcular intervalos de confianza.'}
+            {unavailable.bootstrap ? t.rvConfigureUncertainty : t.rvRunBootHint}
           </div>
         )}
       </ChartCard>
 
       {/* External Validation */}
       <ChartCard
-        title="Validación Externa vs. Datos Observados"
-        subtitle="Comparación en distrito holdout con estándares empíricos DHS Countdown 2030"
+        title={t.rvExternalTitle}
+        subtitle={t.rvExternalSub}
         actions={
           <button onClick={runExternal} disabled={loading.external || unavailable.external} className="text-sm font-semibold text-sky-400 hover:text-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed">
-            {loading.external ? 'Ejecutando...' : unavailable.external ? 'No disponible' : 'Ejecutar Validación'}
+            {loading.external ? t.rvRunning : unavailable.external ? t.rvNotAvailable : t.rvRunExternal}
           </button>
         }
       >
@@ -484,33 +486,33 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
         )}
         {unavailable.external && (
           <div className="flex gap-2 items-center text-amber-400 text-sm mb-3">
-            <AlertTriangle className="w-4 h-4" /> Validación externa con microdatos DHS no disponible en este entorno local.
+            <AlertTriangle className="w-4 h-4" /> {t.rvExternalDisabled}
           </div>
         )}
         {externalResult ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Distrito de Prueba</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvTestDistrict}</div>
               <div className="text-xl font-bold text-white">{externalResult.test_district}</div>
               <div className="text-xs text-slate-400 mt-0.5">{externalResult.country}</div>
             </div>
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">RMM Observada</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvObservedMMR}</div>
               <div className="text-2xl font-mono font-extrabold text-rose-400">{externalResult.observed_mmr.toFixed(0)}</div>
             </div>
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">RMM Predicha</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvPredictedMMR}</div>
               <div className="text-2xl font-mono font-extrabold text-sky-400">{externalResult.predicted_mmr.toFixed(0)}</div>
             </div>
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3.5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">R-cuadrado (R²)</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">{t.rvRSquared}</div>
               <div className="text-2xl font-mono font-extrabold text-emerald-400">{externalResult.r_squared.toFixed(3)}</div>
-              <div className="text-xs font-mono text-slate-300 mt-1">RMSE: {externalResult.rmse.toFixed(1)}</div>
+              <div className="text-xs font-mono text-slate-300 mt-1">{t.rvRmse}: {externalResult.rmse.toFixed(1)}</div>
             </div>
           </div>
         ) : (
           <div className="text-sm text-slate-500 py-4 text-center">
-            {unavailable.external ? 'Configure un comparador DHS independiente para habilitar esta validación.' : 'Ejecute la validación para comparar el modelo con observaciones DHS.'}
+            {unavailable.external ? t.rvConfigureHoldout : t.rvRunExternalHint}
           </div>
         )}
       </ChartCard>
@@ -519,16 +521,16 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
           <Database className="w-5 h-5 text-sky-400 mb-2" />
-          <h3 className="font-medium">Datos Requeridos</h3>
+          <h3 className="font-medium">{t.rvDataRequired}</h3>
           <p className="text-sm text-slate-400 mt-1">
-            Se requieren desenlaces observados independientes, procedencia empírica documentada y correspondencia temporal para {district.name}.
+            {t.rvDataRequiredDesc}
           </p>
         </div>
         <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
           <SlidersHorizontal className="w-5 h-5 text-sky-400 mb-2" />
-          <h3 className="font-medium">Sensibilidad Requerida</h3>
+          <h3 className="font-medium">{t.rvSensRequired}</h3>
           <p className="text-sm text-slate-400 mt-1">
-            Se requieren rangos documentados de parámetros y re-ejecución del modelo para mostrar estimaciones de incertidumbre.
+            {t.rvSensRequiredDesc}
           </p>
         </div>
       </div>

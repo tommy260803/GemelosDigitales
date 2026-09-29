@@ -103,17 +103,20 @@ def process_all_dhs_files(dhs_dir, db_url, log_callback=print):
                 anc1_cov = round(row['anc1_rate'] * 100, 2)
                 anc4_cov = round(row['anc4_rate'] * 100, 2)
                 inst_del = round(row['inst_del_rate'] * 100, 2)
-                mmr_adj = max(200, 900 - (inst_del * 8)) 
-                
+
                 cur.execute("""
                     UPDATE health_districts 
                     SET anc1_coverage = %s, anc4_coverage = %s,
-                        institutional_delivery_rate = %s, baseline_mmr = %s
+                        institutional_delivery_rate = %s
                     WHERE id = %s
-                """, (anc1_cov, anc4_cov, inst_del, mmr_adj, dist_id))
-                
+                """, (anc1_cov, anc4_cov, inst_del, dist_id))
+                if cur.rowcount == 0:
+                    log_callback(f"⚠️ {dist_id}: no existe en la BD (id no mapeado), se omiten los indicadores DHS")
+                    continue
+
                 total_processed += 1
-                log_callback(f"✅ Inyectado en BD: {dist_id} (Parto Inst: {inst_del}%)")
+                log_callback(f"✅ Inyectado en BD: {dist_id} (ANC1 {anc1_cov}%, ANC4 {anc4_cov}%, Parto Inst: {inst_del}%)")
+                log_callback("   ℹ️ baseline_mmr NO se modifica: proviene del anclaje OMS de los datasets versionados.")
                 
         except Exception as e:
             log_callback(f"❌ Error procesando {f}: {e}")
@@ -122,5 +125,5 @@ def process_all_dhs_files(dhs_dir, db_url, log_callback=print):
     cur.close()
     conn.close()
     
-    log_callback(f"\n🎉 ¡Sincronización Completada! {total_processed} distritos calibrados con datos reales.")
+    log_callback(f"\n🎉 Sincronización completada: {total_processed} distritos con indicadores DHS (ANC1/ANC4/parto institucional).")
     return True

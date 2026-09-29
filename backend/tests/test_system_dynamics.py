@@ -53,3 +53,24 @@ def test_scenario_rules_are_explicit(garissa_district):
 
 def test_equity_is_not_synthetic_output(garissa_district):
     assert SystemDynamicsEngine.simulate(garissa_district,'scenario_d').equity_disaggregation == []
+
+def test_equity_rows_come_from_supplied_stratified_inputs(garissa_district):
+    rows=[
+        {'quintile':'q1_poorest','label':'Q1 poorest','population_share':0.25,
+         'anc1_rate':0.55,'anc4_rate':0.25,'institutional_delivery_rate':0.30},
+        {'quintile':'q5_richest','label':'Q5 richest','population_share':0.25,
+         'anc1_rate':0.95,'anc4_rate':0.80,'institutional_delivery_rate':0.94},
+    ]
+    r=SystemDynamicsEngine.simulate(garissa_district,'scenario_d',equity_inputs=rows)
+    assert len(r.equity_disaggregation)==2
+    q1,q5=r.equity_disaggregation
+    assert q1['population_share']==0.25 and q5['population_share']==0.25
+    assert q1['baseline_mmr']==garissa_district.wealth_quintile_mmr['q1_poorest']
+    assert q5['baseline_mmr']==garissa_district.wealth_quintile_mmr['q5_richest']
+    assert q1['benefit_cost_ratio'] is None
+    assert q1['fiscal_cost_usd']>0 and q5['fiscal_cost_usd']>0
+    assert q1['fiscal_cost_usd']+q5['fiscal_cost_usd'] < r.summary.total_cost_usd
+    assert abs(q1['relative_reduction'])<60
+    assert q1['lives_saved']>=0
+    # the poorer quintile (lower coverage inputs) ends the horizon worse off
+    assert q1['simulated_mmr']>q5['simulated_mmr']

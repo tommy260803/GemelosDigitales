@@ -65,7 +65,6 @@ export interface SDParameters {
   non247RelativeCapacity?: number | null; // explicit scenario assumption, 0 to 1
   bloodAvailabilityRate: number; // 0 to 1
   oxytocinMisoprostolStockRate: number; // 0 to 1
-  bedCapacityRatio: number; // 0 to 1
   
   // Social & Cultural
   maternalEducationRate: number; // 0 to 1
@@ -74,10 +73,6 @@ export interface SDParameters {
   
   // Clinical Biology
   baselineComplicationRate: number; // ~0.15 (WHO benchmark)
-  severePPHFraction: number; // fraction of complications that are PPH
-  preEclampsiaFraction: number;
-  sepsisFraction: number;
-  obstructedLaborFraction: number;
 }
 
 export interface StockState {
@@ -134,14 +129,14 @@ export interface SimulationResult {
     quintile: string;
     label: string;
     populationShare: number;
-    baselineMMR: number;
+    baselineMMR: number | null;
     simulatedMMR: number;
     livesSaved: number;
     relativeReduction: number;
     absoluteReduction: number;
     fiscalCostUSD: number;
-    costPerLifeSavedInQ: number;
-    benefitCostRatio: number;
+    costPerLifeSavedInQ: number | null;
+    benefitCostRatio: number | null;
   }[];
 }
 

@@ -564,6 +564,7 @@ export const Terrain3DCanvas: React.FC<Terrain3DCanvasProps> = ({
           </span>
         </div>
         <div className="text-white font-bold text-xs truncate">{district.name} ({district.country})</div>
+        <div className="text-[10px] text-slate-500 leading-snug">{t.tcSyntheticNote}</div>
         <div className="grid grid-cols-2 gap-2 text-xs text-slate-400 pt-1 border-t border-slate-800">
           <div>{t.tcMinAlt} <strong className="text-slate-200">{demGrid.minAltitude}m</strong></div>
           <div>{t.tcMaxAlt} <strong className="text-slate-200">{demGrid.maxAltitude}m</strong></div>

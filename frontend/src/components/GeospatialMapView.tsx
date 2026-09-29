@@ -48,7 +48,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
   districtsList: propDistrictsList,
   districts: propDistricts,
 }) => {
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const { theme } = useTheme();
   const allDistricts = propDistrictsList || propDistricts || [];
 
@@ -155,17 +155,13 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
 
       {/* Header */}
       <SectionHeader
-        title={language === 'es'
-          ? 'Mapa Geoespacial & Relieve Topográfico 3D'
-          : 'Geospatial Map & 3D Topographic Relief'}
-        subtitle={language === 'es'
-          ? 'Modelado de barreras físicas, pendientes críticas y fricción de traslado obstétrico sobre terreno real'
-          : 'Physical barriers, steep slope gradients, and obstetric referral transit impedance over real topography'}
+        title={t.geospatialTitle}
+        subtitle={t.geospatialSubtitle}
         icon={<Mountain className="w-5 h-5" />}
         badge={
           <div className="flex items-center gap-2">
             <Badge variant="info" size="sm">GIS 3D DEM</Badge>
-            <Badge variant="success" size="sm">SRTM 30M</Badge>
+            <Badge variant="warning" size="sm">{t.gisSyntheticBadge}</Badge>
           </div>
         }
         actions={
@@ -202,7 +198,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
                 onChange={(e) => setSelectedCountry(e.target.value as Country | 'ALL')}
                 className="bg-transparent text-sm px-2 py-1 focus:outline-none cursor-pointer"
               >
-                <option value="ALL">{language === 'es' ? 'Todos (25)' : 'All (25)'}</option>
+                <option value="ALL">{`${language === 'es' ? 'Todos' : 'All'} (25)`}</option>
                 <option value="Kenya">Kenya (5)</option>
                 <option value="Tanzania">Tanzania (5)</option>
                 <option value="Uganda">Uganda (5)</option>
@@ -239,7 +235,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-sky-500" />
               <span className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
-                {language === 'es' ? 'Exageración Vertical:' : 'Vertical Exaggeration:'}
+                {t.verticalExagLabel}
               </span>
               <div className="flex items-center gap-1">
                 {[1.0, 1.5, 2.0, 2.5, 3.0].map((exag) => (
@@ -267,7 +263,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
                   onChange={(e) => setShowBarriers(e.target.checked)}
                   className="rounded border-slate-700 text-rose-500 focus:ring-rose-500"
                 />
-                <span className="text-rose-500 font-medium">{language === 'es' ? 'Barreras' : 'Barriers'}</span>
+                <span className="text-rose-500 font-medium">{t.barriersLabel}</span>
               </label>
               <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
                 <input
@@ -277,7 +273,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
                   className="rounded border-slate-700 text-sky-500 focus:ring-sky-500"
                 />
                 <span className={theme === 'light' ? 'text-slate-600' : 'text-slate-300'}>
-                  {language === 'es' ? 'Curvas de Nivel' : 'Contour Lines'}
+                  {t.contourLinesLabel}
                 </span>
               </label>
             </div>
@@ -291,11 +287,11 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
               className={`text-sm rounded-lg px-2 py-1 border focus:outline-none ${theme === 'light' ? 'bg-white border-slate-200 text-slate-700' : 'bg-slate-900 border-slate-700 text-amber-300'
                 }`}
             >
-              <option value="baseline">Línea Base: Ambulancia Convencional</option>
-              <option value="scenario_a">Escenario A: Red Moto-Ambulancias 4x4</option>
-              <option value="scenario_b">Escenario B: Eliminación de Tarifas</option>
-              <option value="scenario_c">Escenario C: Red Comunitaria TBA</option>
-              <option value="scenario_d">Escenario D: Paquete Integral 24/7</option>
+              <option value="baseline">{`${t.scenarioA}: ${t.scenarioBName}`}</option>
+              <option value="scenario_a">{`${t.scenarioA}: ${t.scenarioAName}`}</option>
+              <option value="scenario_b">{`${t.scenarioB}: ${t.scenarioBName}`}</option>
+              <option value="scenario_c">{`${t.scenarioC}: ${t.scenarioCName}`}</option>
+              <option value="scenario_d">{`${t.scenarioD}: ${t.scenarioDName}`}</option>
             </select>
           </div>
         </div>
@@ -333,12 +329,12 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
               <div className={`absolute top-4 left-4 z-10 p-3 rounded-xl border shadow-lg max-w-[220px] ${theme === 'light' ? 'bg-white/95 backdrop-blur border-slate-200' : 'bg-slate-900/90 backdrop-blur border-slate-800'
                 }`}>
                 <p className={`text-xs font-semibold mb-2 ${theme === 'light' ? 'text-slate-700' : 'text-white'}`}>
-                  {language === 'es' ? 'Capa 2D:' : '2D Layer:'}
+                  {t.layer2DLabel}
                 </p>
                 <div className="flex items-center gap-1 mb-2">
-                  <span className="text-[10px] text-slate-400">Bajo</span>
+                  <span className="text-[10px] text-slate-400">{t.lowLabel}</span>
                   <div className="flex-1 h-2 rounded bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500" />
-                  <span className="text-[10px] text-slate-400">Alto</span>
+                  <span className="text-[10px] text-slate-400">{t.highLabel}</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {(['baselineMMR', 'livesSaved', 'travelTime', 'facilityDelivery', 'facilitiesCount'] as ChoroplethMetric[]).map((metric) => (
@@ -353,10 +349,10 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
                         }`}
                     >
                       {metric === 'baselineMMR' && 'RMM / 100k'}
-                      {metric === 'livesSaved' && 'Vidas'}
-                      {metric === 'travelTime' && 'Traslado'}
-                      {metric === 'facilityDelivery' && '% Parto'}
-                      {metric === 'facilitiesCount' && 'Centros'}
+                      {metric === 'livesSaved' && t.dtLivesShort}
+                      {metric === 'travelTime' && (language === 'es' ? 'Traslado' : 'Transit')}
+                      {metric === 'facilityDelivery' && (language === 'es' ? '% Parto' : '% Delivery')}
+                      {metric === 'facilitiesCount' && (language === 'es' ? 'Centros' : 'Facilities')}
                     </button>
                   ))}
                 </div>
@@ -422,7 +418,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
                   <Navigation className="w-3 h-3 text-sky-400" />
                   WGS84 | {filteredDistricts.length} / 25
                 </span>
-                <span>{language === 'es' ? 'Distritos Visibles' : 'Visible Districts'}: <strong>{filteredDistricts.length}</strong></span>
+                <span>{t.visibleDistricts}: <strong>{filteredDistricts.length}</strong></span>
               </div>
             </div>
           )}
@@ -442,7 +438,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-sm font-semibold flex items-center gap-2 ${theme === 'light' ? 'text-slate-700' : 'text-white'}`}>
                 <Gauge className="w-4 h-4 text-sky-500" />
-                {language === 'es' ? 'Índice de Accesibilidad' : 'Accessibility Index'}
+                {t.accessibilityIndex}
               </h3>
               <Badge variant="info" size="sm">TAI: {topographicKPI.topographicAccessibilityIndex}%</Badge>
             </div>
@@ -450,25 +446,25 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <div className={`p-3 rounded-lg ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-900/70'}`}>
                 <p className={`text-sm font-medium ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {language === 'es' ? 'Pendiente < 10%' : 'Slope < 10%'}
+                  {t.slopeUnder10}
                 </p>
                 <p className="text-lg font-bold text-emerald-500">{topographicKPI.areaWithSlopeUnder10Percent}%</p>
               </div>
               <div className={`p-3 rounded-lg ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-900/70'}`}>
                 <p className={`text-sm font-medium ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {language === 'es' ? 'Pendiente > 15%' : 'Slope > 15%'}
+                  {t.slopeOver15}
                 </p>
                 <p className="text-lg font-bold text-rose-500">{topographicKPI.highRiskSlopeAreaPercent}%</p>
               </div>
               <div className={`p-3 rounded-lg ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-900/70'}`}>
                 <p className={`text-sm font-medium ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {language === 'es' ? 'Población < 2h EmONC' : 'Pop < 2h EmONC'}
+                  {t.popUnder2h}
                 </p>
                 <p className="text-lg font-bold text-sky-500">{topographicKPI.percentPopulationWithin2Hours}%</p>
               </div>
               <div className={`p-3 rounded-lg ${theme === 'light' ? 'bg-slate-50' : 'bg-slate-900/70'}`}>
                 <p className={`text-sm font-medium ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {language === 'es' ? 'Fricción Terreno' : 'Terrain Friction'}
+                  {t.terrainFriction}
                 </p>
                 <p className="text-lg font-bold text-amber-500">{topographicKPI.terrainFrictionPenaltyFactor}x</p>
               </div>
@@ -479,13 +475,13 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-4 h-4 text-sky-500" />
                 <span className={`text-xs font-semibold ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
-                  {language === 'es' ? 'Correlación Retraso Fase 2' : 'Phase 2 Delay Correlation'}
+                  {t.phase2Correlation}
                 </span>
               </div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>
-                    {language === 'es' ? 'Tiempo SD:' : 'SD Time:'}
+                    {t.sdTimeLabel}
                   </span>
                   <span className={`font-semibold ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
                     {targetDistrict.avgTravelTimeHours} hrs
@@ -514,8 +510,8 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
                   }`}>
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>
-                    <strong>{language === 'es' ? 'Aviso:' : 'Warning:'}</strong>
-                    {' '}{topographicKPI.sdTravelTimeDiscrepancyPercent}% {language === 'es' ? 'discrepancia por relieve 3D' : 'discrepancy due to 3D terrain'}.
+                    <strong>{t.warningLabel}</strong>
+                    {' '}{topographicKPI.sdTravelTimeDiscrepancyPercent}% {t.terrainDiscrepancy}.
                   </span>
                 </div>
               )}
@@ -527,7 +523,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
             <div className="flex items-center justify-between mb-3">
               <h3 className={`text-sm font-semibold flex items-center gap-2 ${theme === 'light' ? 'text-slate-700' : 'text-white'}`}>
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                {language === 'es' ? 'Centros EmONC' : 'EmONC Facilities'}
+                {t.emoncFacilities}
               </h3>
               <Badge variant="default" size="sm">{facilities.length}</Badge>
             </div>
@@ -561,13 +557,16 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
                         {isCEmONC ? 'CEmONC' : 'BEmONC'}
                       </span>
                       <span className={theme === 'light' ? 'text-slate-500' : 'text-slate-400'}>
-                        {fac.beds} beds | {fac.cSectionCapable ? 'Cesárea ✓' : 'Sin Cirugía'}
+                        {fac.beds} beds | {fac.cSectionCapable ? t.cesareanLabel : t.noSurgeryLabel}
                       </span>
                     </div>
                   </div>
                 );
               })}
             </div>
+            <p className={`mt-3 pt-3 border-t text-[11px] leading-snug ${theme === 'light' ? 'border-slate-100 text-slate-500' : 'border-slate-800 text-slate-500'}`}>
+              {t.emoncFacilitiesNote}
+            </p>
           </div>
 
           {/* Action button */}
@@ -577,7 +576,7 @@ export const GeospatialMapView: React.FC<GeospatialMapViewProps> = ({
               className="w-full py-2.5 px-4 rounded-lg font-semibold bg-sky-500 hover:bg-sky-400 text-white text-sm transition-colors flex items-center justify-center gap-2"
             >
               <MapPin className="w-4 h-4" />
-              {language === 'es' ? 'Cargar Distrito:' : 'Load District:'} {targetDistrict.name}
+              {t.loadDistrict} {targetDistrict.name}
             </button>
           )}
 

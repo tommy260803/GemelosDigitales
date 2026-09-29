@@ -81,14 +81,24 @@ class ModelCalibratorPy:
         final_sim = SystemDynamicsEngine.simulate(
             district, 'baseline', final_params, simulation_months=len(empirical_mmr_series)
         )
-        
+
+        simulated_horizon = final_sim.summary.horizon_mmr
+        ss_res = sum((simulated_horizon - obs) ** 2 for obs in empirical_mmr_series)
+        mean_obs = sum(empirical_mmr_series) / len(empirical_mmr_series)
+        ss_tot = sum((obs - mean_obs) ** 2 for obs in empirical_mmr_series)
+        r_squared = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else None
+
         return {
             "district_id": district.id,
             "district_name": district.name,
             "calibration_status": "CONVERGED" if result.success else "FAILED",
             "iterations": result.nit,
             "loss_rmse": float(result.fun),
-            "r_squared": 0.94,  # Approximate
+            "r_squared": round(r_squared, 4) if r_squared is not None else None,
+            "r_squared_note": (
+                "Computed from the simulated horizon MMR vs the empirical series; "
+                "a single simulated point repeated across the series limits interpretation."
+            ),
             "calibrated_parameters": {
                 "quality_factor": round(calibrated_quality, 3),
                 "community_trust": round(calibrated_trust, 3),

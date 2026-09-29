@@ -25,9 +25,9 @@ from services.system_dynamics import (
     SystemDynamicsEngine, DistrictData, SimulationResult,
     SCENARIO_DEFINITIONS, build_default_parameters
 )
-from services.validation import StatisticalValidationPy
+from services.validation import StatisticalValidationPy, ScientificProcedureUnavailable
 from services.calibrator import ModelCalibratorPy
-from services.model_inputs import districts_from_datasets
+from services.model_inputs import districts_from_datasets, quintile_coverage_by_district
 
 def run_agent(*args, **kwargs):
     """Load the optional AI copilot only when its endpoint is invoked."""
@@ -73,8 +73,13 @@ class CalibrationRequest(BaseModel):
     empirical_mmr_series: List[float]
 
 class ValidationRequest(BaseModel):
-    district_id: str
+    district_id: Optional[str] = None
     test_type: str = 'KS'  # KS, WILCOXON, SOBOL, BOOTSTRAP
+    scenario_id: str = 'scenario_d'
+    months: Optional[int] = Field(default=None, ge=12, le=240)
+    n_samples: Optional[int] = Field(default=None, ge=16, le=4096)
+    iterations: Optional[int] = Field(default=None, ge=10, le=5000)
+    seed: Optional[int] = None
 
 class AgentChatRequest(BaseModel):
     message: str
@@ -144,7 +149,8 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
                    avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio, staff_247_availability_rate,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
-                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr
+                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr,
+                   road_quality_index, transport_cost_usd, facility_delivery_fee_usd, community_trust_baseline, baseline_complication_rate
             FROM health_districts WHERE id = %s
         """, (district_id,))
         row = cur.fetchone()
@@ -178,6 +184,11 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
                 osm_health_facilities_count=row['osm_health_facilities_count'],
                 wealth_quintile_mmr=row['wealth_quintiles_mmr'],
                 staff_247_availability_rate=float(row['staff_247_availability_rate']) if row['staff_247_availability_rate'] is not None else None,
+                road_quality_index=float(row['road_quality_index']) if row['road_quality_index'] is not None else None,
+                transport_cost_usd=float(row['transport_cost_usd']) if row['transport_cost_usd'] is not None else None,
+                facility_delivery_fee_usd=float(row['facility_delivery_fee_usd']) if row['facility_delivery_fee_usd'] is not None else None,
+                community_trust_baseline=float(row['community_trust_baseline']) if row['community_trust_baseline'] is not None else None,
+                baseline_complication_rate=float(row['baseline_complication_rate']) if row['baseline_complication_rate'] is not None else None,
             )
     except Exception as e:
         print(f"Database unavailable, using versioned model-input datasets: {e}")
@@ -196,7 +207,8 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
                    avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio, staff_247_availability_rate,
                    blood_bank_availability, essential_drugs_availability, insurance_coverage,
                    poverty_rate, female_secondary_education, tba_prevalence,
-                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr
+                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr,
+                   road_quality_index, transport_cost_usd, facility_delivery_fee_usd, community_trust_baseline, baseline_complication_rate
             FROM health_districts ORDER BY country, name
         """)
         rows = cur.fetchall()
@@ -230,6 +242,11 @@ def fetch_all_districts_from_db() -> List[DistrictData]:
                 osm_health_facilities_count=row['osm_health_facilities_count'],
                 wealth_quintile_mmr=row['wealth_quintiles_mmr'],
                 staff_247_availability_rate=float(row['staff_247_availability_rate']) if row['staff_247_availability_rate'] is not None else None,
+                road_quality_index=float(row['road_quality_index']) if row['road_quality_index'] is not None else None,
+                transport_cost_usd=float(row['transport_cost_usd']) if row['transport_cost_usd'] is not None else None,
+                facility_delivery_fee_usd=float(row['facility_delivery_fee_usd']) if row['facility_delivery_fee_usd'] is not None else None,
+                community_trust_baseline=float(row['community_trust_baseline']) if row['community_trust_baseline'] is not None else None,
+                baseline_complication_rate=float(row['baseline_complication_rate']) if row['baseline_complication_rate'] is not None else None,
             ))
     except Exception as e:
         print(f"Database unavailable, using versioned model-input datasets: {e}")
@@ -334,6 +351,7 @@ async def run_simulation(req: SimulationRequest):
         result = SystemDynamicsEngine.simulate(
             district, req.scenario_id, req.custom_params or {}, req.months,
             clinical_capacity_model=req.clinical_capacity_model,
+            equity_inputs=quintile_coverage_by_district().get(district.id),
         )
         return {
             "district_id": result.district_id,
@@ -357,8 +375,11 @@ async def run_simulation(req: SimulationRequest):
                 "simulation_months": result.summary.simulation_months,
                 "clinical_capacity_model": result.summary.clinical_capacity_model,
             },
-            "equity_disaggregation": [],
-            "equity_status": "not_computed_without_empirical stratification data",
+            "equity_disaggregation": result.equity_disaggregation,
+            "equity_status": ("computed_from_dhs_stratified_coverage: district coverage x DHS national "
+                              "wealth-quintile gradients (v005-weighted); quintile sub-simulations by the RK4 engine"
+                              if result.equity_disaggregation else
+                              "not_computed_without_empirical stratification data"),
             "trajectories": [asdict(snapshot) for snapshot in result.trajectories],
             "run_metadata": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -415,19 +436,78 @@ async def calibrate_model(req: CalibrationRequest):
 
 @app.post("/validation/ks")
 async def kolmogorov_smirnov_test(req: ValidationRequest):
-    raise HTTPException(status_code=410, detail="Disabled: no empirical travel-time distribution is configured.")
+    """Two-sample KS and paired Wilcoxon across all districts.
+
+    Scope is the full district set (observed DHS-anchored inputs vs simulated
+    baseline end-state); district_id, when provided, is echoed as request
+    context only.
+    """
+    districts = fetch_all_districts_from_db()
+    try:
+        ks = StatisticalValidationPy.kolmogorov_smirnov(districts, months=req.months or 36)
+        ks["wilcoxon"] = StatisticalValidationPy.wilcoxon_signed_rank(districts, months=req.months or 36)
+        ks["requested_district_id"] = req.district_id
+        return ks
+    except ScientificProcedureUnavailable as e:
+        raise HTTPException(status_code=410, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 @app.post("/validation/sobol")
 async def sobol_sensitivity(req: ValidationRequest):
-    raise HTTPException(status_code=410, detail="Disabled: documented parameter ranges and a real global sensitivity design are required.")
+    if not req.district_id:
+        raise HTTPException(status_code=422, detail="district_id is required for Sobol sensitivity")
+    district = fetch_district_from_db(req.district_id)
+    if not district:
+        raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")
+    try:
+        return StatisticalValidationPy.sobol_sensitivity(
+            district,
+            scenario_id=req.scenario_id,
+            n_samples=req.n_samples or 64,
+            months=req.months or 12,
+            seed=req.seed if req.seed is not None else 42,
+        )
+    except ScientificProcedureUnavailable as e:
+        raise HTTPException(status_code=410, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 @app.post("/validation/bootstrap")
 async def bootstrap_confidence(req: ValidationRequest):
-    raise HTTPException(status_code=410, detail="Disabled: output perturbation is not parameter uncertainty propagation.")
+    if not req.district_id:
+        raise HTTPException(status_code=422, detail="district_id is required for bootstrap intervals")
+    district = fetch_district_from_db(req.district_id)
+    if not district:
+        raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")
+    try:
+        return StatisticalValidationPy.bootstrap_confidence_intervals(
+            district,
+            scenario_id=req.scenario_id,
+            iterations=req.iterations or 200,
+            months=req.months or 36,
+            seed=req.seed if req.seed is not None else 42,
+        )
+    except ScientificProcedureUnavailable as e:
+        raise HTTPException(status_code=410, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 @app.get("/validation/external/{district_id}")
-async def external_validation(district_id: str):
-    raise HTTPException(status_code=410, detail="Disabled: no independent external comparator is configured.")
+async def external_validation(district_id: str, months: int = 36):
+    """Cross-district external consistency for all districts (requested id echoed)."""
+    district = fetch_district_from_db(district_id)
+    if not district:
+        raise HTTPException(status_code=404, detail=f"District {district_id} not found")
+    districts = fetch_all_districts_from_db()
+    try:
+        payload = StatisticalValidationPy.external_validation(districts, months=months)
+        payload["requested_district_id"] = district_id
+        return payload
+    except ScientificProcedureUnavailable as e:
+        raise HTTPException(status_code=410, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 @app.get("/validation/convergence/{district_id}")
 async def rk4_convergence(district_id: str, scenario_id: str = "scenario_d", months: int = 36):

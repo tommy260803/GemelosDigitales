@@ -11,7 +11,6 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { DistrictData, SimulationResult } from '../types';
-import { deriveEquityDisaggregation } from '../utils/equity';
 import { useLanguage } from '../i18n/translations';
 import { useTheme } from '../context/ThemeContext';
 import { StatCard } from './ui/StatCard';
@@ -27,12 +26,12 @@ interface DashboardViewProps {
   simulationResult?: SimulationResult;
 }
 
-const SCENARIO_META: Record<string, { label: string; color: string; letter: string }> = {
-  baseline:   { label: 'Línea Base (Status Quo)',     color: '#94a3b8', letter: 'Base' },
-  scenario_a: { label: 'A: Acceso y Transporte',      color: '#38bdf8', letter: 'A' },
-  scenario_b: { label: 'B: Eliminación de Tarifas',   color: '#34d399', letter: 'B' },
-  scenario_c: { label: 'C: Red Comunitaria TBA',      color: '#818cf8', letter: 'C' },
-  scenario_d: { label: 'D: Paquete Integral (A+B+C)', color: '#fbbf24', letter: 'D' },
+const SCENARIO_META: Record<string, { labelKey: string; color: string; letter: string }> = {
+  baseline:   { labelKey: 'dashScenarioBase', color: '#94a3b8', letter: 'Base' },
+  scenario_a: { labelKey: 'dashScenarioA',    color: '#38bdf8', letter: 'A' },
+  scenario_b: { labelKey: 'dashScenarioB',    color: '#34d399', letter: 'B' },
+  scenario_c: { labelKey: 'dashScenarioC',    color: '#818cf8', letter: 'C' },
+  scenario_d: { labelKey: 'dashScenarioD',    color: '#fbbf24', letter: 'D' },
 };
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -51,9 +50,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="flex gap-3 bg-amber-950/30 border border-amber-500/40 rounded-lg p-5">
           <AlertTriangle className="text-amber-300 shrink-0 mt-0.5" />
           <div>
-            <h2 className="font-semibold">Backend no disponible. No se ejecuta ninguna simulación científica local.</h2>
+            <h2 className="font-semibold">{t.dashBackendDown}</h2>
             <p className="text-sm text-slate-400 mt-1">
-              El motor de dinámicas de sistemas corre en el backend FastAPI. Asegúrese de que el contenedor del backend esté activo.
+              {t.dashBackendDownDesc}
             </p>
           </div>
         </div>
@@ -64,13 +63,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const s = simulationResult.summary;
   const trajectories = simulationResult.trajectories;
   const currentSnapshot = trajectories.length > 0 ? trajectories[trajectories.length - 1] : null;
+  const scenarioLabel = (id: string) => t[SCENARIO_META[id]?.labelKey as keyof typeof t] as string;
 
-  const equityData = useMemo(() => {
-    if (simulationResult.equityDisaggregation && simulationResult.equityDisaggregation.length > 0) {
-      return simulationResult.equityDisaggregation;
-    }
-    return deriveEquityDisaggregation(district, activeScenarioId, simulationResult.summary);
-  }, [simulationResult, district, activeScenarioId]);
+  const equityData = useMemo(
+    () => simulationResult.equityDisaggregation || [],
+    [simulationResult]
+  );
 
   const stockColors = {
     pregnant: '#38bdf8',
@@ -119,17 +117,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {district.name}
               </h2>
               <Badge variant="info" size="sm">{district.country}</Badge>
-              <Badge variant="live" size="sm">RK4 Activo (Δt = 0.05m)</Badge>
+              <Badge variant="live" size="sm">{t.dashRk4Badge}</Badge>
             </div>
             {/* Territorial Metadata Tags */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-slate-400">
-              <span>Población: <strong className="text-slate-200 font-mono font-medium">{(district.population / 1000).toFixed(0)}k</strong> hab.</span>
+              <span>{t.dashPopulation} <strong className="text-slate-200 font-mono font-medium">{(district.population / 1000).toFixed(0)}k</strong> {t.dashHab}</span>
               <span className="text-slate-700">•</span>
-              <span>RMM Basal: <strong className="text-slate-200 font-mono font-medium">{district.baselineMMR}</strong> / 100k</span>
+              <span>{t.dashBaselineMMR} <strong className="text-slate-200 font-mono font-medium">{district.baselineMMR}</strong> / 100k</span>
               <span className="text-slate-700">•</span>
-              <span>Pobreza: <strong className="text-slate-200 font-mono font-medium">{district.povertyRate}%</strong></span>
+              <span>{t.dashPoverty} <strong className="text-slate-200 font-mono font-medium">{district.povertyRate}%</strong></span>
               <span className="text-slate-700">•</span>
-              <span>{s.totalBirths.toFixed(0)} nacimientos acumulados en 36 meses</span>
+              <span>{s.totalBirths.toFixed(0)} {t.dashAccumBirths}</span>
             </div>
           </div>
           <button
@@ -145,7 +143,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Scenario Selector */}
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          Seleccionar Escenario de Simulación:
+          {t.dashSelectScenario}
         </label>
         <div className="flex gap-2 flex-wrap">
           {(['baseline', 'scenario_a', 'scenario_b', 'scenario_c', 'scenario_d'] as const).map((id) => {
@@ -165,7 +163,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   className="w-2.5 h-2.5 rounded-full shrink-0"
                   style={{ backgroundColor: meta.color }}
                 />
-                <span>{meta.letter}: {meta.label}</span>
+                <span>{meta.letter}: {scenarioLabel(id)}</span>
               </button>
             );
           })}
@@ -175,32 +173,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
-          label="RMM en Horizonte"
+          label={t.dashHorizonMMR}
           value={s.mmrFinal.toFixed(0)}
-          subtitle={`por 100k nacidos vivos`}
+          subtitle={t.dashPer100k}
           icon={<TrendingDown className="w-5 h-5" />}
           variant={mmrReduction > 20 ? 'success' : mmrReduction > 10 ? 'warning' : 'danger'}
-          change={mmrReduction > 0 ? { value: -mmrReduction, label: 'reducción' } : undefined}
+          change={mmrReduction > 0 ? { value: -mmrReduction, label: t.dashReduction } : undefined}
         />
         <StatCard
-          label="Muertes Maternas"
+          label={t.dashMaternalDeaths}
           value={s.totalMaternalDeaths.toFixed(0)}
-          subtitle={`línea base: ${s.baselineDeaths.toFixed(0)}`}
+          subtitle={`${t.dashBaselineLine} ${s.baselineDeaths.toFixed(0)}`}
           icon={<Heart className="w-5 h-5" />}
           variant={s.livesSaved > 0 ? 'success' : 'default'}
-          change={s.livesSaved > 0 ? { value: s.livesSaved, label: 'muertes evitadas' } : undefined}
+          change={s.livesSaved > 0 ? { value: s.livesSaved, label: t.dashLivesSaved } : undefined}
         />
         <StatCard
-          label="Parto Institucional"
+          label={t.dashInstDelivery}
           value={`${s.facilityDeliveryRateFinal.toFixed(1)}%`}
-          subtitle={`CPN4: ${s.anc4CoverageFinal.toFixed(1)}%`}
+          subtitle={`${t.dashCpn4} ${s.anc4CoverageFinal.toFixed(1)}%`}
           icon={<Activity className="w-5 h-5" />}
           variant="info"
         />
         <StatCard
-          label="Costo por Vida Salvada"
+          label={t.dashCostLife}
           value={`$${s.costPerLifeSavedUSD.toFixed(0)}`}
-          subtitle={`Total: $${(s.totalCostUSD / 1000).toFixed(0)}k`}
+          subtitle={`${t.dashTotalK} $${(s.totalCostUSD / 1000).toFixed(0)}k`}
           icon={<Shield className="w-5 h-5" />}
           variant="info"
         />
@@ -208,8 +206,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Trajectory Chart */}
       <ChartCard
-        title="Trayectorias de Dinámica de Sistemas"
-        subtitle={`ODE de 5 stocks · ${trajectories.length} instantáneas mensuales · ${activeMeta.letter}: ${activeMeta.label}`}
+        title={t.dashTrajectoriesTitle}
+        subtitle={`${t.dashTrajectoriesSub} · ${trajectories.length} · ${activeMeta.letter}: ${scenarioLabel(activeScenarioId)}`}
       >
         <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-72">
           {/* Grid lines */}
@@ -238,8 +236,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             );
           })}
           {/* X axis labels */}
-          {trajectories.filter((_, i) => i % 6 === 0).map((t) => {
-            const idx = trajectories.indexOf(t);
+          {trajectories.filter((_, i) => i % 6 === 0).map((tr) => {
+            const idx = trajectories.indexOf(tr);
             const x = padding.left + (idx / Math.max(trajectories.length - 1, 1)) * innerW;
             return (
               <text
@@ -250,7 +248,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 className="fill-slate-400 font-mono font-semibold"
                 fontSize={12}
               >
-                M{t.timeMonth}
+                {t.dashMonthPrefix}{tr.timeMonth}
               </text>
             );
           })}
@@ -264,11 +262,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Legend */}
         <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-slate-800 text-sm">
           {[
-            ['Gestantes (S1)', stockColors.pregnant],
-            ['En CPN (S2)', stockColors.anc],
-            ['Parto Institucional (S3)', stockColors.delivery],
-            ['Puerperio (S4)', stockColors.postpartum],
-            ['Con Complicaciones (S5)', stockColors.complications],
+            [t.dashS1, stockColors.pregnant],
+            [t.dashS2, stockColors.anc],
+            [t.dashS3, stockColors.delivery],
+            [t.dashS4, stockColors.postpartum],
+            [t.dashS5, stockColors.complications],
           ].map(([label, color]) => (
             <div key={label as string} className="flex items-center gap-2">
               <span className="w-4 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color as string }} />
@@ -281,7 +279,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Bottom Row: MMR Trend + Current Phase */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* MMR Over Time */}
-        <ChartCard title="Tendencia Mensual de RMM" subtitle="Trayectoria de la Razón de Mortalidad Materna">
+        <ChartCard title={t.dashMmrTrendTitle} subtitle={t.dashMmrTrendSub}>
           <svg viewBox={`0 0 ${chartWidth} ${200}`} className="w-full h-52">
             {(() => {
               const mmrData = trajectories.map((t) => t.calculatedMMR);
@@ -316,19 +314,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Current Phase Indicators */}
         <div className="space-y-3">
           <SectionHeader
-            title="Fase Actual del Sistema"
-            subtitle={`Instantánea del Mes ${currentSnapshot?.timeMonth ?? 0}`}
+            title={t.dashPhaseTitle}
+            subtitle={`${t.dashPhaseSnapshot} ${currentSnapshot?.timeMonth ?? 0}`}
             icon={<Clock className="w-5 h-5" />}
           />
           {currentSnapshot && (
             <div className="grid grid-cols-2 gap-3">
               {[
-                ['Cobertura CPN', `${currentSnapshot.ancCoveragePercent.toFixed(1)}%`, stockColors.anc],
-                ['Parto Institucional', `${currentSnapshot.facilityDeliveryPercent.toFixed(1)}%`, stockColors.delivery],
-                ['Confianza en el Sistema', `${(currentSnapshot.systemTrustLevel * 100).toFixed(0)}%`, '#38bdf8'],
-                ['Congestión en Clínicas', currentSnapshot.facilityCongestionIndex.toFixed(2), stockColors.complications],
-                ['Retraso Fase 2', `${currentSnapshot.phase2DelayHours.toFixed(1)}h`, '#fbbf24'],
-                ['Retraso Fase 3', `${currentSnapshot.phase3DelayHours.toFixed(1)}h`, '#818cf8'],
+                [t.dashPhaseANC, `${currentSnapshot.ancCoveragePercent.toFixed(1)}%`, stockColors.anc],
+                [t.dashPhaseInst, `${currentSnapshot.facilityDeliveryPercent.toFixed(1)}%`, stockColors.delivery],
+                [t.dashPhaseTrust, `${(currentSnapshot.systemTrustLevel * 100).toFixed(0)}%`, '#38bdf8'],
+                [t.dashPhaseCongestion, currentSnapshot.facilityCongestionIndex.toFixed(2), stockColors.complications],
+                [t.dashPhaseDelay2, `${currentSnapshot.phase2DelayHours.toFixed(1)}h`, '#fbbf24'],
+                [t.dashPhaseDelay3, `${currentSnapshot.phase3DelayHours.toFixed(1)}h`, '#818cf8'],
               ].map(([label, value, color]) => (
                 <div key={label as string} className="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 shadow-sm">
                   <div className="flex items-center gap-2 mb-1.5">
@@ -346,8 +344,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Equity Disaggregation Preview */}
       {equityData.length > 0 && (
         <ChartCard
-          title="Equidad: RMM por Quintil de Riqueza"
-          subtitle="Reducción relativa por quintil socioeconómico respecto a la línea base"
+          title={t.dashEquityTitle}
+          subtitle={t.dashEquitySub}
         >
           <div className="space-y-3">
             {equityData.map((q) => {
@@ -374,7 +372,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Footer note */}
       <p className="text-xs text-slate-500">
-        Los índices de retraso Fase 2 y congestión de instalaciones se calculan a través de la API de trayectorias. Los resultados son simulados, no observaciones empíricas directas.
+        {t.dashDisclaimer}
       </p>
     </div>
   );

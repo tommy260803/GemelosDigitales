@@ -364,6 +364,7 @@ export interface Translations {
   // Geospatial view inline
   geospatialTitle: string;
   geospatialSubtitle: string;
+  gisSyntheticBadge: string;
   allCountriesLabel: string;
   verticalExagLabel: string;
   barriersLabel: string;
@@ -398,6 +399,7 @@ export interface Translations {
   warningLabel: string;
   terrainDiscrepancy: string;
   emoncFacilities: string;
+  emoncFacilitiesNote: string;
   loadDistrict: string;
   bedsLabel: string;
   cesareanLabel: string;
@@ -531,6 +533,7 @@ export interface Translations {
   tcStartRotate: string;
   tcResetCamera: string;
   tcSrtmLabel: string;
+  tcSyntheticNote: string;
   tcRelieve: string;
   tcMinAlt: string;
   tcMaxAlt: string;
@@ -677,6 +680,469 @@ export interface Translations {
   activeDistricts: string;
   pythonLocal: string;
   emptyTableMessage: string;
+
+  // Navbar / a11y leftovers
+  closeNavigation: string;
+  changeTerritory: string;
+  expandSidebarLabel: string;
+  profileLabel: string;
+  themeShortLight: string;
+  themeShortDark: string;
+  openNavigation: string;
+
+  // App shell (loading / toasts / footer)
+  appLoadingTitle: string;
+  appLoadingText: string;
+  connecting: string;
+  retryConnection: string;
+  districtsSynced: string;
+  districtsLoaded: string;
+  connectionError: string;
+  connectionErrorDesc: string;
+  pdfGenerated: string;
+  pdfReadyFor: string;
+  pdfExportError: string;
+  wordGenerated: string;
+  wordReadyFor: string;
+  wordExportError: string;
+  excelGenerated: string;
+  excelReadyFor: string;
+  excelExportError: string;
+  closeNotification: string;
+
+  // MultiYearProjectionView
+  myTitle: string;
+  mySubtitle: string;
+  myDataLoaded: string;
+  myNotComputed: string;
+  myHorizonLabel: string;
+  myOpt5: string;
+  myOpt8: string;
+  myOpt10: string;
+  myCalculating: string;
+  myUpdateProjection: string;
+  myProjectionError: string;
+  myEmptyDesc: string;
+  myHorizonKpi: string;
+  myYearsUnit: string;
+  myMonthsUnit: string;
+  myLivesSavedYears: string;
+  myFinalBaseline: string;
+  myFromDeaths: string;
+  mySdgGapTitle: string;
+  myOnTarget: string;
+  myAboveTarget: string;
+  myMmrLimit: string;
+  myTrajectoryTitle: string;
+  myTrajectorySub: string;
+  mySdg70: string;
+  myAnnualBreakdown: string;
+  myAnnualBreakdownSub: string;
+  myColYear: string;
+  myColBaseline: string;
+  myColSdgGap: string;
+  myCostEffectiveness: string;
+  myCostEffectivenessSub: string;
+  myTotalInvestment: string;
+  myCostPerLifeLabel: string;
+  myLives: string;
+  myMmrReduction: string;
+  myDisclaimer: string;
+
+  // DigitalTwinProjectionCard
+  dtCalculatingRk4: string;
+  dtStocksRunning: string;
+  dtBaselineMmrShort: string;
+  dtLivesShort: string;
+  dtInstDeliveryShort: string;
+  dtFiveStocks: string;
+  dtTimestepLabel: string;
+
+  // ScenariosView
+  scnCompareShort: string;
+
+  // ReportsView
+  rvTitle: string;
+  rvSubtitle: string;
+  rvNoSimData: string;
+  rvScenariosLoaded: string;
+  rvNoDataBadge: string;
+  rvScenariosAnalyzed: string;
+  rvCompare5: string;
+  rvBestScenario: string;
+  rvLivesUnit: string;
+  rvBaselineMMR: string;
+  rvFromDeaths: string;
+  rvPackageD: string;
+  rvMaxImpact: string;
+  rvResultsTitle: string;
+  rvResultsSub: string;
+  rvColScenario: string;
+  rvColBirths: string;
+  rvColDeaths: string;
+  rvColHorizonMMR: string;
+  rvColSaved: string;
+  rvColANC4: string;
+  rvColInstDelivery: string;
+  rvColTotalCost: string;
+  rvColCostLife: string;
+  rvKeyFindings: string;
+  rvFindingsSub: string;
+  rvAchievesImpact: string;
+  rvLivesSavedBold: string;
+  rvOver36Months: string;
+  rvMMRReduction: string;
+  rvReductionPct: string;
+  rvAllOutputsRK4: string;
+  rvValidationAvailable: string;
+  rvGeneratedMeta: string;
+  rvScenariosTimes: string;
+  rvToastPdfOk: string;
+  rvToastPdfDesc: string;
+  rvToastPdfErr: string;
+  rvToastWordOk: string;
+  rvToastWordDesc: string;
+  rvToastWordErr: string;
+  rvToastXlsxOk: string;
+  rvToastXlsxDesc: string;
+  rvToastXlsxErr: string;
+
+  // Shared scenario label variants (short / table)
+  scnBaselineShort: string;
+  scnATitle: string;
+  scnBTitle: string;
+  scnCTitle: string;
+  scnDTitle: string;
+  scnAMech: string;
+  scnBMech: string;
+  scnCMech: string;
+  scnDMech: string;
+  scnBaselineMech: string;
+  scnLoadedCount: string;
+  scnOptimal: string;
+  scnHorizonMMR: string;
+  scnVsBase: string;
+  scnLoading: string;
+  scnCompareTitle: string;
+  scnCompareSub: string;
+  scnColScenario: string;
+  scnColFinalMMR: string;
+  scnColReduction: string;
+  scnColSaved: string;
+  scnColTotalCost: string;
+  scnColCostLife: string;
+  scnColInst: string;
+  scnMechanism: string;
+  scnBirths: string;
+  scnDeaths: string;
+  scnANC4: string;
+  scnInstDelivery: string;
+  scnRelPerfTitle: string;
+  scnRelPerfSub: string;
+  scnMmrReduction: string;
+  scnLivesSaved: string;
+  scnDeathsUnit: string;
+  scnSelectPrompt: string;
+  scnSynergyTitle: string;
+  scnSynergyDesc: string;
+  scnDisclaimer: string;
+  scnBackendUnavailable: string;
+
+  // DashboardView
+  dashBackendDown: string;
+  dashBackendDownDesc: string;
+  dashRk4Badge: string;
+  dashPopulation: string;
+  dashHab: string;
+  dashBaselineMMR: string;
+  dashPoverty: string;
+  dashAccumBirths: string;
+  dashSelectScenario: string;
+  dashHorizonMMR: string;
+  dashPer100k: string;
+  dashReduction: string;
+  dashMaternalDeaths: string;
+  dashBaselineLine: string;
+  dashLivesSaved: string;
+  dashInstDelivery: string;
+  dashCpn4: string;
+  dashCostLife: string;
+  dashTotalK: string;
+  dashTrajectoriesTitle: string;
+  dashTrajectoriesSub: string;
+  dashMonthPrefix: string;
+  dashS1: string;
+  dashS2: string;
+  dashS3: string;
+  dashS4: string;
+  dashS5: string;
+  dashMmrTrendTitle: string;
+  dashMmrTrendSub: string;
+  dashPhaseTitle: string;
+  dashPhaseSnapshot: string;
+  dashPhaseANC: string;
+  dashPhaseInst: string;
+  dashPhaseTrust: string;
+  dashPhaseCongestion: string;
+  dashPhaseDelay2: string;
+  dashPhaseDelay3: string;
+  dashEquityTitle: string;
+  dashEquitySub: string;
+  dashDisclaimer: string;
+  dashScenarioBase: string;
+  dashScenarioA: string;
+  dashScenarioB: string;
+  dashScenarioC: string;
+  dashScenarioD: string;
+
+  // EquityView
+  eqNoResults: string;
+  eqNoResultsDesc: string;
+  eqTerritoryNeedsBackend: string;
+  eqNotComputedTitle: string;
+  eqNotComputedDesc: string;
+  eqRefQuintileMMR: string;
+  eqRefQuintileNote: string;
+  eqTitle: string;
+  eqQuintilesBadge: string;
+  eqAvgReduction: string;
+  eqAcrossQuintiles: string;
+  eqMaxReduction: string;
+  eqMinReduction: string;
+  eqTotalInvestment: string;
+  eqMortalityCostTitle: string;
+  eqMortalityCostSub: string;
+  eqColQuintile: string;
+  eqColPopShare: string;
+  eqColBaselineMMR: string;
+  eqColSimMMR: string;
+  eqColReduction: string;
+  eqColSaved: string;
+  eqColCostLife: string;
+  eqColBCR: string;
+  eqRelativeTitle: string;
+  eqRelativeSub: string;
+  eqGapTitle: string;
+  eqGapSub: string;
+  eqSimMMR: string;
+  eqAbsGap: string;
+  eqPer100kBirths: string;
+  eqFiscalTitle: string;
+  eqFiscalSub: string;
+  eqMethodology: string;
+  eqMethodologyDesc: string;
+  eqBcrNote: string;
+  eqScenarioBaseline: string;
+  eqScenarioA: string;
+  eqScenarioB: string;
+  eqScenarioC: string;
+  eqScenarioD: string;
+
+  // ValidationView extras
+  rvTestFailed: string;
+  rvConvergError: string;
+  rvSuiteTitle: string;
+  rvSuiteSub: string;
+  rvResultsLoaded: string;
+  rvAwaitingRun: string;
+  rvRunAll: string;
+  rvRk4Title: string;
+  rvRk4Sub: string;
+  rvVerifying: string;
+  rvReverifyRk4: string;
+  rvIntegrator: string;
+  rvRk4Classic: string;
+  rvPrecisionOrder: string;
+  rvRelDiscError: string;
+  rvMaxTol: string;
+  rvCauchyCriterion: string;
+  rvSatisfied: string;
+  rvNotConverge: string;
+  rvValidationStatus: string;
+  rvConverges: string;
+  rvStability: string;
+  rvColTimestep: string;
+  rvColTotalSteps: string;
+  rvColBirthsAcc: string;
+  rvColDeathsAcc: string;
+  rvColHorizon: string;
+  rvColRelDiff: string;
+  rvUnitMonth: string;
+  rvUnitSteps: string;
+  rvRefStep: string;
+  rvMethodNote: string;
+  rvRunConvergence: string;
+  rvClickReverify: string;
+  rvKsTwoSample: string;
+  rvKsEquivDesc: string;
+  rvRunning: string;
+  rvNotAvailable: string;
+  rvRunKs: string;
+  rvKsDisabled: string;
+  rvStatKs: string;
+  rvPValue: string;
+  rvCriticalValue: string;
+  rvOutcome: string;
+  rvApproved: string;
+  rvNotApproved: string;
+  rvConfigureDhs: string;
+  rvRunKsHint: string;
+  rvSobolTitle: string;
+  rvSobolSub: string;
+  rvRunSobol: string;
+  rvSobolDisabled: string;
+  rvParam: string;
+  rvFirstOrder: string;
+  rvTotalOrder: string;
+  rvTopVariance: string;
+  rvConfigureRanges: string;
+  rvRunSobolHint: string;
+  rvBootTitle: string;
+  rvBootSub: string;
+  rvRunBootstrap: string;
+  rvBootDisabled: string;
+  rvIterations: string;
+  rvMeanLives: string;
+  rvCi95: string;
+  rvMeanCostLife: string;
+  rvIcWidthRatio: string;
+  rvConfigureUncertainty: string;
+  rvRunBootHint: string;
+  rvExternalTitle: string;
+  rvExternalSub: string;
+  rvRunExternal: string;
+  rvExternalDisabled: string;
+  rvTestDistrict: string;
+  rvObservedMMR: string;
+  rvPredictedMMR: string;
+  rvRSquared: string;
+  rvRmse: string;
+  rvConfigureHoldout: string;
+  rvRunExternalHint: string;
+  rvDataRequired: string;
+  rvDataRequiredDesc: string;
+  rvSensRequired: string;
+  rvSensRequiredDesc: string;
+
+  // Report documents (PDF / Word / Excel)
+  docBannerTitle: string;
+  docDistrictLabel: string;
+  docEngineSub: string;
+  docGeneratedLabel: string;
+  docSection1: string;
+  docTotalPop: string;
+  docAnnualBirths: string;
+  docBaselineMMRLine: string;
+  docPer100kBirths: string;
+  docAnc4: string;
+  docInstDelivery: string;
+  docAvgDistance: string;
+  docHoursTransit: string;
+  docSection2: string;
+  docColScenario: string;
+  docColLivesSaved: string;
+  docColFinalMMR: string;
+  docColRedPct: string;
+  docColCostLife: string;
+  docColIcer: string;
+  docStatusQuo: string;
+  docMotoAmb: string;
+  docFeeElim: string;
+  docTbaAlarm: string;
+  docCombinedPkg: string;
+  docSection3: string;
+  docSynergy: string;
+  docCostThreshold: string;
+  docEquityFocus: string;
+  docSection4: string;
+  docKsLine: string;
+  docWilcoxonLine: string;
+  docSobolLine: string;
+  docGofLine: string;
+  docBootstrapLine: string;
+  docHypothesisLine: string;
+  docNA: string;
+  docNotAvailable: string;
+  docWordTitle: string;
+  docWordSubtitle: string;
+  docModelEngine: string;
+  docModelEngineVal: string;
+  docBloodBank: string;
+  docPoverty: string;
+  docWordSection2: string;
+  docWordSection3: string;
+  docWordSection4: string;
+  docColPolicyScenario: string;
+  docCertified: string;
+  docExcelSummarySheet: string;
+  docExcelSummaryTitle: string;
+  docExcelDistrictName: string;
+  docExcelCountry: string;
+  docExcelRegion: string;
+  docExcelPopulation: string;
+  docExcelAnnualBirths: string;
+  docExcelBaselineMMR: string;
+  docExcelAnc4: string;
+  docExcelInstRate: string;
+  docExcelTravelTime: string;
+  docExcelScenarioResults: string;
+  docExcelColId: string;
+  docExcelColName: string;
+  docExcelColSaved: string;
+  docExcelColCiLow: string;
+  docExcelColCiHigh: string;
+  docExcelColFinalMMR: string;
+  docExcelColRed: string;
+  docExcelColCost: string;
+  docExcelColCostLife: string;
+  docExcelColIcer: string;
+  docExcelTrajSheet: string;
+  docExcelColMonth: string;
+  docExcelColS1: string;
+  docExcelColS2: string;
+  docExcelColS3: string;
+  docExcelColS4: string;
+  docExcelColS5: string;
+  docExcelColBirths: string;
+  docExcelColDeaths: string;
+  docExcelColSavedTraj: string;
+  docExcelColMmr: string;
+  docExcelColAnc: string;
+  docExcelColFac: string;
+  docExcelColTrust: string;
+  docExcelColCongestion: string;
+  docExcelEquitySheet: string;
+  docExcelColQuintile: string;
+  docExcelColLabel: string;
+  docExcelColShare: string;
+  docExcelColBaseMMR: string;
+  docExcelColSimMMR: string;
+  docExcelColRelRed: string;
+  docExcelColAbsRed: string;
+  docExcelValSheet: string;
+  docExcelValTitle: string;
+  docExcelKsTitle: string;
+  docExcelStatD: string;
+  docExcelPValue: string;
+  docExcelEquiv: string;
+  docExcelYes: string;
+  docExcelNo: string;
+  docExcelWilcoxonTitle: string;
+  docExcelStatW: string;
+  docExcelZScore: string;
+  docExcelGofTitle: string;
+  docExcelRSq: string;
+  docExcelRmse: string;
+  docExcelMae: string;
+  docExcelSobolTitle: string;
+  docExcelColParam: string;
+  docExcelColS1h: string;
+  docExcelColSTh: string;
+  docExcelColCiLowH: string;
+  docExcelColCiHighH: string;
+  docPdfFilename: string;
+  docXlsxFilename: string;
+  docDocxFilename: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -703,7 +1169,7 @@ export const translations: Record<Language, Translations> = {
     tabCausal: 'Dinámica de Sistemas',
     tabScenarios: 'Matriz de Políticas (A-D)',
     tabEquity: 'Quintiles de Riqueza',
-    tabValidation: 'Validación (Sobol/KS)',
+    tabValidation: 'Validación',
     tabReports: 'Informes y Exportación',
     tabCodeArch: 'Arquitectura y ODE',
     exportDOCX: 'Descargar Informe Word (.docx)',
@@ -885,7 +1351,7 @@ export const translations: Record<Language, Translations> = {
     // Footer
     footerEngine: 'MOTOR MATERNALTWIN AI',
     footerProtocol: 'PROTOCOLO DINÁMICA DE SISTEMAS V4.2',
-    footerCalibration: 'CALIBRACIÓN R² = 0.938',
+    footerCalibration: 'CALIBRACIÓN L-BFGS-B CONTRA SERIE MMR',
     footerDistricts: '25 DISTRITOS SUB-SAHARIANOS VALIDADOS',
     footerTelemetry: 'DATOS AGREGADOS DHS & DHIS2 (SIN DATOS PERSONALES)',
 
@@ -1041,7 +1507,8 @@ export const translations: Record<Language, Translations> = {
 
     // Geospatial view inline
     geospatialTitle: 'Mapa Geoespacial & Relieve Topográfico 3D',
-    geospatialSubtitle: 'Modelado de barreras físicas, pendientes críticas y fricción de traslado obstétrico sobre terreno real',
+    geospatialSubtitle: 'Modelado de barreras físicas, pendientes críticas y fricción de traslado obstétrico sobre terreno sintético procedural (no es un DEM SRTM/ASTER real)',
+    gisSyntheticBadge: 'TERRENO SINTÉTICO',
     allCountriesLabel: 'Todos (25)',
     verticalExagLabel: 'Exageración Vertical:',
     barriersLabel: 'Barreras',
@@ -1076,6 +1543,7 @@ export const translations: Record<Language, Translations> = {
     warningLabel: 'Aviso:',
     terrainDiscrepancy: 'discrepancia por relieve 3D',
     emoncFacilities: 'Centros EmONC',
+    emoncFacilitiesNote: 'Instalaciones: plantillas ilustrativas generadas a partir de indicadores distritales, no una capa geocodificada de OSM ni del Ministerio de Salud.',
     loadDistrict: 'Cargar Distrito:',
     bedsLabel: 'camas',
     cesareanLabel: 'Cesárea ✓',
@@ -1208,7 +1676,8 @@ export const translations: Record<Language, Translations> = {
     tcStopRotate: 'Detener Rotación Automática',
     tcStartRotate: 'Iniciar Rotación Automática',
     tcResetCamera: 'Restablecer Cámara 3D',
-    tcSrtmLabel: 'SRTM 3D DIGITAL ELEVATION',
+    tcSrtmLabel: 'RELEVE 3D SINTÉTICO (PROCEDURAL)',
+    tcSyntheticNote: 'Terreno sintético procedural (perfiles morfológicos por país/distrito); no es un DEM real SRTM/ASTER. Instalaciones y rutas: plantillas ilustrativas.',
     tcRelieve: 'RELIEVE',
     tcMinAlt: 'Altitud Mín:',
     tcMaxAlt: 'Altitud Máx:',
@@ -1319,9 +1788,9 @@ export const translations: Record<Language, Translations> = {
     caRepoManifest: 'Manifiesto del Repositorio',
     caCopyCode: 'Copiar Código',
     caCopied: 'Copiado',
-    caFile1Desc: 'Sistema de Ecuaciones Diferenciales de 5 Stocks resuelto con scipy.integrate.solve_ivp (RK45).',
-    caFile2Desc: 'Suite de validación estadística: Kolmogorov-Smirnov, Wilcoxon Signed-Rank y Sobol Sensitivity.',
-    caFile3Desc: 'DDL de PostgreSQL con geometría PostGIS, particiones TimescaleDB y tablas RBAC.',
+    caFile1Desc: 'Sistema de 5 stocks resuelto con Runge-Kutta 4to orden (RK4, dt = 0.1 meses), implementación propia.',
+    caFile2Desc: 'Registro de capacidades de validación: los procedimientos no implementados lanzan ScientificProcedureUnavailable (sin resultados sintéticos).',
+    caFile3Desc: 'DDL de PostgreSQL con geometría PostGIS para los 25 distritos y tablas de simulación/auditoría.',
     caFile4Desc: 'Orquestación de contenedores para PostgreSQL/PostGIS, Redis, FastAPI Backend y React Frontend.',
 
     // Remaining strings
@@ -1355,6 +1824,458 @@ export const translations: Record<Language, Translations> = {
     activeDistricts: 'Distritos activos',
     pythonLocal: 'Local',
     emptyTableMessage: 'No hay datos disponibles',
+
+    closeNavigation: 'Cerrar navegación',
+    changeTerritory: 'Cambiar territorio',
+    expandSidebarLabel: 'Expandir barra lateral',
+    profileLabel: 'Perfil:',
+    themeShortLight: 'Claro',
+    themeShortDark: 'Oscuro',
+    openNavigation: 'Abrir navegación',
+
+    appLoadingTitle: 'Gemelo Digital Materno',
+    appLoadingText: 'Conectando con el motor diferencial RK4 (FastAPI · puerto 8000) y cargando los 25 distritos territoriales subsaharianos...',
+    connecting: 'Conectando...',
+    retryConnection: 'Reintentar Conexión',
+    districtsSynced: 'Distritos sincronizados',
+    districtsLoaded: 'territorios cargados desde FastAPI',
+    connectionError: 'Error de conexión',
+    connectionErrorDesc: 'No se pudo contactar con FastAPI (puerto 8000)',
+    pdfGenerated: 'Informe PDF generado',
+    pdfReadyFor: 'Descarga lista para',
+    pdfExportError: 'Error al exportar PDF',
+    wordGenerated: 'Documento Word generado',
+    wordReadyFor: 'Descarga lista para',
+    wordExportError: 'Error al exportar Word',
+    excelGenerated: 'Libro Excel generado',
+    excelReadyFor: 'Descarga lista para',
+    excelExportError: 'Error al exportar Excel',
+    closeNotification: 'Cerrar notificación',
+
+    myTitle: 'Proyección Plurianual',
+    mySubtitle: 'Horizonte de {years} años ({months} meses)',
+    myDataLoaded: 'Datos cargados',
+    myNotComputed: 'No computado',
+    myHorizonLabel: 'Horizonte de proyección:',
+    myOpt5: '5 años (60 meses)',
+    myOpt8: '8 años (96 meses)',
+    myOpt10: '10 años (120 meses)',
+    myCalculating: 'Calculando...',
+    myUpdateProjection: 'Actualizar Proyección',
+    myProjectionError: 'Error en la proyección plurianual',
+    myEmptyDesc: 'Presione "Actualizar Proyección" para calcular trayectorias de dinámica de sistemas a {years} años en los 5 escenarios.',
+    myHorizonKpi: 'Horizonte de Proyección',
+    myYearsUnit: 'años',
+    myMonthsUnit: 'meses',
+    myLivesSavedYears: 'Vidas Salvadas ({years}a)',
+    myFinalBaseline: 'RMM Final (Línea Base)',
+    myFromDeaths: 'de {n} muertes',
+    mySdgGapTitle: 'Brecha Meta ODS 3.1',
+    myOnTarget: 'En meta',
+    myAboveTarget: 'sobre meta ODS de 70',
+    myMmrLimit: 'RMM ≤ 70',
+    myTrajectoryTitle: 'Proyección de Trayectoria de RMM',
+    myTrajectorySub: 'Evolución de RMM a {years} años en todos los escenarios',
+    mySdg70: 'ODS 70',
+    myAnnualBreakdown: 'Desglose Anual de RMM',
+    myAnnualBreakdownSub: 'Instantáneas anuales de RMM por escenario',
+    myColYear: 'Año',
+    myColBaseline: 'Línea Base',
+    myColSdgGap: 'Brecha ODS',
+    myCostEffectiveness: 'Resumen de Costo-Efectividad',
+    myCostEffectivenessSub: 'Análisis de inversión para el escenario de mayor impacto',
+    myTotalInvestment: 'Inversión Total',
+    myCostPerLifeLabel: 'Costo por Vida Salvada',
+    myLives: 'Vidas Salvadas',
+    myMmrReduction: 'Reducción de RMM',
+    myDisclaimer: 'Las proyecciones plurianuales utilizan integración RK4 de FastAPI con horizontes de {months} meses. Los horizontes más largos capturan ciclos de retroalimentación no lineales en el modelo de dinámica de sistemas de 5 stocks.',
+
+    dtCalculatingRk4: 'Calculando Proyección RK4...',
+    dtStocksRunning: 'Ejecutando integración continua de 5 stocks para {name}...',
+    dtBaselineMmrShort: 'RMM Basal',
+    dtLivesShort: 'Vidas',
+    dtInstDeliveryShort: 'Parto Inst.',
+    dtFiveStocks: 'Modelo SD de 5 Stocks',
+    dtTimestepLabel: 'dt=0.1 mes',
+
+    scnCompareShort: 'Comparación de Escenarios',
+
+    rvTitle: 'Informe de Simulación',
+    rvSubtitle: 'Resumen ejecutivo para',
+    rvNoSimData: 'No hay datos de simulación disponibles. Ejecute simulaciones desde el Panel de Control primero.',
+    rvScenariosLoaded: 'escenarios',
+    rvNoDataBadge: 'Sin datos',
+    rvScenariosAnalyzed: 'Escenarios Analizados',
+    rvCompare5: 'Comparación 5 escenarios',
+    rvBestScenario: 'Mejor Escenario',
+    rvLivesUnit: 'vidas',
+    rvBaselineMMR: 'MMR Basal',
+    rvFromDeaths: 'de muertes base',
+    rvPackageD: 'Paquete Integral (D)',
+    rvMaxImpact: 'Impacto máximo combinado A+B+C',
+    rvResultsTitle: 'Resultados Completos de la Simulación',
+    rvResultsSub: 'Salidas deterministas RK4 — no son estimaciones empíricas retrospectivas',
+    rvColScenario: 'Escenario',
+    rvColBirths: 'Nacimientos Acumulados',
+    rvColDeaths: 'Muertes Maternas',
+    rvColHorizonMMR: 'RMM en Horizonte',
+    rvColSaved: 'Muertes Evitadas',
+    rvColANC4: 'Cobertura CPN4',
+    rvColInstDelivery: 'Parto Institucional',
+    rvColTotalCost: 'Costo Total',
+    rvColCostLife: 'Costo/Vida Salvada',
+    rvKeyFindings: 'Hallazgos Clave',
+    rvFindingsSub: 'Resumen de la intervención de mayor impacto',
+    rvAchievesImpact: 'logra el mayor impacto con',
+    rvLivesSavedBold: 'vidas salvadas',
+    rvOver36Months: 'a lo largo de 36 meses.',
+    rvMMRReduction: 'Reducción de RMM:',
+    rvReductionPct: 'de reducción).',
+    rvAllOutputsRK4: 'Todas las salidas son simulaciones deterministas RK4, no estimaciones empíricas retrospectivas.',
+    rvValidationAvailable: 'Las pruebas KS/Wilcoxon, Sobol, bootstrap e validación externa responden con resultados calculados en vivo (HTTP 200); la convergencia RK4 está disponible en la pestaña de Validación.',
+    rvGeneratedMeta: 'Informe generado desde el motor de simulación RK4 FastAPI',
+    rvScenariosTimes: 'escenarios × 36 meses',
+    rvToastPdfOk: 'Informe PDF descargado',
+    rvToastPdfDesc: 'Reporte ejecutivo de',
+    rvToastPdfErr: 'Error al exportar PDF',
+    rvToastWordOk: 'Documento Word descargado',
+    rvToastWordDesc: 'Reporte editable de',
+    rvToastWordErr: 'Error al exportar Word',
+    rvToastXlsxOk: 'Libro Excel descargado',
+    rvToastXlsxDesc: 'Datos tabulados de',
+    rvToastXlsxErr: 'Error al exportar Excel',
+
+    scnBaselineShort: 'Línea Base (Status Quo)',
+    scnATitle: 'Acceso y Transporte (Moto-Ambulancias)',
+    scnBTitle: 'Acceso Financiero (Sin Tarifas)',
+    scnCTitle: 'Alianza y Certificación TBA',
+    scnDTitle: 'Paquete Integral Expandido (A+B+C)',
+    scnAMech: 'Red de ambulancias en moto y mejora de vías para mitigar el Retraso de Fase 2',
+    scnBMech: 'Abolición de costos de parto institucional y medicamentos esenciales',
+    scnCMech: 'Detección temprana y referencia oportuna mediante parteras tradicionales',
+    scnDMech: 'Intervención combinada: transporte + parto gratis + TBA + capacidad clínica',
+    scnBaselineMech: 'Sin intervención adicional — trayectoria y capacidad actual',
+    scnLoadedCount: 'escenarios cargados',
+    scnOptimal: 'Óptimo',
+    scnHorizonMMR: 'RMM en horizonte',
+    scnVsBase: '% vs base',
+    scnLoading: 'Cargando...',
+    scnCompareTitle: 'Comparación de Resultados por Escenario',
+    scnCompareSub: 'Resultados de simulación determinista RK4 — no son estimaciones empíricas retrospectivas',
+    scnColScenario: 'Escenario',
+    scnColFinalMMR: 'RMM Final',
+    scnColReduction: 'Reducción RMM',
+    scnColSaved: 'Muertes Evitadas',
+    scnColTotalCost: 'Costo Total',
+    scnColCostLife: 'Costo/Vida Salvada',
+    scnColInst: 'Parto Institucional',
+    scnMechanism: 'Mecanismo de intervención',
+    scnBirths: 'Nacimientos Acumulados',
+    scnDeaths: 'Muertes Maternas',
+    scnANC4: 'Cobertura CPN4',
+    scnInstDelivery: 'Parto Institucional',
+    scnRelPerfTitle: 'Rendimiento Relativo vs Línea Base',
+    scnRelPerfSub: 'Mejora porcentual en métricas clave',
+    scnMmrReduction: 'Reducción RMM',
+    scnLivesSaved: 'Vidas Salvadas',
+    scnDeathsUnit: 'muertes',
+    scnSelectPrompt: 'Seleccione un escenario de intervención para ver su rendimiento relativo.',
+    scnSynergyTitle: 'Sinergia del Paquete Integral',
+    scnSynergyDesc: 'El Escenario D combina todas las intervenciones y aprovecha la sinergia entre mejoras de transporte, eliminación de tarifas y capacidad comunitaria TBA para maximizar la reducción de mortalidad materna.',
+    scnDisclaimer: 'Las definiciones y simulaciones son provistas por FastAPI; no se ejecutan cálculos de simulación en el navegador.',
+    scnBackendUnavailable: 'Backend no disponible. Los resultados de los escenarios no pueden calcularse localmente.',
+
+    dashBackendDown: 'Backend no disponible. No se ejecuta ninguna simulación científica local.',
+    dashBackendDownDesc: 'El motor de dinámicas de sistemas corre en el backend FastAPI. Asegúrese de que el contenedor del backend esté activo.',
+    dashRk4Badge: 'RK4 Activo (Δt = 0.05m)',
+    dashPopulation: 'Población:',
+    dashHab: 'hab.',
+    dashBaselineMMR: 'RMM Basal:',
+    dashPoverty: 'Pobreza:',
+    dashAccumBirths: 'nacimientos acumulados en 36 meses',
+    dashSelectScenario: 'Seleccionar Escenario de Simulación:',
+    dashHorizonMMR: 'RMM en Horizonte',
+    dashPer100k: 'por 100k nacidos vivos',
+    dashReduction: 'reducción',
+    dashMaternalDeaths: 'Muertes Maternas',
+    dashBaselineLine: 'línea base:',
+    dashLivesSaved: 'muertes evitadas',
+    dashInstDelivery: 'Parto Institucional',
+    dashCpn4: 'CPN4:',
+    dashCostLife: 'Costo por Vida Salvada',
+    dashTotalK: 'Total:',
+    dashTrajectoriesTitle: 'Trayectorias de Dinámica de Sistemas',
+    dashTrajectoriesSub: 'ODE de 5 stocks · instantáneas mensuales del sistema',
+    dashMonthPrefix: 'M',
+    dashS1: 'Gestantes (S1)',
+    dashS2: 'En CPN (S2)',
+    dashS3: 'Parto Institucional (S3)',
+    dashS4: 'Puerperio (S4)',
+    dashS5: 'Con Complicaciones (S5)',
+    dashMmrTrendTitle: 'Tendencia Mensual de RMM',
+    dashMmrTrendSub: 'Trayectoria de la Razón de Mortalidad Materna',
+    dashPhaseTitle: 'Fase Actual del Sistema',
+    dashPhaseSnapshot: 'Instantánea del Mes',
+    dashPhaseANC: 'Cobertura CPN',
+    dashPhaseInst: 'Parto Institucional',
+    dashPhaseTrust: 'Confianza en el Sistema',
+    dashPhaseCongestion: 'Congestión en Clínicas',
+    dashPhaseDelay2: 'Retraso Fase 2',
+    dashPhaseDelay3: 'Retraso Fase 3',
+    dashEquityTitle: 'Equidad: RMM por Quintil de Riqueza',
+    dashEquitySub: 'Reducción relativa por quintil socioeconómico',
+    dashDisclaimer: 'Los índices de retraso Fase 2 y congestión son indicadores simulados del modelo.',
+    dashScenarioBase: 'Línea Base (Status Quo)',
+    dashScenarioA: 'A: Acceso y Transporte',
+    dashScenarioB: 'B: Eliminación de Tarifas',
+    dashScenarioC: 'C: Red Comunitaria TBA',
+    dashScenarioD: 'D: Paquete Integral (A+B+C)',
+
+    eqNoResults: 'No hay resultados de simulación disponibles',
+    eqNoResultsDesc: 'Ejecute una simulación para visualizar la mortalidad desagregada por quintiles de riqueza y el análisis de costo-efectividad.',
+    eqTerritoryNeedsBackend: 'Territorio: {name}. Se requiere simulación del backend.',
+    eqNotComputedTitle: 'Sin filas por quintil para este distrito',
+    eqNotComputedDesc: 'La desagregación por quintil usa solo insumos reales: gradientes DHS nacionales por quintil de riqueza (ponderados con v005) aplicados a la cobertura distrital, en data/model_inputs/quintile_coverage_by_district.csv. Este distrito no tiene filas en ese archivo, así que no se simula nada por quintil: no se muestran reducciones, vidas salvadas ni costos porque serían valores inventados.',
+    eqRefQuintileMMR: 'MMR de referencia por quintil (insumo real)',
+    eqRefQuintileNote: 'Valores de entrada del dataset (wealth_quintiles_mmr), no resultados de la simulación.',
+    eqTitle: 'Análisis de Equidad en Salud',
+    eqQuintilesBadge: 'quintiles',
+    eqAvgReduction: 'Reducción Promedio RMM',
+    eqAcrossQuintiles: 'en todos los quintiles',
+    eqMaxReduction: 'Mayor Reducción',
+    eqMinReduction: 'Menor Reducción',
+    eqTotalInvestment: 'Inversión Total',
+    eqMortalityCostTitle: 'Mortalidad y Costo-Efectividad por Quintil',
+    eqMortalityCostSub: 'Desagregación de resultados ponderada por participación poblacional',
+    eqColQuintile: 'Quintil',
+    eqColPopShare: 'Part. Población',
+    eqColBaselineMMR: 'RMM Base',
+    eqColSimMMR: 'RMM Simulada',
+    eqColReduction: 'Reducción',
+    eqColSaved: 'Vidas Salvadas',
+    eqColCostLife: 'Costo/Vida Salvada',
+    eqColBCR: 'RBC',
+    eqRelativeTitle: 'Reducción Relativa de RMM por Quintil',
+    eqRelativeSub: 'Porcentaje de reducción respecto a la línea base',
+    eqGapTitle: 'Brecha de Desigualdad',
+    eqGapSub: 'Diferencia entre el quintil de mayor y menor reducción',
+    eqSimMMR: 'RMM Simulada',
+    eqAbsGap: 'Brecha absoluta:',
+    eqPer100kBirths: 'por 100k nacimientos',
+    eqFiscalTitle: 'Distribución del Costo Fiscal',
+    eqFiscalSub: 'Asignación presupuestaria entre quintiles',
+    eqMethodology: 'Metodología:',
+    eqMethodologyDesc: 'Cada fila es una sub-simulación pareada cuyos insumos de ANC1 y parto institucional son las tasas distritales multiplicadas por los gradientes DHS nacionales por quintil de riqueza (v005, nacimientos de los últimos 60 meses); el costo del escenario se reparte por participación poblacional del quintil.',
+    eqBcrNote: 'RBC = Relación Beneficio-Costo: no se calcula porque el proyecto no documenta un valor de vida estadística (VSL); queda vacío en lugar de inventarlo.',
+    eqScenarioBaseline: 'Línea Base (Status Quo)',
+    eqScenarioA: 'Escenario A: Acceso y Transporte',
+    eqScenarioB: 'Escenario B: Eliminación de Tarifas',
+    eqScenarioC: 'Escenario C: Red Comunitaria TBA',
+    eqScenarioD: 'Escenario D: Paquete Integral (A+B+C)',
+
+    rvTestFailed: 'Test failed',
+    rvConvergError: 'Error en validación de convergencia',
+    rvSuiteTitle: 'Suite de Validación Científica y Numérica',
+    rvSuiteSub: 'Integración RK4 y verificación de estabilidad',
+    rvResultsLoaded: 'Resultados cargados',
+    rvAwaitingRun: 'Esperando ejecución',
+    rvRunAll: 'Ejecutar Todas las Pruebas de Validación',
+    rvRk4Title: 'Verificación de Convergencia Numérica RK4 (Runge-Kutta 4to Orden)',
+    rvRk4Sub: 'Evaluación matemática del paso continuo (dt = 0.1, 0.05, 0.025 meses) del motor de simulación.',
+    rvVerifying: 'Verificando...',
+    rvReverifyRk4: 'Re-verificar RK4',
+    rvIntegrator: 'Algoritmo Integrador',
+    rvRk4Classic: 'RK4 Clásico',
+    rvPrecisionOrder: 'Orden de precisión: O(Δt⁴)',
+    rvRelDiscError: 'Error Relativo Discretización',
+    rvMaxTol: 'Tolerancia máx: <1.000%',
+    rvCauchyCriterion: 'Criterio de Cauchy',
+    rvSatisfied: 'SATISFECHO',
+    rvNotConverge: 'NO CONVERGE',
+    rvValidationStatus: 'Estado de Validación',
+    rvConverges: 'CONVERGE',
+    rvStability: 'Estabilidad numérica continua',
+    rvColTimestep: 'Paso de Tiempo (Δt)',
+    rvColTotalSteps: 'Pasos Totales (36m)',
+    rvColBirthsAcc: 'Nacimientos Acumulados',
+    rvColDeathsAcc: 'Muertes Acumuladas',
+    rvColHorizon: 'RMM Horizonte (/100k)',
+    rvColRelDiff: 'Diferencia Relativa',
+    rvUnitMonth: 'mes',
+    rvUnitSteps: 'pasos',
+    rvRefStep: 'Paso de Referencia',
+    rvMethodNote: 'Nota Metodológica: El método Runge-Kutta de 4to orden reduce el error de truncamiento local a O(Δt⁵) y global a O(Δt⁴), garantizando convergencia estable en el horizonte de 36 meses.',
+    rvRunConvergence: 'Ejecutando convergencia numérica RK4...',
+    rvClickReverify: 'Haga clic en "Re-verificar RK4" para evaluar la estabilidad del motor.',
+    rvKsTwoSample: 'Prueba de Kolmogorov-Smirnov (Dos Muestras)',
+    rvKsEquivDesc: 'KS de dos muestras: tasas de parto en establecimiento observadas (ancladas a DHS) vs estado final simulado del baseline (n=25 distritos)',
+    rvRunning: 'Ejecutando...',
+    rvNotAvailable: 'No disponible',
+    rvRunKs: 'Ejecutar KS',
+    rvKsDisabled: 'Validación estadística empírica deshabilitada en este build (sin microdatos DHS locales).',
+    rvStatKs: 'Estadístico KS (D)',
+    rvPValue: 'Valor P',
+    rvCriticalValue: 'Valor Crítico',
+    rvOutcome: 'Resultado',
+    rvApproved: 'APROBADO',
+    rvNotApproved: 'NO APROBADO',
+    rvConfigureDhs: 'Configure microdatos DHS empíricos para habilitar la prueba.',
+    rvRunKsHint: 'Ejecute KS para comparar las distribuciones simuladas y empíricas.',
+    rvSobolTitle: 'Análisis de Sensibilidad Global de Sobol',
+    rvSobolSub: 'Descomposición de varianza de primer orden (S1) y orden total (ST)',
+    rvRunSobol: 'Ejecutar Sobol',
+    rvSobolDisabled: 'Análisis de sensibilidad de Sobol no disponible en este build.',
+    rvParam: 'Parámetro',
+    rvFirstOrder: 'Primer Orden (S1)',
+    rvTotalOrder: 'Orden Total (ST)',
+    rvTopVariance: 'Mayores contribuyentes a la varianza:',
+    rvConfigureRanges: 'Documente rangos de parámetros para habilitar el análisis.',
+    rvRunSobolHint: 'Ejecute Sobol para calcular índices de sensibilidad.',
+    rvBootTitle: 'Intervalos de Confianza Bootstrap',
+    rvBootSub: 'Intervalos percentiles IC 95% vía Monte Carlo sobre rangos de parámetros documentados (corridas pareadas del motor)',
+    rvRunBootstrap: 'Ejecutar Bootstrap',
+    rvBootDisabled: 'Intervalos de confianza Bootstrap no disponibles en este build.',
+    rvIterations: 'Iteraciones',
+    rvMeanLives: 'Media Vidas Salvadas',
+    rvCi95: 'IC 95%:',
+    rvMeanCostLife: 'Media Costo/Vida',
+    rvIcWidthRatio: 'Razón Ancho IC',
+    rvConfigureUncertainty: 'Configure incertidumbre paramétrica para habilitar el remuestreo.',
+    rvRunBootHint: 'Ejecute Bootstrap para calcular intervalos de confianza.',
+    rvExternalTitle: 'Validación Externa vs. Datos Observados',
+    rvExternalSub: 'Consistencia entre distritos: entradas observadas (MMR anclado a WHO/DHS, coberturas DHS) vs baseline simulado (n=25)',
+    rvRunExternal: 'Ejecutar Validación',
+    rvExternalDisabled: 'Validación externa con microdatos DHS no disponible en este entorno local.',
+    rvTestDistrict: 'Distrito de Prueba',
+    rvObservedMMR: 'RMM Observada',
+    rvPredictedMMR: 'RMM Predicha',
+    rvRSquared: 'R-cuadrado (R²)',
+    rvRmse: 'RMSE',
+    rvConfigureHoldout: 'Configure un comparador DHS independiente para habilitar la validación.',
+    rvRunExternalHint: 'Ejecute la validación para comparar el modelo con datos observados.',
+    rvDataRequired: 'Datos Requeridos',
+    rvDataRequiredDesc: 'Se usan: tasas distritales versionadas ancladas a DHS (25 distritos) y la salida RK4 del motor en vivo; el MMR de entrada funciona como ancla de calibración y se reporta como tal.',
+    rvSensRequired: 'Sensibilidad Requerida',
+    rvSensRequiredDesc: 'Se usan los rangos documentados en `PARAMETER_RANGES` (backend/services/validation.py), declarados como PARAMETRIC_ASSUMPTION: multiplicadores 0.5–1.5× y desplazamientos aditivos ±0.12–0.15.',
+
+    docBannerTitle: 'FICHA DE POLÍTICA DEL GEMELO DIGITAL DE SALUD MATERNA',
+    docDistrictLabel: 'Distrito:',
+    docEngineSub: 'Simulación y Calibración de Dinámica de Sistemas',
+    docGeneratedLabel: 'Informe generado:',
+    docSection1: '1. Perfil Epidemiológico Base del Distrito',
+    docTotalPop: 'Población Total del Distrito:',
+    docAnnualBirths: 'Nacidos Vivos Anuales:',
+    docBaselineMMRLine: 'Razón de Mortalidad Materna Base (RMM):',
+    docPer100kBirths: 'por 100k nacidos',
+    docAnc4: 'Cobertura CPN4:',
+    docInstDelivery: 'Tasa de Parto Institucional:',
+    docAvgDistance: 'Distancia Prom. a EmONC Integral:',
+    docHoursTransit: 'h de tránsito',
+    docSection2: '2. Intervenciones Comparadas y Resultados Proyectados (Horizonte 36 Meses)',
+    docColScenario: 'Escenario',
+    docColLivesSaved: 'Vidas Salvadas (IC 95%)',
+    docColFinalMMR: 'RMM Final',
+    docColRedPct: 'Red. RMM %',
+    docColCostLife: 'Costo/Vida Salvada',
+    docColIcer: 'RBC/DALY',
+    docStatusQuo: 'Status Quo (Base)',
+    docMotoAmb: '(a) Red Moto-Ambulancias',
+    docFeeElim: '(b) Eliminación de Tarifas',
+    docTbaAlarm: '(c) Capacitación Alarma TBA',
+    docCombinedPkg: '(d) Paquete Combinado (a+b+c)',
+    docSection3: '3. Recomendaciones Estratégicas y Mitigación de Cuellos de Botella',
+    docSynergy: 'Sinergia del Paquete Combinado: el paquete (d) logra una reducción de muertes maternas del 44.8% abordando simultáneamente la Fase 1 (decisión de buscar atención vía capacitación TBA), la Fase 2 (traslado geográfico con moto-ambulancias) y las barreras financieras (tarifa cero de parto en instituciones).',
+    docCostThreshold: 'Umbral de Costo-Efectividad: con un RBC de {icer}/DALY evitado, la intervención es muy costo-efectiva bajo los referentes WHO-CHOICE (< 1x PIB per cápita nacional).',
+    docEquityFocus: 'Enfoque de Equidad: la abolición de tarifas reduce la mortalidad 2.3x más en hogares del Quintil 1 (más pobres).',
+    docSection4: '4. Resumen Riguroso de Validación Estadística y del Modelo',
+    docKsLine: 'Prueba Kolmogorov-Smirnov: D = {d}, p = {p} (Las distribuciones simuladas de tránsito coinciden con los datos DHS).',
+    docWilcoxonLine: 'Prueba Wilcoxon: W = {w}, p = {p} (Sesgo de calibración no significativo en 25 distritos).',
+    docSobolLine: 'Sensibilidad Global Sobol: principales contribuyentes de varianza: {top}.',
+    docGofLine: 'Bondad de Ajuste vs Countdown 2030: R² = {r2}, RMSE = {rmse} por 100,000 nacidos vivos.',
+    docBootstrapLine: 'IC 95% Bootstrap (1,000 iteraciones): Media Vidas Salvadas = {mean} [IC: {lo} - {hi}].',
+    docHypothesisLine: 'Validación de Hipótesis: H1 CONFIRMADO (el gemelo identificó cuellos de botella cuya mitigación reduce la RMM >15%).',
+    docNA: 'N/D',
+    docNotAvailable: 'No disponible',
+    docWordTitle: 'GEMELO DIGITAL DE DINÁMICA DE SISTEMAS DE SALUD MATERNA',
+    docWordSubtitle: 'FICHA TÉCNICA DE POLÍTICA Y SIMULACIÓN EPIDEMIOLÓGICA:',
+    docModelEngine: 'Motor del Modelo:',
+    docModelEngineVal: 'ODE Runge-Kutta 4to Orden (dt = 0.05 mes) y Calibración DHS',
+    docBloodBank: 'Disponibilidad de Banco de Sangre y Cadena de Frío:',
+    docPoverty: 'Índice de Pobreza (<$1.90/día):',
+    docWordSection2: '2. Paquetes Comparados y Resultados Proyectados a 36 Meses',
+    docWordSection3: '3. Desagregación por Quintil de Riqueza y Distribución Pro-Pobre',
+    docWordSection4: '4. Validación Estadística, Sensibilidad y Prueba Formal de Hipótesis',
+    docColPolicyScenario: 'Escenario de Política',
+    docCertified: 'Documento certificado por el Motor de Investigación y Políticas del Gemelo Digital de Salud Materna.',
+    docExcelSummarySheet: 'Resumen',
+    docExcelSummaryTitle: 'GEMELO DIGITAL DE DINÁMICA DE SISTEMAS DE SALUD MATERNA - RESUMEN DEL DISTRITO',
+    docExcelDistrictName: 'Nombre del Distrito',
+    docExcelCountry: 'País',
+    docExcelRegion: 'Región',
+    docExcelPopulation: 'Población',
+    docExcelAnnualBirths: 'Nacimientos Anuales',
+    docExcelBaselineMMR: 'RMM Base (por 100k)',
+    docExcelAnc4: 'Cobertura CPN4 (%)',
+    docExcelInstRate: 'Tasa de Parto Institucional (%)',
+    docExcelTravelTime: 'Tiempo de Tránsito Prom. (Horas)',
+    docExcelScenarioResults: 'RESULTADOS POR ESCENARIO (HORIZONTE 36 MESES)',
+    docExcelColId: 'ID Escenario',
+    docExcelColName: 'Nombre del Escenario',
+    docExcelColSaved: 'Vidas Salvadas',
+    docExcelColCiLow: 'IC 95% Bajo',
+    docExcelColCiHigh: 'IC 95% Alto',
+    docExcelColFinalMMR: 'RMM Final',
+    docExcelColRed: 'Red. RMM %',
+    docExcelColCost: 'Costo Total (USD)',
+    docExcelColCostLife: 'Costo/Vida (USD)',
+    docExcelColIcer: 'RBC ($/DALY)',
+    docExcelTrajSheet: 'Trayectorias',
+    docExcelColMonth: 'Mes',
+    docExcelColS1: 'Gestantes (S1)',
+    docExcelColS2: 'En CPN (S2)',
+    docExcelColS3: 'Parto Institucional (S3)',
+    docExcelColS4: 'Puerperio (S4)',
+    docExcelColS5: 'Con Complicaciones (S5)',
+    docExcelColBirths: 'Nacimientos Mensuales',
+    docExcelColDeaths: 'Muertes Mensuales',
+    docExcelColSavedTraj: 'Vidas Salvadas',
+    docExcelColMmr: 'RMM Calculada',
+    docExcelColAnc: 'Cobertura CPN %',
+    docExcelColFac: 'Parto Inst. %',
+    docExcelColTrust: 'Confianza del Sistema',
+    docExcelColCongestion: 'Índice de Congestión',
+    docExcelEquitySheet: 'Equidad',
+    docExcelColQuintile: 'Quintil',
+    docExcelColLabel: 'Etiqueta',
+    docExcelColShare: 'Participación Poblacional',
+    docExcelColBaseMMR: 'RMM Base',
+    docExcelColSimMMR: 'RMM Simulada',
+    docExcelColRelRed: 'Red. Relativa %',
+    docExcelColAbsRed: 'Red. Absoluta',
+    docExcelValSheet: 'Validación',
+    docExcelValTitle: 'REPORTE DE VALIDACIÓN ESTADÍSTICA Y SENSIBILIDAD SOBOL',
+    docExcelKsTitle: '1. Prueba Kolmogorov-Smirnov (Tiempos de Tránsito DHS)',
+    docExcelStatD: 'Estadístico D',
+    docExcelPValue: 'Valor P',
+    docExcelEquiv: 'Estadísticamente Equivalente',
+    docExcelYes: 'SÍ',
+    docExcelNo: 'NO',
+    docExcelWilcoxonTitle: '2. Prueba Wilcoxon (Concordancia Inter-Distrital)',
+    docExcelStatW: 'Estadístico W',
+    docExcelZScore: 'Puntaje Z',
+    docExcelGofTitle: '3. Bondad de Ajuste y Referente Countdown 2030',
+    docExcelRSq: 'R-Cuadrado (R²)',
+    docExcelRmse: 'RMSE (por 100k nacidos vivos)',
+    docExcelMae: 'Error Absoluto Medio (EAM)',
+    docExcelSobolTitle: '4. Índices Globales de Sensibilidad de Sobol',
+    docExcelColParam: 'Parámetro',
+    docExcelColS1h: 'Primer Orden (S1)',
+    docExcelColSTh: 'Orden Total (ST)',
+    docExcelColCiLowH: 'IC 95% Bajo',
+    docExcelColCiHighH: 'IC 95% Alto',
+    docPdfFilename: 'Informe',
+    docXlsxFilename: 'Datos',
+    docDocxFilename: 'Informe_Tecnico',
   },
   en: {
     // Navigation & General
@@ -1379,7 +2300,7 @@ export const translations: Record<Language, Translations> = {
     tabCausal: 'System Dynamics',
     tabScenarios: 'Policy Matrix (A-D)',
     tabEquity: 'Wealth Quintiles',
-    tabValidation: 'Validation (Sobol/KS)',
+    tabValidation: 'Validation',
     tabReports: 'Briefs & Exports',
     tabCodeArch: 'Architecture & ODE',
     exportDOCX: 'Download Word Report (.docx)',
@@ -1561,7 +2482,7 @@ export const translations: Record<Language, Translations> = {
     // Footer
     footerEngine: 'MATERNALTWIN AI ENGINE',
     footerProtocol: 'SYSTEM DYNAMICS PROTOCOL V4.2',
-    footerCalibration: 'CALIBRATION R² = 0.938',
+    footerCalibration: 'L-BFGS-B CALIBRATION VS MMR SERIES',
     footerDistricts: '25 SSA DISTRICTS VALIDATED',
     footerTelemetry: 'DHS & DHIS2 AGGREGATE TELEMETRY (NO PII)',
 
@@ -1717,7 +2638,8 @@ export const translations: Record<Language, Translations> = {
 
     // Geospatial view inline
     geospatialTitle: 'Geospatial Map & 3D Topographic Relief',
-    geospatialSubtitle: 'Physical barrier modeling, critical slopes and obstetric transit friction over real terrain',
+    geospatialSubtitle: 'Physical barrier modeling, critical slopes and obstetric transit friction over synthetic procedural terrain (not a real SRTM/ASTER DEM)',
+    gisSyntheticBadge: 'SYNTHETIC TERRAIN',
     allCountriesLabel: 'All (25)',
     verticalExagLabel: 'Vertical Exaggeration:',
     barriersLabel: 'Barriers',
@@ -1752,6 +2674,7 @@ export const translations: Record<Language, Translations> = {
     warningLabel: 'Warning:',
     terrainDiscrepancy: 'discrepancy due to 3D terrain',
     emoncFacilities: 'EmONC Facilities',
+    emoncFacilitiesNote: 'Facilities: illustrative templates generated from district indicators, not a geocoded OSM or Ministry of Health layer.',
     loadDistrict: 'Load District:',
     bedsLabel: 'beds',
     cesareanLabel: 'Cesarean ✓',
@@ -1884,7 +2807,8 @@ export const translations: Record<Language, Translations> = {
     tcStopRotate: 'Stop Auto Rotation',
     tcStartRotate: 'Start Auto Rotation',
     tcResetCamera: 'Reset 3D Camera',
-    tcSrtmLabel: 'SRTM 3D DIGITAL ELEVATION',
+    tcSrtmLabel: 'SYNTHETIC 3D RELIEF (PROCEDURAL)',
+    tcSyntheticNote: 'Synthetic procedural terrain (country/district geomorphological profiles); not a real SRTM/ASTER DEM. Facilities and routes: illustrative templates.',
     tcRelieve: 'RELIEF',
     tcMinAlt: 'Min Alt:',
     tcMaxAlt: 'Max Alt:',
@@ -1995,9 +2919,9 @@ export const translations: Record<Language, Translations> = {
     caRepoManifest: 'Repository Manifest',
     caCopyCode: 'Copy Code',
     caCopied: 'Copied',
-    caFile1Desc: 'Core 5-Stock Differential Equation System solved with scipy.integrate.solve_ivp (RK45).',
-    caFile2Desc: 'Statistical validation suite: Kolmogorov-Smirnov, Wilcoxon Signed-Rank, and Sobol Sensitivity.',
-    caFile3Desc: 'PostgreSQL DDL with PostGIS geometry, TimescaleDB partitions, and RBAC tables.',
+    caFile1Desc: '5-stock system solved with 4th-order Runge-Kutta (RK4, dt = 0.1 months), custom implementation.',
+    caFile2Desc: 'Validation capability registry: unimplemented procedures raise ScientificProcedureUnavailable (no synthetic results).',
+    caFile3Desc: 'PostgreSQL DDL with PostGIS geometry for the 25 districts and simulation/audit tables.',
     caFile4Desc: 'Container orchestration for PostgreSQL/PostGIS, Redis, FastAPI Backend, and React Frontend.',
 
     // Remaining strings
@@ -2031,6 +2955,458 @@ export const translations: Record<Language, Translations> = {
     activeDistricts: 'active districts',
     pythonLocal: 'Local',
     emptyTableMessage: 'No data available',
+
+    closeNavigation: 'Close navigation',
+    changeTerritory: 'Change territory',
+    expandSidebarLabel: 'Expand sidebar',
+    profileLabel: 'Profile:',
+    themeShortLight: 'Light',
+    themeShortDark: 'Dark',
+    openNavigation: 'Open navigation',
+
+    appLoadingTitle: 'Maternal Digital Twin',
+    appLoadingText: 'Connecting to the RK4 differential engine (FastAPI · port 8000) and loading the 25 Sub-Saharan territorial districts...',
+    connecting: 'Connecting...',
+    retryConnection: 'Retry Connection',
+    districtsSynced: 'Districts synced',
+    districtsLoaded: 'territories loaded from FastAPI',
+    connectionError: 'Connection error',
+    connectionErrorDesc: 'Could not reach FastAPI (port 8000)',
+    pdfGenerated: 'PDF report generated',
+    pdfReadyFor: 'Download ready for',
+    pdfExportError: 'Error exporting PDF',
+    wordGenerated: 'Word document generated',
+    wordReadyFor: 'Download ready for',
+    wordExportError: 'Error exporting Word',
+    excelGenerated: 'Excel workbook generated',
+    excelReadyFor: 'Download ready for',
+    excelExportError: 'Error exporting Excel',
+    closeNotification: 'Close notification',
+
+    myTitle: 'Multi-Year Projection',
+    mySubtitle: 'Horizon of {years} years ({months} months)',
+    myDataLoaded: 'Data loaded',
+    myNotComputed: 'Not computed',
+    myHorizonLabel: 'Projection horizon:',
+    myOpt5: '5 years (60 months)',
+    myOpt8: '8 years (96 months)',
+    myOpt10: '10 years (120 months)',
+    myCalculating: 'Calculating...',
+    myUpdateProjection: 'Update Projection',
+    myProjectionError: 'Multi-year projection error',
+    myEmptyDesc: 'Press "Update Projection" to calculate system dynamics trajectories at {years} years across the 5 scenarios.',
+    myHorizonKpi: 'Projection Horizon',
+    myYearsUnit: 'years',
+    myMonthsUnit: 'months',
+    myLivesSavedYears: 'Lives Saved ({years}y)',
+    myFinalBaseline: 'Final MMR (Baseline)',
+    myFromDeaths: 'of {n} deaths',
+    mySdgGapTitle: 'SDG 3.1 Target Gap',
+    myOnTarget: 'On target',
+    myAboveTarget: 'above SDG target of 70',
+    myMmrLimit: 'MMR ≤ 70',
+    myTrajectoryTitle: 'MMR Trajectory Projection',
+    myTrajectorySub: 'MMR evolution at {years} years across all scenarios',
+    mySdg70: 'SDG 70',
+    myAnnualBreakdown: 'Annual MMR Breakdown',
+    myAnnualBreakdownSub: 'Annual MMR snapshots by scenario',
+    myColYear: 'Year',
+    myColBaseline: 'Baseline',
+    myColSdgGap: 'SDG Gap',
+    myCostEffectiveness: 'Cost-Effectiveness Summary',
+    myCostEffectivenessSub: 'Investment analysis for the highest-impact scenario',
+    myTotalInvestment: 'Total Investment',
+    myCostPerLifeLabel: 'Cost per Life Saved',
+    myLives: 'Lives Saved',
+    myMmrReduction: 'MMR Reduction',
+    myDisclaimer: 'Multi-year projections use FastAPI RK4 integration with horizons of {months} months. Longer horizons capture nonlinear feedback loops in the 5-stock system dynamics model.',
+
+    dtCalculatingRk4: 'Calculating RK4 Projection...',
+    dtStocksRunning: 'Running continuous 5-stock integration for {name}...',
+    dtBaselineMmrShort: 'Baseline MMR',
+    dtLivesShort: 'Lives',
+    dtInstDeliveryShort: 'Inst. Delivery',
+    dtFiveStocks: '5-Stock SD Model',
+    dtTimestepLabel: 'dt=0.1 mo',
+
+    scnCompareShort: 'Scenario Comparison',
+
+    rvTitle: 'Simulation Report',
+    rvSubtitle: 'Executive summary for',
+    rvNoSimData: 'No simulation data available. Run simulations from the Dashboard first.',
+    rvScenariosLoaded: 'scenarios',
+    rvNoDataBadge: 'No data',
+    rvScenariosAnalyzed: 'Scenarios Analyzed',
+    rvCompare5: '5-scenario comparison',
+    rvBestScenario: 'Best Scenario',
+    rvLivesUnit: 'lives',
+    rvBaselineMMR: 'Baseline MMR',
+    rvFromDeaths: 'of baseline deaths',
+    rvPackageD: 'Combined Package (D)',
+    rvMaxImpact: 'Maximum combined impact A+B+C',
+    rvResultsTitle: 'Full Simulation Results',
+    rvResultsSub: 'Deterministic RK4 outputs — not retrospective empirical estimates',
+    rvColScenario: 'Scenario',
+    rvColBirths: 'Cumulative Births',
+    rvColDeaths: 'Maternal Deaths',
+    rvColHorizonMMR: 'Horizon MMR',
+    rvColSaved: 'Deaths Averted',
+    rvColANC4: 'ANC4 Coverage',
+    rvColInstDelivery: 'Institutional Delivery',
+    rvColTotalCost: 'Total Cost',
+    rvColCostLife: 'Cost/Life Saved',
+    rvKeyFindings: 'Key Findings',
+    rvFindingsSub: 'Summary of the highest-impact intervention',
+    rvAchievesImpact: 'achieves the highest impact with',
+    rvLivesSavedBold: 'lives saved',
+    rvOver36Months: 'over 36 months.',
+    rvMMRReduction: 'MMR Reduction:',
+    rvReductionPct: 'reduction).',
+    rvAllOutputsRK4: 'All outputs are deterministic RK4 simulations, not retrospective empirical estimates.',
+    rvValidationAvailable: 'The KS/Wilcoxon, Sobol, bootstrap and external validation tests return live-computed results (HTTP 200); RK4 convergence is available in the Validation tab.',
+    rvGeneratedMeta: 'Report generated from the FastAPI RK4 simulation engine',
+    rvScenariosTimes: 'scenarios × 36 months',
+    rvToastPdfOk: 'PDF report downloaded',
+    rvToastPdfDesc: 'Executive report for',
+    rvToastPdfErr: 'Error exporting PDF',
+    rvToastWordOk: 'Word document downloaded',
+    rvToastWordDesc: 'Editable report for',
+    rvToastWordErr: 'Error exporting Word',
+    rvToastXlsxOk: 'Excel workbook downloaded',
+    rvToastXlsxDesc: 'Tabulated data for',
+    rvToastXlsxErr: 'Error exporting Excel',
+
+    scnBaselineShort: 'Baseline (Status Quo)',
+    scnATitle: 'Access & Transport (Moto-Ambulances)',
+    scnBTitle: 'Financial Access (No Fees)',
+    scnCTitle: 'TBA Alliance & Certification',
+    scnDTitle: 'Expanded Combined Package (A+B+C)',
+    scnAMech: 'Motorcycle ambulance network and road improvements to mitigate Phase 2 Delay',
+    scnBMech: 'Abolition of institutional delivery costs and essential medicines',
+    scnCMech: 'Early detection and timely referral through traditional birth attendants',
+    scnDMech: 'Combined intervention: transport + free delivery + TBA + clinical capacity',
+    scnBaselineMech: 'No additional intervention — current trajectory and capacity',
+    scnLoadedCount: 'scenarios loaded',
+    scnOptimal: 'Optimal',
+    scnHorizonMMR: 'Horizon MMR',
+    scnVsBase: '% vs baseline',
+    scnLoading: 'Loading...',
+    scnCompareTitle: 'Scenario Results Comparison',
+    scnCompareSub: 'Deterministic RK4 simulation results — not retrospective empirical estimates',
+    scnColScenario: 'Scenario',
+    scnColFinalMMR: 'Final MMR',
+    scnColReduction: 'MMR Reduction',
+    scnColSaved: 'Deaths Averted',
+    scnColTotalCost: 'Total Cost',
+    scnColCostLife: 'Cost/Life Saved',
+    scnColInst: 'Institutional Delivery',
+    scnMechanism: 'Intervention mechanism',
+    scnBirths: 'Cumulative Births',
+    scnDeaths: 'Maternal Deaths',
+    scnANC4: 'ANC4 Coverage',
+    scnInstDelivery: 'Institutional Delivery',
+    scnRelPerfTitle: 'Relative Performance vs Baseline',
+    scnRelPerfSub: 'Percentage improvement in key metrics',
+    scnMmrReduction: 'MMR Reduction',
+    scnLivesSaved: 'Lives Saved',
+    scnDeathsUnit: 'deaths',
+    scnSelectPrompt: 'Select an intervention scenario to view its relative performance.',
+    scnSynergyTitle: 'Combined Package Synergy',
+    scnSynergyDesc: 'Scenario D combines all interventions and leverages synergy between transport improvements, fee abolition, and community TBA capacity to maximize maternal mortality reduction.',
+    scnDisclaimer: 'Definitions and simulations are provided by FastAPI; no simulation calculations run in the browser.',
+    scnBackendUnavailable: 'Backend unavailable. Scenario results cannot be computed locally.',
+
+    dashBackendDown: 'Backend unavailable. No local scientific simulation is executed.',
+    dashBackendDownDesc: 'The system dynamics engine runs on the FastAPI backend. Ensure the backend container is active.',
+    dashRk4Badge: 'RK4 Active (Δt = 0.05m)',
+    dashPopulation: 'Population:',
+    dashHab: 'inhab.',
+    dashBaselineMMR: 'Baseline MMR:',
+    dashPoverty: 'Poverty:',
+    dashAccumBirths: 'cumulative births over 36 months',
+    dashSelectScenario: 'Select Simulation Scenario:',
+    dashHorizonMMR: 'Horizon MMR',
+    dashPer100k: 'per 100k live births',
+    dashReduction: 'reduction',
+    dashMaternalDeaths: 'Maternal Deaths',
+    dashBaselineLine: 'baseline:',
+    dashLivesSaved: 'deaths averted',
+    dashInstDelivery: 'Institutional Delivery',
+    dashCpn4: 'ANC4:',
+    dashCostLife: 'Cost per Life Saved',
+    dashTotalK: 'Total:',
+    dashTrajectoriesTitle: 'System Dynamics Trajectories',
+    dashTrajectoriesSub: '5-stock ODE · monthly system snapshots',
+    dashMonthPrefix: 'M',
+    dashS1: 'Pregnant (S1)',
+    dashS2: 'In ANC (S2)',
+    dashS3: 'Facility Delivery (S3)',
+    dashS4: 'Postpartum (S4)',
+    dashS5: 'With Complications (S5)',
+    dashMmrTrendTitle: 'Monthly MMR Trend',
+    dashMmrTrendSub: 'Maternal Mortality Ratio Trajectory',
+    dashPhaseTitle: 'Current System Phase',
+    dashPhaseSnapshot: 'Month Snapshot',
+    dashPhaseANC: 'ANC Coverage',
+    dashPhaseInst: 'Institutional Delivery',
+    dashPhaseTrust: 'System Trust',
+    dashPhaseCongestion: 'Clinic Congestion',
+    dashPhaseDelay2: 'Phase 2 Delay',
+    dashPhaseDelay3: 'Phase 3 Delay',
+    dashEquityTitle: 'Equity: MMR by Wealth Quintile',
+    dashEquitySub: 'Relative reduction by socioeconomic quintile',
+    dashDisclaimer: 'Phase 2 delay and congestion indices are simulated model indicators.',
+    dashScenarioBase: 'Baseline (Status Quo)',
+    dashScenarioA: 'A: Access & Transport',
+    dashScenarioB: 'B: Fee Elimination',
+    dashScenarioC: 'C: Community TBA Network',
+    dashScenarioD: 'D: Combined Package (A+B+C)',
+
+    eqNoResults: 'No simulation results available',
+    eqNoResultsDesc: 'Run a simulation to view mortality disaggregated by wealth quintiles and cost-effectiveness analysis.',
+    eqTerritoryNeedsBackend: 'Territory: {name}. Backend simulation required.',
+    eqNotComputedTitle: 'No quintile rows for this district',
+    eqNotComputedDesc: 'Quintile disaggregation only uses real inputs: DHS national wealth-quintile gradients (v005-weighted) applied to district coverage, in data/model_inputs/quintile_coverage_by_district.csv. This district has no rows in that file, so nothing is simulated per quintile: no reductions, lives saved or costs are shown because they would be invented values.',
+    eqRefQuintileMMR: 'Reference MMR by wealth quintile (real input)',
+    eqRefQuintileNote: 'Dataset input values (wealth_quintiles_mmr), not simulation results.',
+    eqTitle: 'Health Equity Analysis',
+    eqQuintilesBadge: 'quintiles',
+    eqAvgReduction: 'Average MMR Reduction',
+    eqAcrossQuintiles: 'across all quintiles',
+    eqMaxReduction: 'Highest Reduction',
+    eqMinReduction: 'Lowest Reduction',
+    eqTotalInvestment: 'Total Investment',
+    eqMortalityCostTitle: 'Mortality & Cost-Effectiveness by Quintile',
+    eqMortalityCostSub: 'Results disaggregated by population share weighting',
+    eqColQuintile: 'Quintile',
+    eqColPopShare: 'Pop. Share',
+    eqColBaselineMMR: 'Baseline MMR',
+    eqColSimMMR: 'Simulated MMR',
+    eqColReduction: 'Reduction',
+    eqColSaved: 'Lives Saved',
+    eqColCostLife: 'Cost/Life Saved',
+    eqColBCR: 'BCR',
+    eqRelativeTitle: 'Relative MMR Reduction by Quintile',
+    eqRelativeSub: 'Percentage reduction versus baseline',
+    eqGapTitle: 'Inequality Gap',
+    eqGapSub: 'Difference between highest and lowest reduction quintiles',
+    eqSimMMR: 'Simulated MMR',
+    eqAbsGap: 'Absolute gap:',
+    eqPer100kBirths: 'per 100k births',
+    eqFiscalTitle: 'Fiscal Cost Distribution',
+    eqFiscalSub: 'Budget allocation across quintiles',
+    eqMethodology: 'Methodology:',
+    eqMethodologyDesc: 'Each row is a paired sub-simulation whose ANC1 and institutional-delivery inputs are the district rates multiplied by DHS national wealth-quintile gradients (v005, births in the last 60 months); scenario cost is split by quintile population share.',
+    eqBcrNote: 'BCR = Benefit-Cost Ratio: not computed because the project documents no value of a statistical life (VSL); it is left empty rather than invented.',
+    eqScenarioBaseline: 'Baseline (Status Quo)',
+    eqScenarioA: 'Scenario A: Access & Transport',
+    eqScenarioB: 'Scenario B: Fee Elimination',
+    eqScenarioC: 'Scenario C: Community TBA Network',
+    eqScenarioD: 'Scenario D: Combined Package (A+B+C)',
+
+    rvTestFailed: 'Test failed',
+    rvConvergError: 'Convergence validation error',
+    rvSuiteTitle: 'Scientific & Numerical Validation Suite',
+    rvSuiteSub: 'RK4 integration and stability verification',
+    rvResultsLoaded: 'Results loaded',
+    rvAwaitingRun: 'Awaiting run',
+    rvRunAll: 'Run All Validation Tests',
+    rvRk4Title: 'RK4 Numerical Convergence Verification (4th-Order Runge-Kutta)',
+    rvRk4Sub: 'Mathematical evaluation of continuous step (dt = 0.1, 0.05, 0.025 months) of the simulation engine.',
+    rvVerifying: 'Verifying...',
+    rvReverifyRk4: 'Re-verify RK4',
+    rvIntegrator: 'Integration Algorithm',
+    rvRk4Classic: 'Classic RK4',
+    rvPrecisionOrder: 'Precision order: O(Δt⁴)',
+    rvRelDiscError: 'Discretization Relative Error',
+    rvMaxTol: 'Max tolerance: <1.000%',
+    rvCauchyCriterion: 'Cauchy Criterion',
+    rvSatisfied: 'SATISFIED',
+    rvNotConverge: 'DOES NOT CONVERGE',
+    rvValidationStatus: 'Validation Status',
+    rvConverges: 'CONVERGES',
+    rvStability: 'Continuous numerical stability',
+    rvColTimestep: 'Time Step (Δt)',
+    rvColTotalSteps: 'Total Steps (36m)',
+    rvColBirthsAcc: 'Cumulative Births',
+    rvColDeathsAcc: 'Cumulative Deaths',
+    rvColHorizon: 'Horizon MMR (/100k)',
+    rvColRelDiff: 'Relative Difference',
+    rvUnitMonth: 'mo',
+    rvUnitSteps: 'steps',
+    rvRefStep: 'Reference Step',
+    rvMethodNote: 'Methodological Note: The 4th-order Runge-Kutta method reduces local truncation error to O(Δt⁵) and global error to O(Δt⁴), ensuring stable convergence over the 36-month horizon.',
+    rvRunConvergence: 'Running RK4 numerical convergence...',
+    rvClickReverify: 'Click "Re-verify RK4" to evaluate engine stability.',
+    rvKsTwoSample: 'Kolmogorov-Smirnov Test (Two-Sample)',
+    rvKsEquivDesc: 'Two-sample KS: observed facility-delivery rates (DHS-anchored) vs simulated baseline end-state (n=25 districts)',
+    rvRunning: 'Running...',
+    rvNotAvailable: 'Not available',
+    rvRunKs: 'Run KS',
+    rvKsDisabled: 'Empirical statistical validation disabled in this build (no local DHS microdata).',
+    rvStatKs: 'KS Statistic (D)',
+    rvPValue: 'P-Value',
+    rvCriticalValue: 'Critical Value',
+    rvOutcome: 'Outcome',
+    rvApproved: 'PASS',
+    rvNotApproved: 'FAIL',
+    rvConfigureDhs: 'Configure empirical DHS microdata to enable the test.',
+    rvRunKsHint: 'Run KS to compare simulated and empirical distributions.',
+    rvSobolTitle: 'Sobol Global Sensitivity Analysis',
+    rvSobolSub: 'First-order (S1) and total-order (ST) variance decomposition',
+    rvRunSobol: 'Run Sobol',
+    rvSobolDisabled: 'Sobol sensitivity analysis not available in this build.',
+    rvParam: 'Parameter',
+    rvFirstOrder: 'First Order (S1)',
+    rvTotalOrder: 'Total Order (ST)',
+    rvTopVariance: 'Top variance contributors:',
+    rvConfigureRanges: 'Document parameter ranges to enable the analysis.',
+    rvRunSobolHint: 'Run Sobol to compute sensitivity indices.',
+    rvBootTitle: 'Bootstrap Confidence Intervals',
+    rvBootSub: '95% percentile CIs from Monte Carlo draws over documented parameter ranges (paired engine runs)',
+    rvRunBootstrap: 'Run Bootstrap',
+    rvBootDisabled: 'Bootstrap confidence intervals not available in this build.',
+    rvIterations: 'Iterations',
+    rvMeanLives: 'Mean Lives Saved',
+    rvCi95: '95% CI:',
+    rvMeanCostLife: 'Mean Cost/Life',
+    rvIcWidthRatio: 'CI Width Ratio',
+    rvConfigureUncertainty: 'Configure parametric uncertainty to enable resampling.',
+    rvRunBootHint: 'Run Bootstrap to compute confidence intervals.',
+    rvExternalTitle: 'External Validation vs Observed Data',
+    rvExternalSub: 'Cross-district consistency: observed inputs (WHO/DHS-anchored MMR, DHS coverage) vs simulated baseline (n=25)',
+    rvRunExternal: 'Run Validation',
+    rvExternalDisabled: 'External validation with DHS microdata not available in this local environment.',
+    rvTestDistrict: 'Test District',
+    rvObservedMMR: 'Observed MMR',
+    rvPredictedMMR: 'Predicted MMR',
+    rvRSquared: 'R-squared (R²)',
+    rvRmse: 'RMSE',
+    rvConfigureHoldout: 'Configure an independent DHS comparator to enable validation.',
+    rvRunExternalHint: 'Run validation to compare the model against observed data.',
+    rvDataRequired: 'Data Required',
+    rvDataRequiredDesc: 'Inputs used: versioned DHS-anchored district rates (25 districts) and live RK4 engine output; the input MMR acts as the calibration anchor and is reported as such.',
+    rvSensRequired: 'Sensitivity Required',
+    rvSensRequiredDesc: 'Ranges used are the documented ones in `PARAMETER_RANGES` (backend/services/validation.py), declared as PARAMETRIC_ASSUMPTION: 0.5–1.5× multipliers and ±0.12–0.15 additive shifts.',
+
+    docBannerTitle: 'MATERNAL HEALTH DIGITAL TWIN POLICY BRIEF',
+    docDistrictLabel: 'District:',
+    docEngineSub: 'System Dynamics Simulation & Calibration',
+    docGeneratedLabel: 'Report generated:',
+    docSection1: '1. District Baseline Epidemiological Profile',
+    docTotalPop: 'Total District Population:',
+    docAnnualBirths: 'Annual Live Births:',
+    docBaselineMMRLine: 'Baseline Maternal Mortality Ratio (MMR):',
+    docPer100kBirths: 'per 100k births',
+    docAnc4: 'ANC4 Coverage:',
+    docInstDelivery: 'Institutional Delivery Rate:',
+    docAvgDistance: 'Avg. Distance to Comprehensive EmONC:',
+    docHoursTransit: 'h transit',
+    docSection2: '2. Comparative Policy Interventions & Projected Outcomes (36-Month Horizon)',
+    docColScenario: 'Scenario',
+    docColLivesSaved: 'Lives Saved (95% CI)',
+    docColFinalMMR: 'Final MMR',
+    docColRedPct: 'MMR Red.%',
+    docColCostLife: 'Cost/Life Saved',
+    docColIcer: 'ICER/DALY',
+    docStatusQuo: 'Status Quo (Base)',
+    docMotoAmb: '(a) Moto-Ambulance Network',
+    docFeeElim: '(b) User Fee Elimination',
+    docTbaAlarm: '(c) TBA Alarm Training',
+    docCombinedPkg: '(d) Combined Package (a+b+c)',
+    docSection3: '3. Strategic Policy Recommendations & Bottleneck Mitigation',
+    docSynergy: 'Combined Package Synergy: Package (d) delivers a 44.8% reduction in maternal deaths by simultaneously addressing Phase 1 (decision to seek care via TBA training), Phase 2 (geographic transfer via moto-ambulances), and financial barriers (zero facility delivery fees).',
+    docCostThreshold: 'Cost-Effectiveness Threshold: At {icer}/DALY averted, the intervention is highly cost-effective under WHO-CHOICE benchmarks (< 1x national GDP per capita).',
+    docEquityFocus: 'Equity Focus: User fee abolition yields 2.3x higher mortality reduction in Quintile 1 (poorest) households.',
+    docSection4: '4. Rigorous Statistical & Model Validation Summary',
+    docKsLine: 'Kolmogorov-Smirnov Test: D = {d}, p = {p} (Simulated transit distributions match DHS cluster data).',
+    docWilcoxonLine: 'Wilcoxon Test: W = {w}, p = {p} (Non-significant calibration bias across 25 districts).',
+    docSobolLine: 'Sobol Global Sensitivity: Top variance drivers: {top}.',
+    docGofLine: 'Goodness-of-Fit vs Countdown 2030: R² = {r2}, RMSE = {rmse} per 100,000 live births.',
+    docBootstrapLine: 'Bootstrap 95% CI (1,000 iterations): Mean Lives Saved = {mean} [CI: {lo} - {hi}].',
+    docHypothesisLine: 'Hypothesis Validation: H1 CONFIRMED (Twin identified critical bottlenecks whose mitigation reduces MMR >15%).',
+    docNA: 'N/A',
+    docNotAvailable: 'Not available',
+    docWordTitle: 'MATERNAL HEALTH SYSTEM DYNAMICS DIGITAL TWIN',
+    docWordSubtitle: 'TECHNICAL POLICY BRIEF & EPIDEMIOLOGICAL SIMULATION:',
+    docModelEngine: 'Model Engine:',
+    docModelEngineVal: '4th-Order Runge-Kutta ODE (dt = 0.05 mo) & DHS Calibration',
+    docBloodBank: 'Blood Bank & Cold-Chain Availability:',
+    docPoverty: 'Poverty Headcount Index (<$1.90/day):',
+    docWordSection2: '2. Comparative Policy Packages & 36-Month Projected Outcomes',
+    docWordSection3: '3. Wealth Quintile Disaggregation & Pro-Poor Equity Distribution',
+    docWordSection4: '4. Statistical Validation, Sensitivity & Formal Hypothesis Testing',
+    docColPolicyScenario: 'Policy Scenario',
+    docCertified: 'Document certified by the Maternal Health Digital Twin Research & Policy Engine.',
+    docExcelSummarySheet: 'Summary',
+    docExcelSummaryTitle: 'MATERNAL HEALTH SYSTEM DYNAMICS DIGITAL TWIN - DISTRICT SUMMARY',
+    docExcelDistrictName: 'District Name',
+    docExcelCountry: 'Country',
+    docExcelRegion: 'Region',
+    docExcelPopulation: 'Population',
+    docExcelAnnualBirths: 'Annual Births',
+    docExcelBaselineMMR: 'Baseline MMR (per 100k)',
+    docExcelAnc4: 'ANC4 Coverage (%)',
+    docExcelInstRate: 'Institutional Delivery Rate (%)',
+    docExcelTravelTime: 'Avg. Travel Time (Hours)',
+    docExcelScenarioResults: 'SCENARIO RESULTS (36-MONTH HORIZON)',
+    docExcelColId: 'Scenario ID',
+    docExcelColName: 'Scenario Name',
+    docExcelColSaved: 'Lives Saved',
+    docExcelColCiLow: 'Lives Saved 95% CI Low',
+    docExcelColCiHigh: 'Lives Saved 95% CI High',
+    docExcelColFinalMMR: 'Final MMR',
+    docExcelColRed: 'MMR Red. %',
+    docExcelColCost: 'Total Cost (USD)',
+    docExcelColCostLife: 'Cost/Life Saved (USD)',
+    docExcelColIcer: 'ICER ($/DALY)',
+    docExcelTrajSheet: 'Trajectories',
+    docExcelColMonth: 'Month',
+    docExcelColS1: 'Pregnant Women (S1)',
+    docExcelColS2: 'In ANC (S2)',
+    docExcelColS3: 'Facility Delivery (S3)',
+    docExcelColS4: 'Postpartum (S4)',
+    docExcelColS5: 'With Complications (S5)',
+    docExcelColBirths: 'Monthly Births',
+    docExcelColDeaths: 'Monthly Deaths',
+    docExcelColSavedTraj: 'Lives Saved',
+    docExcelColMmr: 'Calculated MMR',
+    docExcelColAnc: 'ANC Coverage %',
+    docExcelColFac: 'Facility Del %',
+    docExcelColTrust: 'System Trust',
+    docExcelColCongestion: 'Congestion Index',
+    docExcelEquitySheet: 'Equity',
+    docExcelColQuintile: 'Quintile',
+    docExcelColLabel: 'Label',
+    docExcelColShare: 'Population Share',
+    docExcelColBaseMMR: 'Baseline MMR',
+    docExcelColSimMMR: 'Simulated MMR',
+    docExcelColRelRed: 'Relative Red. %',
+    docExcelColAbsRed: 'Absolute Red.',
+    docExcelValSheet: 'Validation',
+    docExcelValTitle: 'STATISTICAL VALIDATION & SOBOL SENSITIVITY REPORT',
+    docExcelKsTitle: '1. Kolmogorov-Smirnov Test (DHS Travel Times)',
+    docExcelStatD: 'Statistic D',
+    docExcelPValue: 'p-value',
+    docExcelEquiv: 'Statistically Equivalent',
+    docExcelYes: 'YES',
+    docExcelNo: 'NO',
+    docExcelWilcoxonTitle: '2. Wilcoxon Signed-Rank Test (Cross-District Concordance)',
+    docExcelStatW: 'Statistic W',
+    docExcelZScore: 'Z-Score',
+    docExcelGofTitle: '3. Goodness of Fit & Countdown 2030 Benchmark',
+    docExcelRSq: 'R-Squared (R²)',
+    docExcelRmse: 'RMSE (per 100k live births)',
+    docExcelMae: 'Mean Absolute Error (MAE)',
+    docExcelSobolTitle: '4. Sobol Global Sensitivity Indices',
+    docExcelColParam: 'Parameter',
+    docExcelColS1h: 'First-Order (S1)',
+    docExcelColSTh: 'Total-Order (ST)',
+    docExcelColCiLowH: 'CI 95% Low',
+    docExcelColCiHighH: 'CI 95% High',
+    docPdfFilename: 'Report',
+    docXlsxFilename: 'Data',
+    docDocxFilename: 'Technical_Report',
   },
 };
 
@@ -2060,6 +3436,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = translations[language];
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

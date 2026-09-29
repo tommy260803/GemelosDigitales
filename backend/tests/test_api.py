@@ -92,7 +92,17 @@ class TestSimulationEndpoints:
         assert data["scenario_id"] == "baseline"
         assert data["trajectory_count"] == 12
         assert "summary" in data
-        assert data["equity_disaggregation"] == []
+        equity = data["equity_disaggregation"]
+        assert len(equity) == 5
+        assert [q["quintile"] for q in equity] == [
+            "q1_poorest", "q2_poor", "q3_middle", "q4_richer", "q5_richest"]
+        assert abs(sum(q["population_share"] for q in equity) - 1.0) < 0.05
+        for q in equity:
+            assert q["benefit_cost_ratio"] is None
+            assert q["baseline_mmr"] is not None
+            assert q["lives_saved"] >= 0
+            assert q["fiscal_cost_usd"] >= 0
+        assert "dhs" in data["equity_status"].lower()
         assert len(data["trajectories"]) == 12
         assert data["summary"]["deaths_avoided"] == 0
         assert data["run_metadata"]["integrator"] == "RK4"
@@ -148,19 +158,40 @@ class TestValidationEndpoints:
 
     def test_validation_ks(self, client):
         response = client.post("/validation/ks", json={"district_id": "ke-garissa"})
-        assert response.status_code == 410
+        assert response.status_code == 200
+        data = response.json()
+        assert 0 <= data["statistic_d"] <= 1
+        assert 0 <= data["p_value"] <= 1
+        assert data["n_observed"] >= 5
+        assert 0 <= data["wilcoxon"]["p_value"] <= 1
 
     def test_validation_sobol(self, client):
-        response = client.post("/validation/sobol", json={"district_id": "ke-garissa"})
-        assert response.status_code == 410
+        response = client.post("/validation/sobol", json={"district_id": "ke-garissa", "n_samples": 16, "months": 12})
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["parameters"]) == len(data["first_order_indices"])
+        assert data["n_model_runs"] == 16 * (len(data["parameters"]) + 2)
 
     def test_validation_bootstrap(self, client):
-        response = client.post("/validation/bootstrap", json={"district_id": "ke-garissa"})
-        assert response.status_code == 410
+        response = client.post("/validation/bootstrap", json={"district_id": "ke-garissa", "iterations": 10, "months": 12})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["ci95_lives_saved"][0] <= data["ci95_lives_saved"][1]
+        assert data["ci95_cost_per_life_saved"][0] <= data["ci95_cost_per_life_saved"][1]
+
+    def test_validation_requires_district_for_sobol_and_bootstrap(self, client):
+        assert client.post("/validation/sobol", json={}).status_code == 422
+        assert client.post("/validation/bootstrap", json={}).status_code == 422
+        assert client.post("/validation/sobol", json={"district_id": "nope"}).status_code == 404
+        assert client.post("/validation/bootstrap", json={"district_id": "nope"}).status_code == 404
 
     def test_validation_external(self, client):
-        response = client.get("/validation/external/ke-garissa")
-        assert response.status_code == 410
+        response = client.get("/validation/external/ke-garissa?months=12")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["rmse"] >= 0
+        assert 0 <= data["r_squared"] <= 1
+        assert data["requested_district_id"] == "ke-garissa"
 
     def test_validation_convergence(self, client):
         response = client.get("/validation/convergence/ke-garissa?scenario_id=scenario_d&months=12")

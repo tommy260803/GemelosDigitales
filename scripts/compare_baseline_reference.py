@@ -3,6 +3,11 @@
 The reference file is intentionally required and never synthesized. Results
 are a reference comparison, not validation unless the reference is independent
 of model calibration and temporally/geographically aligned.
+
+``coverage_normalized`` reports the MMR implied by the model itself
+(deaths simulated per year / annual births of the model territories * 100,000),
+because the simulated territories are a subnational subset and cannot be
+compared against national absolute death counts directly.
 """
 from __future__ import annotations
 
@@ -14,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REFERENCE = ROOT / "data" / "mortality" / "mmeig_absolute_maternal_deaths.csv"
 DEFAULT_RESULTS = ROOT / "data" / "results" / "final_country_results.csv"
 DEFAULT_OUTPUT = ROOT / "data" / "results" / "mmeig_baseline_reference_comparison.csv"
+DEMOGRAPHICS = ROOT / "data" / "model_inputs" / "territorial_demographics.csv"
 
 
 def rows(path: Path) -> list[dict[str, str]]:
@@ -21,7 +27,16 @@ def rows(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
-def compare(reference: Path, results: Path, year: int, simulation_months: int) -> list[dict[str, object]]:
+def births_by_country(path: Path) -> dict[str, float]:
+    """Annual births covered by the model territories, per country."""
+    totals: dict[str, float] = {}
+    for row in rows(path):
+        totals[row["country"]] = totals.get(row["country"], 0.0) + float(row["annual_births"])
+    return totals
+
+
+def compare(reference: Path, results: Path, year: int, simulation_months: int,
+            demographics: Path = DEMOGRAPHICS) -> list[dict[str, object]]:
     if not reference.is_file():
         raise FileNotFoundError(
             f"MMEIG reference not found: {reference}. No mortality validation result was generated."
@@ -45,6 +60,10 @@ def compare(reference: Path, results: Path, year: int, simulation_months: int) -
     }
     if set(reference_by_country) != set(simulated):
         raise ValueError("MMEIG and simulation countries do not match exactly")
+    territory_births = births_by_country(demographics)
+    missing_births = sorted(set(reference_by_country) - set(territory_births))
+    if missing_births:
+        raise ValueError(f"Model territories missing for: {missing_births}")
     return [
         {
             "country": country, "year": year,
@@ -54,6 +73,7 @@ def compare(reference: Path, results: Path, year: int, simulation_months: int) -
             "simulated_baseline_deaths_annualized": simulated[country] * 12 / simulation_months,
             "absolute_difference_annualized": simulated[country] * 12 / simulation_months - reference_by_country[country],
             "relative_difference_percent_annualized": (simulated[country] * 12 / simulation_months / reference_by_country[country] - 1) * 100,
+            "coverage_normalized": simulated[country] * 12 / simulation_months / territory_births[country] * 100000,
             "classification": "EXPLORATORY_REFERENCE_COMPARISON_TEMPORAL_ALIGNMENT_REQUIRED",
         }
         for country in sorted(reference_by_country)
@@ -64,11 +84,12 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
     parser.add_argument("--results", type=Path, default=DEFAULT_RESULTS)
+    parser.add_argument("--demographics", type=Path, default=DEMOGRAPHICS)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--simulation-months", type=int, default=36)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
-    output = compare(args.reference, args.results, args.year, args.simulation_months)
+    output = compare(args.reference, args.results, args.year, args.simulation_months, args.demographics)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(output[0]))

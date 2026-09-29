@@ -43,7 +43,9 @@ def _fetch_district(district_id: str):
                       poverty_rate, female_secondary_education, tba_prevalence,
                       ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng,
                       health_facilities_count as osm_health_facilities_count,
-                      wealth_quintiles_mmr
+                      wealth_quintiles_mmr,
+                      road_quality_index, transport_cost_usd, facility_delivery_fee_usd,
+                      community_trust_baseline, baseline_complication_rate
                FROM health_districts WHERE id = %s""",
             (district_id,),
         )
@@ -73,6 +75,11 @@ def _fetch_district(district_id: str):
                 lat=float(row["lat"]), lng=float(row["lng"]),
                 osm_health_facilities_count=row["osm_health_facilities_count"],
                 wealth_quintile_mmr=row["wealth_quintiles_mmr"],
+                road_quality_index=float(row["road_quality_index"]) if row["road_quality_index"] is not None else None,
+                transport_cost_usd=float(row["transport_cost_usd"]) if row["transport_cost_usd"] is not None else None,
+                facility_delivery_fee_usd=float(row["facility_delivery_fee_usd"]) if row["facility_delivery_fee_usd"] is not None else None,
+                community_trust_baseline=float(row["community_trust_baseline"]) if row["community_trust_baseline"] is not None else None,
+                baseline_complication_rate=float(row["baseline_complication_rate"]) if row["baseline_complication_rate"] is not None else None,
             )
     except Exception:
         pass
@@ -101,7 +108,9 @@ def _all_districts():
                       poverty_rate, female_secondary_education, tba_prevalence,
                       ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng,
                       health_facilities_count as osm_health_facilities_count,
-                      wealth_quintiles_mmr
+                      wealth_quintiles_mmr,
+                      road_quality_index, transport_cost_usd, facility_delivery_fee_usd,
+                      community_trust_baseline, baseline_complication_rate
                FROM health_districts ORDER BY country, name"""
         )
         rows = cur.fetchall()
@@ -129,6 +138,11 @@ def _all_districts():
                 lat=float(r["lat"]), lng=float(r["lng"]),
                 osm_health_facilities_count=r["osm_health_facilities_count"],
                 wealth_quintile_mmr=r["wealth_quintiles_mmr"],
+                road_quality_index=float(r["road_quality_index"]) if r["road_quality_index"] is not None else None,
+                transport_cost_usd=float(r["transport_cost_usd"]) if r["transport_cost_usd"] is not None else None,
+                facility_delivery_fee_usd=float(r["facility_delivery_fee_usd"]) if r["facility_delivery_fee_usd"] is not None else None,
+                community_trust_baseline=float(r["community_trust_baseline"]) if r["community_trust_baseline"] is not None else None,
+                baseline_complication_rate=float(r["baseline_complication_rate"]) if r["baseline_complication_rate"] is not None else None,
             )
             for r in rows
         ]

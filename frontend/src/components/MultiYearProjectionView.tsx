@@ -24,17 +24,18 @@ interface Props {
   district: DistrictData;
 }
 
-const SCENARIO_META: Record<string, { name: string; color: string }> = {
-  baseline:   { name: 'Línea Base (Status Quo)', color: '#94a3b8' },
-  scenario_a: { name: 'A: Acceso y Transporte',  color: '#38bdf8' },
-  scenario_b: { name: 'B: Acceso Financiero',    color: '#34d399' },
-  scenario_c: { name: 'C: Red Comunitaria TBA', color: '#818cf8' },
-  scenario_d: { name: 'D: Paquete Integral',     color: '#fbbf24' },
+const SCENARIO_META: Record<string, { labelKey: string; color: string }> = {
+  baseline:   { labelKey: 'dashScenarioBase', color: '#94a3b8' },
+  scenario_a: { labelKey: 'dashScenarioA',    color: '#38bdf8' },
+  scenario_b: { labelKey: 'dashScenarioB',    color: '#34d399' },
+  scenario_c: { labelKey: 'dashScenarioC',    color: '#818cf8' },
+  scenario_d: { labelKey: 'dashScenarioD',    color: '#fbbf24' },
 };
 
 export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const scenarioLabel = (id: string) => t[SCENARIO_META[id]?.labelKey as keyof typeof t] as string;
 
   const [projectionMonths, setProjectionMonths] = useState<number>(120);
   const [results, setResults] = useState<Record<string, SimulationResult>>({});
@@ -63,7 +64,7 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
       });
       if (isMounted.current) setResults(newResults);
     } catch (e: any) {
-      if (isMounted.current) setError(e.message || 'Error en la proyección plurianual');
+      if (isMounted.current) setError(e.message || t.myProjectionError);
     } finally {
       if (isMounted.current) setLoading(false);
     }
@@ -128,27 +129,27 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
     <div className="space-y-4">
       {/* Header */}
       <SectionHeader
-        title="Proyección Plurianual"
-        subtitle={`${district.name} · Horizonte de ${years} años (${projectionMonths} meses)`}
+        title={t.myTitle}
+        subtitle={`${district.name} · ${t.mySubtitle.replace('{years}', String(years)).replace('{months}', String(projectionMonths))}`}
         icon={<Calendar className="w-5 h-5" />}
         badge={
           Object.keys(results).length > 0
-            ? <Badge variant="success" size="sm"><BarChart3 className="w-3 h-3" /> Datos cargados</Badge>
-            : <Badge variant="warning" size="sm"><AlertTriangle className="w-3 h-3" /> No computado</Badge>
+            ? <Badge variant="success" size="sm"><BarChart3 className="w-3 h-3" /> {t.myDataLoaded}</Badge>
+            : <Badge variant="warning" size="sm"><AlertTriangle className="w-3 h-3" /> {t.myNotComputed}</Badge>
         }
       />
 
       {/* Controls */}
       <div className="flex items-center gap-3">
-        <label className="text-sm text-slate-600 dark:text-slate-400">Horizonte de proyección:</label>
+        <label className="text-sm text-slate-600 dark:text-slate-400">{t.myHorizonLabel}</label>
         <select
           value={projectionMonths}
           onChange={(e) => setProjectionMonths(Number(e.target.value))}
           className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-500"
         >
-          <option value={60}>5 años (60 meses)</option>
-          <option value={96}>8 años (96 meses)</option>
-          <option value={120}>10 años (120 meses)</option>
+          <option value={60}>{t.myOpt5}</option>
+          <option value={96}>{t.myOpt8}</option>
+          <option value={120}>{t.myOpt10}</option>
         </select>
         <button
           onClick={runProjection}
@@ -156,7 +157,7 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
           className="flex items-center gap-2 px-4 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 rounded-lg text-sm font-medium text-white transition-colors"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          {loading ? 'Calculando...' : 'Actualizar Proyección'}
+          {loading ? t.myCalculating : t.myUpdateProjection}
         </button>
       </div>
 
@@ -174,9 +175,9 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
       ) : !Object.keys(results).length && !error ? (
         <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-lg text-center">
           <Calendar className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold mb-2">Proyección Plurianual</h3>
+          <h3 className="text-lg font-semibold mb-2">{t.myTitle}</h3>
           <p className="text-sm text-slate-400 mb-4">
-            Presione "Actualizar Proyección" para calcular trayectorias de dinámica de sistemas a {years} años en los 5 escenarios.
+            {t.myEmptyDesc.replace('{years}', String(years))}
           </p>
         </div>
       ) : (
@@ -185,30 +186,30 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
           {bestScenario && baseline && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <StatCard
-                label="Horizonte de Proyección"
-                value={`${years} años`}
-                subtitle={`${projectionMonths} meses`}
+                label={t.myHorizonKpi}
+                value={`${years} ${t.myYearsUnit}`}
+                subtitle={`${projectionMonths} ${t.myMonthsUnit}`}
                 icon={<Calendar className="w-5 h-5" />}
                 variant="info"
               />
               <StatCard
-                label={`Vidas Salvadas (${years}a)`}
+                label={t.myLivesSavedYears.replace('{years}', String(years))}
                 value={bestScenario.summary.livesSaved.toFixed(0)}
-                subtitle={SCENARIO_META[bestScenario.scenarioId]?.name || bestScenario.scenarioName}
+                subtitle={scenarioLabel(bestScenario.scenarioId) || bestScenario.scenarioName}
                 icon={<Heart className="w-5 h-5" />}
                 variant="success"
               />
               <StatCard
-                label="RMM Final (Línea Base)"
+                label={t.myFinalBaseline}
                 value={baseline.summary.mmrFinal.toFixed(0)}
-                subtitle={`de ${baseline.summary.baselineDeaths.toFixed(0)} muertes`}
+                subtitle={t.myFromDeaths.replace('{n}', baseline.summary.baselineDeaths.toFixed(0))}
                 icon={<TrendingDown className="w-5 h-5" />}
                 variant="warning"
               />
               <StatCard
-                label="Brecha Meta ODS 3.1"
-                value={baseline.summary.mmrFinal > 70 ? `+${(baseline.summary.mmrFinal - 70).toFixed(0)}` : 'En meta'}
-                subtitle={baseline.summary.mmrFinal > 70 ? 'sobre meta ODS de 70' : 'RMM ≤ 70'}
+                label={t.mySdgGapTitle}
+                value={baseline.summary.mmrFinal > 70 ? `+${(baseline.summary.mmrFinal - 70).toFixed(0)}` : t.myOnTarget}
+                subtitle={baseline.summary.mmrFinal > 70 ? t.myAboveTarget : t.myMmrLimit}
                 icon={<Target className="w-5 h-5" />}
                 variant={baseline.summary.mmrFinal > 70 ? 'danger' : 'success'}
               />
@@ -218,8 +219,8 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
           {/* Projection Chart */}
           {yearByYear.length > 0 && (
             <ChartCard
-              title="Proyección de Trayectoria de RMM"
-              subtitle={`Evolución de RMM a ${years} años en todos los escenarios`}
+              title={t.myTrajectoryTitle}
+              subtitle={t.myTrajectorySub.replace('{years}', String(years))}
             >
               <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-72">
                 {/* Grid */}
@@ -263,7 +264,7 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
                       className="fill-rose-400"
                       fontSize={8}
                     >
-                      ODS 70
+                      {t.mySdg70}
                     </text>
                   </g>
                 )}
@@ -282,7 +283,7 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
                 {Object.entries(SCENARIO_META).map(([id, meta]) => (
                   <div key={id} className="flex items-center gap-1.5">
                     <span className="w-3 h-0.5 rounded" style={{ backgroundColor: meta.color }} />
-                    <span className="text-slate-400">{meta.name}</span>
+                    <span className="text-slate-400">{scenarioLabel(id)}</span>
                   </div>
                 ))}
               </div>
@@ -291,17 +292,17 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
 
           {/* Year-by-Year Table */}
           {yearByYear.length > 0 && (
-            <ChartCard title="Desglose Anual de RMM" subtitle="Instantáneas anuales de RMM por escenario" noPadding>
+            <ChartCard title={t.myAnnualBreakdown} subtitle={t.myAnnualBreakdownSub} noPadding>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-700">
-                      <th className="text-left py-2 px-3 text-xs text-slate-400">Año</th>
-                      <th className="text-right py-2 px-3 text-xs text-slate-400">Línea Base</th>
+                      <th className="text-left py-2 px-3 text-xs text-slate-400">{t.myColYear}</th>
+                      <th className="text-right py-2 px-3 text-xs text-slate-400">{t.myColBaseline}</th>
                       {Object.entries(SCENARIO_META).filter(([id]) => id !== 'baseline').map(([id, meta]) => (
-                        <th key={id} className="text-right py-2 px-3 text-xs text-slate-400">{meta.name}</th>
+                        <th key={id} className="text-right py-2 px-3 text-xs text-slate-400">{scenarioLabel(id)}</th>
                       ))}
-                      <th className="text-right py-2 px-3 text-xs text-slate-400">Brecha ODS</th>
+                      <th className="text-right py-2 px-3 text-xs text-slate-400">{t.myColSdgGap}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -331,28 +332,28 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
 
           {/* Cost-Effectiveness Summary */}
           {bestScenario && (
-            <ChartCard title="Resumen de Costo-Efectividad" subtitle="Análisis de inversión para el escenario de mayor impacto">
+            <ChartCard title={t.myCostEffectiveness} subtitle={t.myCostEffectivenessSub}>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-slate-800/50 rounded-lg p-3">
-                  <div className="text-xs text-slate-400 mb-1">Inversión Total</div>
+                  <div className="text-xs text-slate-400 mb-1">{t.myTotalInvestment}</div>
                   <div className="text-xl font-mono font-bold text-sky-400">
                     ${(bestScenario.summary.totalCostUSD / 1000).toFixed(1)}k
                   </div>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
-                  <div className="text-xs text-slate-400 mb-1">Costo por Vida Salvada</div>
+                  <div className="text-xs text-slate-400 mb-1">{t.myCostPerLifeLabel}</div>
                   <div className="text-xl font-mono font-bold text-emerald-400">
                     ${bestScenario.summary.costPerLifeSavedUSD.toFixed(0)}
                   </div>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
-                  <div className="text-xs text-slate-400 mb-1">Vidas Salvadas</div>
+                  <div className="text-xs text-slate-400 mb-1">{t.myLives}</div>
                   <div className="text-xl font-mono font-bold">
                     {bestScenario.summary.livesSaved.toFixed(0)}
                   </div>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-3">
-                  <div className="text-xs text-slate-400 mb-1">Reducción de RMM</div>
+                  <div className="text-xs text-slate-400 mb-1">{t.myMmrReduction}</div>
                   <div className="text-xl font-mono font-bold text-emerald-400">
                     {bestScenario.summary.mmrReductionPercent.toFixed(1)}%
                   </div>
@@ -364,8 +365,7 @@ export const MultiYearProjectionView: React.FC<Props> = ({ district }) => {
       )}
 
       <p className="text-xs text-slate-500">
-        Las proyecciones plurianuales utilizan integración RK4 de FastAPI con horizontes de {projectionMonths} meses.
-        Los horizontes más largos capturan ciclos de retroalimentación no lineales en el modelo de dinámica de sistemas de 5 stocks.
+        {t.myDisclaimer.replace('{months}', String(projectionMonths))}
       </p>
     </div>
   );

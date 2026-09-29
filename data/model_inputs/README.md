@@ -1,9 +1,10 @@
 # Versioned territorial model inputs
 
-These five CSV files are the reproducible input layer for the 25 existing
-simulation territories. They were initialized by a one-time migration from the
-repository's prior `database/seed.sql`; this migration does **not**
-verify external provenance or convert values into observations.
+The five core CSV files below (plus `quintile_coverage_by_district.csv`, see
+"Wealth-quintile coverage" at the end) are the reproducible input layer for the
+25 existing simulation territories. They were initialized by a one-time
+migration from the repository's prior `database/seed.sql`; this migration does
+**not** verify external provenance or convert values into observations.
 
 Runtime path: `CSV -> scripts/load_model_inputs.py validation/upsert -> PostgreSQL -> FastAPI -> Python RK4 -> React`.
 PostgreSQL is the runtime authority. CSV files are the versioned loading source.
@@ -81,3 +82,35 @@ capacity at facilities without verified 24/7 coverage. It scales modeled
 capacity and the staffing components of quality and Delay 3. Historical
 coefficients in those equations remain assumptions, and the Delay 3 output is
 an index rather than observed time. Both model versions remain simulations.
+
+## Wealth-quintile coverage (equity disaggregation)
+
+`scripts/build_quintile_coverage.py` derives stratified coverage inputs from the
+five repository DHS IR `.dta` files (weighted with `v005`, births in the last
+60 months): ANC1 (`m14>0`), ANC4+ (`m14>=4`) and institutional delivery (`m15`
+labels) by national wealth quintile (`v190`). It writes:
+
+- `data/derived/dhs_quintile_indicators.csv` - one row per country/quintile,
+  including the national overall rates and the quintile/overall ratio used as
+  the gradient;
+- `data/model_inputs/quintile_coverage_by_district.csv` - 125 rows (25
+  districts x 5 quintiles): district rate = district value x national quintile
+  gradient, preserving the district level (same national-anchoring philosophy
+  as `build_final_hybrid_inputs.py`). Columns: `territory_id, quintile, label,
+  population_share, anc1_rate, anc4_rate, institutional_delivery_rate` plus
+  `source_file/source_type`;
+- 375 idempotent `quintile_coverage.*` rows appended to `input_provenance.csv`.
+
+Run it **after** `scripts/build_final_hybrid_inputs.py` (that script rewrites
+`input_provenance.csv` from scratch).
+
+Runtime path: `model_inputs.quintile_coverage_by_district()` -> `equity_inputs`
+of `SystemDynamicsEngine.simulate` -> five paired sub-simulations (per-quintile
+ANC1 and institutional-delivery inputs, baseline + scenario) ->
+`equity_disaggregation` in `POST /simulation/run`. Cost is split by
+`population_share`; `baseline_mmr` per quintile comes from the district
+`wealth_quintiles_mmr` input; `benefit_cost_ratio` is always `null` because no
+value of a statistical life (VSL) is documented in this project. If the file is
+absent or a district has no rows, the engine returns an empty list and
+`equity_status` reports `not_computed_without_empirical stratification data` -
+nothing is imputed.

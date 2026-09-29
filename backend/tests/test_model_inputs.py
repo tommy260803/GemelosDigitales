@@ -1,4 +1,5 @@
 from pathlib import Path
+import pytest
 from services.model_inputs import FILES, INPUT_DIR, districts_from_datasets, load_rows
 from services.system_dynamics import SystemDynamicsEngine
 
@@ -29,7 +30,8 @@ def test_api_runtime_district_matches_versioned_input(client):
     payload=response.json()
     assert payload['population']==expected.population
     assert payload['annualBirths']==expected.annual_births
-    assert payload['avgTravelTimeHours']==expected.avg_travel_time_hours
+    # The runtime column is NUMERIC(9, 6): storage rounds to six decimals.
+    assert payload['avgTravelTimeHours']==pytest.approx(expected.avg_travel_time_hours, rel=0, abs=5e-7)
 
 def test_frontend_has_no_runtime_territory_or_scientific_engine_source():
     frontend=Path(__file__).resolve().parents[2]/'frontend'/'src'

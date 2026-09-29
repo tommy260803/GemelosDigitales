@@ -9,7 +9,6 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { DistrictData, SimulationResult } from '../types';
-import { deriveEquityDisaggregation } from '../utils/equity';
 import { useLanguage } from '../i18n/translations';
 import { useTheme } from '../context/ThemeContext';
 import { SectionHeader } from './ui/SectionHeader';
@@ -31,12 +30,12 @@ const QUINTILE_COLORS: Record<string, string> = {
   q5_richest: '#3b82f6',
 };
 
-const SCENARIO_LABELS: Record<string, string> = {
-  baseline: 'Línea Base (Status Quo)',
-  scenario_a: 'Escenario A: Acceso y Transporte',
-  scenario_b: 'Escenario B: Eliminación de Tarifas',
-  scenario_c: 'Escenario C: Red Comunitaria TBA',
-  scenario_d: 'Escenario D: Paquete Integral (A+B+C)',
+const SCENARIO_LABEL_KEYS: Record<string, string> = {
+  baseline: 'eqScenarioBaseline',
+  scenario_a: 'eqScenarioA',
+  scenario_b: 'eqScenarioB',
+  scenario_c: 'eqScenarioC',
+  scenario_d: 'eqScenarioD',
 };
 
 export const EquityView: React.FC<EquityViewProps> = ({
@@ -46,6 +45,7 @@ export const EquityView: React.FC<EquityViewProps> = ({
 }) => {
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const scenarioLabel = (id: string) => t[SCENARIO_LABEL_KEYS[id] as keyof typeof t] as string;
 
   if (!simulationResult) {
     return (
@@ -53,12 +53,12 @@ export const EquityView: React.FC<EquityViewProps> = ({
         <div className="flex gap-3 bg-amber-950/30 border border-amber-500/40 rounded-lg p-5">
           <Scale className="text-amber-300 shrink-0" />
           <div>
-            <h2 className="font-semibold">No hay resultados de simulación disponibles</h2>
+            <h2 className="font-semibold">{t.eqNoResults}</h2>
             <p className="text-sm text-slate-400 mt-1">
-              Ejecute una simulación para visualizar la mortalidad desagregada por quintiles de riqueza y el análisis de costo-efectividad.
+              {t.eqNoResultsDesc}
             </p>
             <p className="text-xs text-slate-500 mt-2">
-              Territorio: {district.name}. Se requiere simulación del backend.
+              {t.eqTerritoryNeedsBackend.replace('{name}', district.name)}
             </p>
           </div>
         </div>
@@ -66,13 +66,70 @@ export const EquityView: React.FC<EquityViewProps> = ({
     );
   }
 
-  const summary = simulationResult.summary;
-  const equity = React.useMemo(() => {
-    if (simulationResult.equityDisaggregation && simulationResult.equityDisaggregation.length > 0) {
-      return simulationResult.equityDisaggregation;
-    }
-    return deriveEquityDisaggregation(district, activeScenarioId, summary);
-  }, [simulationResult, district, activeScenarioId, summary]);
+  const equity = React.useMemo(
+    () => simulationResult.equityDisaggregation || [],
+    [simulationResult]
+  );
+
+  const referenceRows = React.useMemo(() => {
+    const q = district.wealthQuintileMMR;
+    if (!q) return [];
+    return Object.entries(q).map(([key, value]) => ({
+      key,
+      label: key.split('_')[0].toUpperCase(),
+      value,
+    }));
+  }, [district]);
+
+  if (equity.length === 0) {
+    return (
+      <div className="space-y-4">
+        <SectionHeader
+          title={t.eqTitle}
+          subtitle={`${district.name} · ${scenarioLabel(activeScenarioId)}`}
+          icon={<Scale className="w-5 h-5" />}
+          badge={<Badge variant="warning" size="sm">0 {t.eqQuintilesBadge}</Badge>}
+        />
+        <div className="flex gap-3 bg-amber-950/30 border border-amber-500/40 rounded-lg p-5">
+          <HelpCircle className="text-amber-300 shrink-0" />
+          <div>
+            <h2 className="font-semibold">{t.eqNotComputedTitle}</h2>
+            <p className="text-sm text-slate-400 mt-1">{t.eqNotComputedDesc}</p>
+          </div>
+        </div>
+        {referenceRows.length > 0 && (
+          <ChartCard title={t.eqRefQuintileMMR} subtitle={t.eqRefQuintileNote} noPadding>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-700 bg-slate-900/40">
+                    <th className="text-left py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColQuintile}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColBaselineMMR}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {referenceRows.map((row) => (
+                    <tr key={row.key} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{ backgroundColor: QUINTILE_COLORS[row.key] || '#94a3b8' }}
+                          />
+                          <span className="font-semibold text-slate-200">{row.label}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-slate-300 font-medium">{row.value.toFixed(0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </ChartCard>
+        )}
+      </div>
+    );
+  }
 
   // Compute aggregate equity metrics
   const avgReduction = equity.length > 0
@@ -93,39 +150,39 @@ export const EquityView: React.FC<EquityViewProps> = ({
     <div className="space-y-4">
       {/* Header */}
       <SectionHeader
-        title="Análisis de Equidad en Salud"
-        subtitle={`${district.name} · ${SCENARIO_LABELS[activeScenarioId]}`}
+        title={t.eqTitle}
+        subtitle={`${district.name} · ${scenarioLabel(activeScenarioId)}`}
         icon={<Scale className="w-5 h-5" />}
-        badge={<Badge variant="info" size="sm">{equity.length} quintiles</Badge>}
+        badge={<Badge variant="info" size="sm">{equity.length} {t.eqQuintilesBadge}</Badge>}
       />
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
-          label="Reducción Promedio RMM"
+          label={t.eqAvgReduction}
           value={`${avgReduction.toFixed(1)}%`}
-          subtitle="en todos los quintiles"
+          subtitle={t.eqAcrossQuintiles}
           icon={<TrendingDown className="w-5 h-5" />}
           variant={avgReduction > 15 ? 'success' : 'warning'}
         />
         <StatCard
-          label="Mayor Reducción"
+          label={t.eqMaxReduction}
           value={maxReductionQ ? `-${maxReductionQ.relativeReduction.toFixed(1)}%` : 'N/A'}
           subtitle={maxReductionQ?.label || ''}
           icon={<Award className="w-5 h-5" />}
           variant="success"
         />
         <StatCard
-          label="Menor Reducción"
+          label={t.eqMinReduction}
           value={minReductionQ ? `-${minReductionQ.relativeReduction.toFixed(1)}%` : 'N/A'}
           subtitle={minReductionQ?.label || ''}
           icon={<HelpCircle className="w-5 h-5" />}
           variant="danger"
         />
         <StatCard
-          label="Inversión Total"
+          label={t.eqTotalInvestment}
           value={`$${(totalCostAllQuintiles / 1000).toFixed(1)}k`}
-          subtitle="en todos los quintiles"
+          subtitle={t.eqAcrossQuintiles}
           icon={<ShieldCheck className="w-5 h-5" />}
           variant="info"
         />
@@ -133,22 +190,22 @@ export const EquityView: React.FC<EquityViewProps> = ({
 
       {/* Quintile Comparison Table */}
       <ChartCard
-        title="Mortalidad y Costo-Efectividad por Quintil"
-        subtitle="Desagregación de resultados ponderada por participación poblacional"
+        title={t.eqMortalityCostTitle}
+        subtitle={t.eqMortalityCostSub}
         noPadding
       >
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-700 bg-slate-900/40">
-                <th className="text-left py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Quintil</th>
-                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Part. Población</th>
-                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">RMM Base</th>
-                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">RMM Simulada</th>
-                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Reducción</th>
-                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Vidas Salvadas</th>
-                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Costo/Vida Salvada</th>
-                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">RBC</th>
+                <th className="text-left py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColQuintile}</th>
+                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColPopShare}</th>
+                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColBaselineMMR}</th>
+                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColSimMMR}</th>
+                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColReduction}</th>
+                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColSaved}</th>
+                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColCostLife}</th>
+                <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.eqColBCR}</th>
               </tr>
             </thead>
             <tbody>
@@ -167,7 +224,7 @@ export const EquityView: React.FC<EquityViewProps> = ({
                     {(q.populationShare * 100).toFixed(1)}%
                   </td>
                   <td className="py-3 px-4 text-right font-mono text-slate-400 font-medium">
-                    {q.baselineMMR.toFixed(0)}
+                    {q.baselineMMR != null ? q.baselineMMR.toFixed(0) : '—'}
                   </td>
                   <td className="py-3 px-4 text-right font-mono text-sky-300 font-bold">
                     {q.simulatedMMR.toFixed(0)}
@@ -184,16 +241,22 @@ export const EquityView: React.FC<EquityViewProps> = ({
                     {q.livesSaved.toFixed(0)}
                   </td>
                   <td className="py-3 px-4 text-right font-mono text-slate-300">
-                    ${q.costPerLifeSavedInQ.toFixed(0)}
+                    {q.costPerLifeSavedInQ != null ? `$${q.costPerLifeSavedInQ.toFixed(0)}` : '—'}
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <span className={`font-mono text-xs font-bold px-2 py-1 rounded ${
-                      q.benefitCostRatio >= 3 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
-                      q.benefitCostRatio >= 1.5 ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' :
-                      'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                    }`}>
-                      {q.benefitCostRatio.toFixed(1)}x
-                    </span>
+                    {q.benefitCostRatio != null ? (
+                      <span className={`font-mono text-xs font-bold px-2 py-1 rounded ${
+                        q.benefitCostRatio >= 3 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
+                        q.benefitCostRatio >= 1.5 ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' :
+                        'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                      }`}>
+                        {q.benefitCostRatio.toFixed(1)}x
+                      </span>
+                    ) : (
+                      <span className="font-mono text-xs font-bold px-2 py-1 rounded bg-slate-500/15 text-slate-400 border border-slate-500/30">
+                        —
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -204,8 +267,8 @@ export const EquityView: React.FC<EquityViewProps> = ({
 
       {/* Relative Reduction Bar Chart */}
       <ChartCard
-        title="Reducción Relativa de RMM por Quintil"
-        subtitle="Porcentaje de reducción respecto a la línea base"
+        title={t.eqRelativeTitle}
+        subtitle={t.eqRelativeSub}
       >
         <div className="space-y-4">
           {equity.map((q) => {
@@ -235,7 +298,7 @@ export const EquityView: React.FC<EquityViewProps> = ({
       {/* Equity Gap Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Inequality Gap */}
-        <ChartCard title="Brecha de Desigualdad" subtitle="Diferencia entre el quintil de mayor y menor reducción">
+        <ChartCard title={t.eqGapTitle} subtitle={t.eqGapSub}>
           {maxReductionQ && minReductionQ && (
             <div className="space-y-5">
               <div className="flex items-center justify-between">
@@ -244,7 +307,7 @@ export const EquityView: React.FC<EquityViewProps> = ({
                     {minReductionQ.simulatedMMR.toFixed(0)}
                   </div>
                   <div className="text-sm font-semibold text-slate-300 mt-1">{minReductionQ.label}</div>
-                  <div className="text-xs text-slate-400">RMM Simulada</div>
+                  <div className="text-xs text-slate-400">{t.eqSimMMR}</div>
                 </div>
                 <ArrowRight className="w-8 h-8 text-slate-500 shrink-0" />
                 <div className="text-center">
@@ -252,20 +315,20 @@ export const EquityView: React.FC<EquityViewProps> = ({
                     {maxReductionQ.simulatedMMR.toFixed(0)}
                   </div>
                   <div className="text-sm font-semibold text-slate-300 mt-1">{maxReductionQ.label}</div>
-                  <div className="text-xs text-slate-400">RMM Simulada</div>
+                  <div className="text-xs text-slate-400">{t.eqSimMMR}</div>
                 </div>
               </div>
               <div className="text-center text-sm font-medium text-slate-300 pt-2 border-t border-slate-800">
-                Brecha absoluta: <strong className="font-mono text-white text-base">
+                {t.eqAbsGap} <strong className="font-mono text-white text-base">
                   {(minReductionQ.simulatedMMR - maxReductionQ.simulatedMMR).toFixed(0)}
-                </strong> por 100k nacimientos
+                </strong> {t.eqPer100kBirths}
               </div>
             </div>
           )}
         </ChartCard>
 
         {/* Cost Distribution */}
-        <ChartCard title="Distribución del Costo Fiscal" subtitle="Asignación presupuestaria entre quintiles">
+        <ChartCard title={t.eqFiscalTitle} subtitle={t.eqFiscalSub}>
           <div className="space-y-2">
             {equity.map((q) => {
               const pct = totalCostAllQuintiles > 0 ? (q.fiscalCostUSD / totalCostAllQuintiles) * 100 : 0;
@@ -291,10 +354,8 @@ export const EquityView: React.FC<EquityViewProps> = ({
       {/* Methodology Note */}
       <div className="bg-slate-900/30 border border-slate-800 rounded-lg p-4">
         <p className="text-xs text-slate-500">
-          <strong className="text-slate-400">Metodología:</strong> La desagregación por quintiles emplea ponderaciones poblacionales derivadas de encuestas DHS y estratificación de RMM basal por índice de riqueza. 
-          La simulación aplica los efectos de intervención por quintil de forma independiente. 
-          La costo-efectividad se calcula asignando el costo fiscal correspondiente a la participación poblacional de cada estrato.
-          RBC = Relación Beneficio-Costo relativa a la mortalidad basal.
+          <strong className="text-slate-400">{t.eqMethodology}</strong> {t.eqMethodologyDesc}{' '}
+          {t.eqBcrNote}
         </p>
       </div>
     </div>

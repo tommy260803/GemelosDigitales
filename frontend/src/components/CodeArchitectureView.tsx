@@ -122,33 +122,22 @@ class SystemDynamicsEngine:
     'backend/services/validation.py': {
       language: 'python',
       description: t.caFile2Desc,
-      content: `import numpy as np
-from scipy import stats
-from typing import Dict, Any, List
+      content: `"""Validation capability registry.
 
+No synthetic samples, fixed Sobol indices, heuristic confidence intervals, or
+hard-coded external-validation statistics are produced by this project.
+"""
+class ScientificProcedureUnavailable(RuntimeError): pass
 class StatisticalValidationPy:
     @staticmethod
-    def kolmogorov_smirnov(district_data: Dict[str, Any], n_samples: int = 120):
-        mu = np.log(district_data.get("avg_travel_time_hours", 3.2))
-        empirical = np.random.lognormal(mean=mu, sigma=0.52, size=n_samples)
-        simulated = np.random.lognormal(mean=mu, sigma=0.49, size=n_samples)
-        
-        stat_d, p_val = stats.ks_2samp(empirical, simulated)
-        return {
-            "statistic_d": round(float(stat_d), 4),
-            "p_value": round(float(p_val), 4),
-            "is_statistically_equivalent": bool(p_val > 0.05)
-        }
-
-    @staticmethod
-    def wilcoxon_signed_rank(observed: List[float], predicted: List[float]):
-        diff = np.array(predicted) - np.array(observed)
-        w_stat, p_val = stats.wilcoxon(diff)
-        return {
-            "statistic_w": float(w_stat),
-            "p_value": float(p_val),
-            "is_valid": bool(p_val > 0.05)
-        }`,
+    def unavailable(procedure):
+        raise ScientificProcedureUnavailable(
+            f'{procedure} is unavailable until independent data and a documented method are configured.')
+    kolmogorov_smirnov=staticmethod(lambda *a,**k: StatisticalValidationPy.unavailable('KS validation'))
+    wilcoxon_signed_rank=staticmethod(lambda *a,**k: StatisticalValidationPy.unavailable('Wilcoxon validation'))
+    sobol_sensitivity=staticmethod(lambda *a,**k: StatisticalValidationPy.unavailable('Sobol sensitivity'))
+    bootstrap_confidence_intervals=staticmethod(lambda *a,**k: StatisticalValidationPy.unavailable('bootstrap uncertainty'))
+    external_validation=staticmethod(lambda *a,**k: StatisticalValidationPy.unavailable('external validation'))`,
     },
     'database/schema.sql': {
       language: 'sql',

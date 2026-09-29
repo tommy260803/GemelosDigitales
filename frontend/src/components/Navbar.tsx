@@ -156,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onCloseMobile}
               className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
-              aria-label="Cerrar navegación"
+              aria-label={t.closeNavigation}
             >
               <X className="w-5 h-5" />
             </button>
@@ -200,10 +200,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </select>
           </div>
         ) : (
-          <Tooltip content={selectedDistrict?.name || "Cambiar territorio"} side="right">
+          <Tooltip content={selectedDistrict?.name || t.changeTerritory} side="right">
             <button
               onClick={toggleExpanded}
-              aria-label="Expandir barra lateral"
+              aria-label={t.expandSidebarLabel}
               className={`w-full h-10 rounded-xl flex items-center justify-center border transition-colors ${
                 theme === 'light'
                   ? 'bg-slate-50 border-slate-200 hover:bg-slate-100'
@@ -314,7 +314,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title={theme === 'dark' ? t.themeLight : t.themeDark}
           >
             {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            {isExpanded && <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>}
+            {isExpanded && <span>{theme === 'dark' ? t.themeShortLight : t.themeShortDark}</span>}
           </button>
         </div>
 
@@ -426,10 +426,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </button>
         ) : (
-          <Tooltip content={`${currentUser?.name} (${currentUser?.role})`} side="right">
+          <Tooltip content={`${currentUser?.name} (${currentUser?.role === 'INVESTIGATOR' ? t.roleInvestigator : currentUser?.role === 'HEALTH_OFFICER' ? t.roleDHO : t.rolePolicymaker})`} side="right">
             <button
               onClick={onOpenAuthModal}
-              aria-label={`Perfil: ${currentUser?.name}`}
+              aria-label={`${t.profileLabel} ${currentUser?.name}`}
               className={`w-full flex items-center justify-center rounded-xl py-2.5 px-0 text-sm font-medium transition-colors ${
                 theme === 'light'
                   ? 'text-slate-600 hover:bg-slate-50'
@@ -452,7 +452,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Expand/Collapse Toggle (Desktop only) */}
         <button
           onClick={toggleExpanded}
-          aria-label={isExpanded ? t.collapseSidebar : "Expandir barra lateral"}
+          aria-label={isExpanded ? t.collapseSidebar : t.expandSidebarLabel}
           className={`hidden lg:flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-medium transition-colors ${
             theme === 'light'
               ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'

@@ -48,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, isOpe
       {isOpen && (
         <button
           type="button"
-          aria-label={language === 'es' ? 'Cerrar navegación' : 'Close navigation'}
+          aria-label={t.closeNavigation}
           onClick={onClose}
           className="fixed inset-0 z-40 bg-slate-950/60 lg:hidden"
         />
@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, isOpe
           <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
             {language === 'es' ? 'Navegación' : 'Navigation'}
           </span>
-          <button type="button" onClick={onClose} className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Cerrar">
+          <button type="button" onClick={onClose} className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white" aria-label={t.closeNotification}>
             <X className="h-4 w-4" />
           </button>
         </div>

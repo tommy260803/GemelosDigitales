@@ -26,12 +26,12 @@ interface Props {
   results: Record<string, SimulationResult>;
 }
 
-const SCENARIO_META: Record<string, { name: string; letter: string; color: string; icon: React.ReactNode; mechanism: string }> = {
-  baseline:   { name: 'Línea Base (Status Quo)',                letter: 'Base', color: '#94a3b8', icon: <Target className="w-5 h-5" />,       mechanism: 'Sin intervención adicional — trayectoria y capacidad actual' },
-  scenario_a: { name: 'Acceso y Transporte (Moto-Ambulancias)', letter: 'A',    color: '#38bdf8', icon: <ArrowRight className="w-5 h-5" />,   mechanism: 'Red de ambulancias en moto y mejora de vías para mitigar el Retraso de Fase 2' },
-  scenario_b: { name: 'Acceso Financiero (Sin Tarifas)',        letter: 'B',    color: '#34d399', icon: <Shield className="w-5 h-5" />,       mechanism: 'Abolición de costos de parto institucional y medicamentos esenciales' },
-  scenario_c: { name: 'Alianza y Certificación TBA',            letter: 'C',    color: '#818cf8', icon: <Users className="w-5 h-5" />,        mechanism: 'Detección temprana y referencia oportuna mediante parteras tradicionales' },
-  scenario_d: { name: 'Paquete Integral Expandido (A+B+C)',     letter: 'D',    color: '#fbbf24', icon: <Zap className="w-5 h-5" />,          mechanism: 'Intervención combinada: transporte + parto gratis + TBA + capacidad clínica' },
+const SCENARIO_META: Record<string, { nameKey: string; letter: string; color: string; icon: React.ReactNode; mechanismKey: string }> = {
+  baseline:   { nameKey: 'scnBaselineShort', letter: 'Base', color: '#94a3b8', icon: <Target className="w-5 h-5" />,       mechanismKey: 'scnBaselineMech' },
+  scenario_a: { nameKey: 'scnATitle',        letter: 'A',    color: '#38bdf8', icon: <ArrowRight className="w-5 h-5" />,   mechanismKey: 'scnAMech' },
+  scenario_b: { nameKey: 'scnBTitle',        letter: 'B',    color: '#34d399', icon: <Shield className="w-5 h-5" />,       mechanismKey: 'scnBMech' },
+  scenario_c: { nameKey: 'scnCTitle',        letter: 'C',    color: '#818cf8', icon: <Users className="w-5 h-5" />,        mechanismKey: 'scnCMech' },
+  scenario_d: { nameKey: 'scnDTitle',        letter: 'D',    color: '#fbbf24', icon: <Zap className="w-5 h-5" />,          mechanismKey: 'scnDMech' },
 };
 
 export const ScenariosView: React.FC<Props> = ({
@@ -46,24 +46,26 @@ export const ScenariosView: React.FC<Props> = ({
   const scenarioIds = ['baseline', 'scenario_a', 'scenario_b', 'scenario_c', 'scenario_d'] as const;
   const baseline = results['baseline'];
   const activeResult = results[activeScenarioId];
+  const metaName = (id: string) => t[SCENARIO_META[id]?.nameKey as keyof typeof t] as string;
+  const metaMech = (id: string) => t[SCENARIO_META[id]?.mechanismKey as keyof typeof t] as string;
 
   return (
     <div className="space-y-4">
       {/* Header */}
       <SectionHeader
-        title="Comparación de Escenarios"
-        subtitle={`${district.name} · Análisis de dinámica de sistemas de 5 escenarios`}
+        title={t.scnCompareShort}
+        subtitle={`${district.name} · ${t.scnCompareTitle}`}
         icon={<BarChart3 className="w-5 h-5" />}
         badge={
           Object.keys(results).length > 0
-            ? <Badge variant="success" size="sm"><CheckCircle2 className="w-3 h-3" /> {Object.keys(results).length} escenarios cargados</Badge>
-            : <Badge variant="warning" size="sm"><AlertTriangle className="w-3 h-3" /> Sin datos</Badge>
+            ? <Badge variant="success" size="sm"><CheckCircle2 className="w-3 h-3" /> {Object.keys(results).length} {t.scnLoadedCount}</Badge>
+            : <Badge variant="warning" size="sm"><AlertTriangle className="w-3 h-3" /> {t.rvNoDataBadge}</Badge>
         }
       />
 
       {!Object.keys(results).length ? (
         <div className="p-5 bg-amber-950/30 border border-amber-500/40 rounded-lg">
-          <p className="text-sm text-slate-300">Backend no disponible. Los resultados de los escenarios no pueden calcularse localmente.</p>
+          <p className="text-sm text-slate-300">{t.scnBackendUnavailable}</p>
         </div>
       ) : (
         <>
@@ -104,25 +106,25 @@ export const ScenariosView: React.FC<Props> = ({
                     </div>
                     {isOptimal && (
                       <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        Óptimo
+                        {t.scnOptimal}
                       </span>
                     )}
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold mb-2 leading-tight">{meta.name}</h3>
+                  <h3 className="text-sm sm:text-base font-bold mb-2 leading-tight">{metaName(id)}</h3>
                   {res ? (
                     <div className="space-y-1">
                       <div className="text-2xl font-mono font-extrabold" style={{ color: meta.color }}>
                         {res.summary.mmrFinal.toFixed(0)}
                       </div>
-                      <div className="text-xs text-slate-300 font-medium">RMM en horizonte</div>
+                      <div className="text-xs text-slate-300 font-medium">{t.scnHorizonMMR}</div>
                       {!isBaseline && mmrPctChange > 0 && (
                         <div className="text-sm text-emerald-400 font-bold mt-1">
-                          -{mmrPctChange.toFixed(1)}% vs base
+                          -{mmrPctChange.toFixed(1)}% {t.scnVsBase}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="text-xs text-slate-500">Cargando...</div>
+                    <div className="text-xs text-slate-500">{t.scnLoading}</div>
                   )}
                 </button>
               );
@@ -131,21 +133,21 @@ export const ScenariosView: React.FC<Props> = ({
 
           {/* Comparison Table */}
           <ChartCard
-            title="Comparación de Resultados por Escenario"
-            subtitle="Resultados de simulación determinista RK4 — no son estimaciones empíricas directas"
+            title={t.scnCompareTitle}
+            subtitle={t.scnCompareSub}
             noPadding
           >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700 bg-slate-900/40">
-                    <th className="text-left py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Escenario</th>
-                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">RMM Final</th>
-                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Reducción RMM</th>
-                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Muertes Evitadas</th>
-                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Costo Total</th>
-                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Costo/Vida Salvada</th>
-                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Parto Institucional</th>
+                    <th className="text-left py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.scnColScenario}</th>
+                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.scnColFinalMMR}</th>
+                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.scnColReduction}</th>
+                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.scnColSaved}</th>
+                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.scnColTotalCost}</th>
+                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.scnColCostLife}</th>
+                    <th className="text-right py-3 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.scnColInst}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -170,7 +172,7 @@ export const ScenariosView: React.FC<Props> = ({
                         <td className="py-2.5 px-3">
                           <div className="flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: meta.color }} />
-                            <span className="font-medium">{meta.letter}: {meta.name}</span>
+                            <span className="font-medium">{meta.letter}: {metaName(id)}</span>
                           </div>
                         </td>
                         <td className="py-2.5 px-3 text-right font-mono">
@@ -214,28 +216,28 @@ export const ScenariosView: React.FC<Props> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Scenario Description */}
               <ChartCard
-                title={`${SCENARIO_META[activeScenarioId].letter}: ${SCENARIO_META[activeScenarioId].name}`}
-                subtitle="Mecanismo de intervención"
+                title={`${SCENARIO_META[activeScenarioId].letter}: ${metaName(activeScenarioId)}`}
+                subtitle={t.scnMechanism}
               >
                 <div className="space-y-3">
                   <p className="text-sm text-slate-300">
-                    {SCENARIO_META[activeScenarioId].mechanism}
+                    {metaMech(activeScenarioId)}
                   </p>
                   <div className="grid grid-cols-2 gap-3 mt-4">
                     <div className="bg-slate-800/50 rounded-lg p-3">
-                      <div className="text-xs text-slate-400">Nacimientos Acumulados</div>
+                      <div className="text-xs text-slate-400">{t.scnBirths}</div>
                       <div className="text-lg font-mono font-bold">{activeResult.summary.totalBirths.toFixed(0)}</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-lg p-3">
-                      <div className="text-xs text-slate-400">Muertes Maternas</div>
+                      <div className="text-xs text-slate-400">{t.scnDeaths}</div>
                       <div className="text-lg font-mono font-bold">{activeResult.summary.totalMaternalDeaths.toFixed(0)}</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-lg p-3">
-                      <div className="text-xs text-slate-400">Cobertura CPN4</div>
+                      <div className="text-xs text-slate-400">{t.scnANC4}</div>
                       <div className="text-lg font-mono font-bold">{activeResult.summary.anc4CoverageFinal.toFixed(1)}%</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-lg p-3">
-                      <div className="text-xs text-slate-400">Parto Institucional</div>
+                      <div className="text-xs text-slate-400">{t.scnInstDelivery}</div>
                       <div className="text-lg font-mono font-bold">{activeResult.summary.facilityDeliveryRateFinal.toFixed(1)}%</div>
                     </div>
                   </div>
@@ -243,13 +245,13 @@ export const ScenariosView: React.FC<Props> = ({
               </ChartCard>
 
               {/* Relative Performance */}
-              <ChartCard title="Rendimiento Relativo vs Línea Base" subtitle="Mejora porcentual en métricas clave">
+              <ChartCard title={t.scnRelPerfTitle} subtitle={t.scnRelPerfSub}>
                 {baseline && activeScenarioId !== 'baseline' ? (
                   <div className="space-y-3">
                     {[
-                      ['Reducción RMM', activeResult.summary.mmrReductionPercent, '%'],
-                      ['Vidas Salvadas', activeResult.summary.livesSaved, 'muertes'],
-                      ['Costo por Vida Salvada', activeResult.summary.costPerLifeSavedUSD, 'USD'],
+                      [t.scnMmrReduction, activeResult.summary.mmrReductionPercent, '%'],
+                      [t.scnLivesSaved, activeResult.summary.livesSaved, t.scnDeathsUnit],
+                      [t.scnColCostLife, activeResult.summary.costPerLifeSavedUSD, 'USD'],
                     ].map(([label, value, unit]) => {
                       const pct = typeof value === 'number' ? value : 0;
                       return (
@@ -270,7 +272,7 @@ export const ScenariosView: React.FC<Props> = ({
                   </div>
                 ) : (
                   <div className="text-sm text-slate-500 py-8 text-center">
-                    Seleccione un escenario de intervención para ver su rendimiento relativo.
+                    {t.scnSelectPrompt}
                   </div>
                 )}
               </ChartCard>
@@ -282,12 +284,10 @@ export const ScenariosView: React.FC<Props> = ({
             <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-emerald-300 mb-2 flex items-center gap-2">
                 <Zap className="w-4 h-4" />
-                Sinergia del Paquete Integral
+                {t.scnSynergyTitle}
               </h3>
               <p className="text-xs text-slate-400">
-                El Escenario D combina todas las intervenciones (expansión de CPN + personal + transporte + confianza). 
-                El efecto combinado ({((baseline.summary.mmrFinal - results['scenario_d'].summary.mmrFinal) / baseline.summary.mmrFinal * 100).toFixed(1)}% de reducción de RMM) 
-                supera la suma de los efectos individuales gracias a los bucles de retroalimentación sistémicos en el modelo ODE de 5 stocks.
+                {t.scnSynergyDesc}
               </p>
             </div>
           )}
@@ -295,7 +295,7 @@ export const ScenariosView: React.FC<Props> = ({
       )}
 
       <p className="text-xs text-slate-500">
-        Las definiciones y simulaciones son provistas por FastAPI; no se ejecutan cálculos epidemiológicos en el frontend.
+        {t.scnDisclaimer}
       </p>
     </div>
   );

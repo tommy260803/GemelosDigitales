@@ -23,7 +23,7 @@ import { AuthModal } from './components/AuthModal';
 import { DHSImportModal } from './components/DHSImportModal';
 
 function AppContent() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { apiAvailable, apiResults, refreshApiData } = useApi();
   const { toast } = useToast();
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
@@ -54,11 +54,11 @@ function AppContent() {
         const fullData = data as DistrictData[];
         setDistrictsList(fullData);
         setSelectedDistrict(prev => fullData.find(d => d.id === prev?.id) || fullData[0]);
-        toast({ message: 'Distritos sincronizados', description: `${fullData.length} territorios cargados desde FastAPI`, variant: 'success' });
+        toast({ message: t.districtsSynced, description: `${fullData.length} ${t.districtsLoaded}`, variant: 'success' });
       }
     } catch (e) {
       console.warn("Error refreshing districts:", e);
-      toast({ message: 'Error de conexión', description: 'No se pudo contactar con FastAPI (puerto 8000)', variant: 'error' });
+      toast({ message: t.connectionError, description: t.connectionErrorDesc, variant: 'error' });
     } finally {
       setIsRefreshingDistricts(false);
     }
@@ -98,28 +98,28 @@ function AppContent() {
 
   const handleExportPDF = () => {
     try {
-      ReportGenerationService.generateExecutivePDF(selectedDistrict!, allResults, validationMetrics);
-      toast({ message: 'Informe PDF generado', description: `Descarga lista para ${selectedDistrict?.name}`, variant: 'success' });
+      ReportGenerationService.generateExecutivePDF(selectedDistrict!, allResults, validationMetrics, language);
+      toast({ message: t.pdfGenerated, description: `${t.pdfReadyFor} ${selectedDistrict?.name}`, variant: 'success' });
     } catch (err) {
-      toast({ message: 'Error al exportar PDF', variant: 'error' });
+      toast({ message: t.pdfExportError, variant: 'error' });
     }
   };
 
   const handleExportWord = () => {
     try {
-      ReportGenerationService.generateWordReport(selectedDistrict!, allResults, validationMetrics);
-      toast({ message: 'Documento Word generado', description: `Descarga lista para ${selectedDistrict?.name}`, variant: 'success' });
+      ReportGenerationService.generateWordReport(selectedDistrict!, allResults, validationMetrics, language);
+      toast({ message: t.wordGenerated, description: `${t.wordReadyFor} ${selectedDistrict?.name}`, variant: 'success' });
     } catch (err) {
-      toast({ message: 'Error al exportar Word', variant: 'error' });
+      toast({ message: t.wordExportError, variant: 'error' });
     }
   };
 
   const handleExportExcel = () => {
     try {
-      ReportGenerationService.generateExcelReport(selectedDistrict!, allResults, validationMetrics);
-      toast({ message: 'Libro Excel generado', description: `Descarga lista para ${selectedDistrict?.name}`, variant: 'success' });
+      ReportGenerationService.generateExcelReport(selectedDistrict!, allResults, validationMetrics, language);
+      toast({ message: t.excelGenerated, description: `${t.excelReadyFor} ${selectedDistrict?.name}`, variant: 'success' });
     } catch (err) {
-      toast({ message: 'Error al exportar Excel', variant: 'error' });
+      toast({ message: t.excelExportError, variant: 'error' });
     }
   };
 
@@ -134,9 +134,9 @@ function AppContent() {
         <div className="w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center mb-5 shadow-lg shadow-sky-500/10">
           <Activity className="w-8 h-8 text-sky-400 animate-pulse" />
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight mb-2">Gemelo Digital Materno</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight mb-2">{t.appLoadingTitle}</h2>
         <p className="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-          Conectando con el motor diferencial RK4 (FastAPI · puerto 8000) y cargando los 25 distritos territoriales subsaharianos...
+          {t.appLoadingText}
         </p>
         <button
           onClick={handleRefreshDistricts}
@@ -144,7 +144,7 @@ function AppContent() {
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-800 text-white rounded-xl text-xs font-semibold uppercase tracking-wider transition-all shadow-md shadow-sky-600/20"
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshingDistricts ? 'animate-spin' : ''}`} />
-          {isRefreshingDistricts ? 'Conectando...' : 'Reintentar Conexión'}
+          {isRefreshingDistricts ? t.connecting : t.retryConnection}
         </button>
       </div>
     );
@@ -159,7 +159,7 @@ function AppContent() {
           <button
             onClick={() => setIsMobileSidebarOpen(true)}
             className="p-2 -ml-1 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 focus:outline-none"
-            aria-label="Abrir navegación"
+            aria-label={t.openNavigation}
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -287,7 +287,7 @@ function AppContent() {
               <span className="text-sky-400">{t.footerCalibration}</span>
             </div>
             <div className="flex items-center space-x-3 text-xs text-slate-400 font-medium">
-              <span>{t.footerDistricts} ({districtsList.length} Distritos activos)</span>
+              <span>{t.footerDistricts} ({districtsList.length} {t.activeDistricts})</span>
               <span className="text-slate-700">•</span>
               <span>{t.footerTelemetry}</span>
             </div>

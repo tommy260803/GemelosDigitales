@@ -28,22 +28,23 @@ interface Props {
   allResults: Record<string, SimulationResult>;
 }
 
-const SCENARIO_LABELS: Record<string, string> = {
-  baseline: 'Línea Base (Status Quo)',
-  scenario_a: 'A: Acceso y Transporte',
-  scenario_b: 'B: Eliminación de Tarifas',
-  scenario_c: 'C: Red Comunitaria TBA',
-  scenario_d: 'D: Paquete Integral (A+B+C)',
-};
+const SCENARIO_LABEL_KEYS = {
+  baseline: 'dashScenarioBase',
+  scenario_a: 'dashScenarioA',
+  scenario_b: 'dashScenarioB',
+  scenario_c: 'dashScenarioC',
+  scenario_d: 'dashScenarioD',
+} as const;
 
 export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { theme } = useTheme();
   const { toast } = useToast();
 
   const scenarioIds = ['baseline', 'scenario_a', 'scenario_b', 'scenario_c', 'scenario_d'] as const;
   const baseline = allResults['baseline'];
   const hasData = Object.keys(allResults).length > 0;
+  const scenarioLabel = (id: string) => t[SCENARIO_LABEL_KEYS[id as keyof typeof SCENARIO_LABEL_KEYS]];
 
   // Compute aggregate metrics
   const bestScenario = Object.values(allResults).reduce((best, r) => {
@@ -64,28 +65,28 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
 
   const handleExportPDF = () => {
     try {
-      ReportGenerationService.generateExecutivePDF(district, allResults, {} as any);
-      toast({ message: 'Informe PDF descargado', description: `Reporte ejecutivo de ${district.name}`, variant: 'success' });
+      ReportGenerationService.generateExecutivePDF(district, allResults, {} as any, language);
+      toast({ message: t.rvToastPdfOk, description: `${t.rvToastPdfDesc} ${district.name}`, variant: 'success' });
     } catch {
-      toast({ message: 'Error al exportar PDF', variant: 'error' });
+      toast({ message: t.rvToastPdfErr, variant: 'error' });
     }
   };
 
   const handleExportWord = () => {
     try {
-      ReportGenerationService.generateWordReport(district, allResults, {} as any);
-      toast({ message: 'Documento Word descargado', description: `Reporte editable de ${district.name}`, variant: 'success' });
+      ReportGenerationService.generateWordReport(district, allResults, {} as any, language);
+      toast({ message: t.rvToastWordOk, description: `${t.rvToastWordDesc} ${district.name}`, variant: 'success' });
     } catch {
-      toast({ message: 'Error al exportar Word', variant: 'error' });
+      toast({ message: t.rvToastWordErr, variant: 'error' });
     }
   };
 
   const handleExportExcel = () => {
     try {
-      ReportGenerationService.generateExcelReport(district, allResults, {} as any);
-      toast({ message: 'Libro Excel descargado', description: `Datos tabulados de ${district.name}`, variant: 'success' });
+      ReportGenerationService.generateExcelReport(district, allResults, {} as any, language);
+      toast({ message: t.rvToastXlsxOk, description: `${t.rvToastXlsxDesc} ${district.name}`, variant: 'success' });
     } catch {
-      toast({ message: 'Error al exportar Excel', variant: 'error' });
+      toast({ message: t.rvToastXlsxErr, variant: 'error' });
     }
   };
 
@@ -93,13 +94,13 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
     <div className="space-y-4">
       {/* Header */}
       <SectionHeader
-        title="Informe de Simulación"
-        subtitle={`Resumen ejecutivo para ${district.name}`}
+        title={t.rvTitle}
+        subtitle={`${t.rvSubtitle} ${district.name}`}
         icon={<FileText className="w-5 h-5" />}
         badge={
           hasData
-            ? <Badge variant="success" size="sm"><CheckCircle2 className="w-3 h-3" /> {Object.keys(allResults).length} escenarios</Badge>
-            : <Badge variant="warning" size="sm"><AlertTriangle className="w-3 h-3" /> Sin datos</Badge>
+            ? <Badge variant="success" size="sm"><CheckCircle2 className="w-3 h-3" /> {Object.keys(allResults).length} {t.rvScenariosLoaded}</Badge>
+            : <Badge variant="warning" size="sm"><AlertTriangle className="w-3 h-3" /> {t.rvNoDataBadge}</Badge>
         }
         actions={
           <div className="flex gap-2">
@@ -133,41 +134,41 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
 
       {!hasData ? (
         <div className="p-5 bg-amber-950/30 border border-amber-500/40 rounded-lg">
-          <p className="text-sm text-slate-300">No hay datos de simulación disponibles. Ejecute simulaciones desde el Panel de Control primero.</p>
+          <p className="text-sm text-slate-300">{t.rvNoSimData}</p>
         </div>
       ) : (
         <>
           {/* Executive Summary KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatCard
-              label="Escenarios Analizados"
+              label={t.rvScenariosAnalyzed}
               value={Object.keys(allResults).length}
-              subtitle="Comparación 5 escenarios"
+              subtitle={t.rvCompare5}
               icon={<BarChart3 className="w-5 h-5" />}
               variant="info"
             />
             {bestScenario && (
               <StatCard
-                label="Mejor Escenario"
-                value={`${bestScenario.summary.livesSaved.toFixed(0)} vidas`}
-                subtitle={SCENARIO_LABELS[bestScenario.scenarioId] || bestScenario.scenarioName}
+                label={t.rvBestScenario}
+                value={`${bestScenario.summary.livesSaved.toFixed(0)} ${t.rvLivesUnit}`}
+                subtitle={scenarioLabel(bestScenario.scenarioId) || bestScenario.scenarioName}
                 icon={<Heart className="w-5 h-5" />}
                 variant="success"
               />
             )}
             {baseline && (
               <StatCard
-                label="MMR Basal"
+                label={t.rvBaselineMMR}
                 value={baseline.summary.mmrFinal.toFixed(0)}
-                subtitle={`de ${baseline.summary.baselineDeaths.toFixed(0)} muertes base`}
+                subtitle={`${t.rvFromDeaths} ${baseline.summary.baselineDeaths.toFixed(0)}`}
                 icon={<Activity className="w-5 h-5" />}
                 variant="warning"
               />
             )}
             <StatCard
-              label="Paquete Integral (D)"
-              value={`${integratedLivesSaved.toFixed(0)} vidas`}
-              subtitle="Impacto máximo combinado A+B+C"
+              label={t.rvPackageD}
+              value={`${integratedLivesSaved.toFixed(0)} ${t.rvLivesUnit}`}
+              subtitle={t.rvMaxImpact}
               icon={<Shield className="w-5 h-5" />}
               variant="info"
             />
@@ -175,23 +176,23 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
 
           {/* Full Results Table */}
           <ChartCard
-            title="Resultados Completos de la Simulación"
-            subtitle="Salidas deterministas RK4 — no son estimaciones empíricas retrospectivas"
+            title={t.rvResultsTitle}
+            subtitle={t.rvResultsSub}
             noPadding
           >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700 bg-slate-900/40">
-                    <th className="text-left py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Escenario</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Nacimientos Acumulados</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Muertes Maternas</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">RMM en Horizonte</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Muertes Evitadas</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Cobertura CPN4</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Parto Institucional</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Costo Total</th>
-                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">Costo/Vida Salvada</th>
+                    <th className="text-left py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColScenario}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColBirths}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColDeaths}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColHorizonMMR}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColSaved}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColANC4}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColInstDelivery}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColTotalCost}</th>
+                    <th className="text-right py-3.5 px-4 text-xs text-slate-300 font-bold uppercase tracking-wider">{t.rvColCostLife}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -201,7 +202,7 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
                     const isBaseline = id === 'baseline';
                     return (
                       <tr key={id} className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${isBaseline ? 'bg-slate-800/20' : ''}`}>
-                        <td className="py-3.5 px-4 font-semibold text-slate-200">{SCENARIO_LABELS[id]}</td>
+                        <td className="py-3.5 px-4 font-semibold text-slate-200">{scenarioLabel(id)}</td>
                         <td className="py-3.5 px-4 text-right font-mono text-slate-300">{r.summary.totalBirths.toFixed(0)}</td>
                         <td className="py-3.5 px-4 text-right font-mono text-slate-300">{r.summary.totalMaternalDeaths.toFixed(0)}</td>
                         <td className="py-3.5 px-4 text-right font-mono text-white font-bold">{r.summary.mmrFinal.toFixed(0)}</td>
@@ -224,19 +225,19 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
 
           {/* Key Findings */}
           {baseline && bestScenario && bestScenario.scenarioId !== 'baseline' && (
-            <ChartCard title="Hallazgos Clave" subtitle="Resumen de la intervención de mayor impacto">
+            <ChartCard title={t.rvKeyFindings} subtitle={t.rvFindingsSub}>
               <div className="space-y-3">
                 <div className="flex gap-3 items-start">
                   <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm font-medium">
-                      {bestScenario.scenarioName} logra el mayor impacto con{' '}
-                      <span className="text-emerald-400 font-bold">{bestScenario.summary.livesSaved.toFixed(0)} vidas salvadas</span>{' '}
-                      a lo largo de 36 meses.
+                      {bestScenario.scenarioName} {t.rvAchievesImpact}{' '}
+                      <span className="text-emerald-400 font-bold">{bestScenario.summary.livesSaved.toFixed(0)} {t.rvLivesSavedBold}</span>{' '}
+                      {t.rvOver36Months}
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                      Reducción de RMM: {baseline.summary.mmrFinal.toFixed(0)} → {bestScenario.summary.mmrFinal.toFixed(0)} 
-                      ({bestScenario.summary.mmrReductionPercent.toFixed(1)}% de reducción).
+                      {t.rvMMRReduction} {baseline.summary.mmrFinal.toFixed(0)} → {bestScenario.summary.mmrFinal.toFixed(0)}{' '}
+                      ({bestScenario.summary.mmrReductionPercent.toFixed(1)}% {t.rvReductionPct})
                     </p>
                   </div>
                 </div>
@@ -244,8 +245,8 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
                   <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm text-slate-300">
-                      Todas las salidas son <strong>simulaciones deterministas RK4</strong>, no estimaciones empíricas retrospectivas. 
-                      Los intervalos IC95, análisis de sensibilidad Sobol y validación externa están disponibles en la pestaña de Validación.
+                      {t.rvAllOutputsRK4}{' '}
+                      {t.rvValidationAvailable}
                     </p>
                   </div>
                 </div>
@@ -258,9 +259,9 @@ export const ReportsView: React.FC<Props> = ({ district, allResults }) => {
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <Clock className="w-3.5 h-3.5" />
               <span>
-                Informe generado desde el motor de simulación RK4 FastAPI · {district.name} · 
-                {new Date().toLocaleDateString()} · 
-                {Object.keys(allResults).length} escenarios × 36 meses
+                {t.rvGeneratedMeta} · {district.name} ·{' '}
+                {new Date().toLocaleDateString()} ·{' '}
+                {Object.keys(allResults).length} {t.rvScenariosTimes}
               </span>
             </div>
           </div>

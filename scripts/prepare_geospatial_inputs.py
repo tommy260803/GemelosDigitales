@@ -121,7 +121,7 @@ def load_boundary(country: str, point: Point, boundary_root: Path) -> tuple[obje
         frame = frame.to_crs("EPSG:4326")
         matches = frame[frame.geometry.covers(point)]
         if not matches.empty:
-            return matches.iloc[0].geometry, str(path.resolve().relative_to(ROOT.resolve())).replace("\\\\", "/")
+            return matches.iloc[0].geometry, str(path.resolve().relative_to(ROOT.resolve())).replace("\\", "/")
     raise ValueError(f"Model centroid {point.x},{point.y} is outside GADM level 1/2 polygons for {country}")
 
 
@@ -288,8 +288,8 @@ def territorial_result(row, boundary_root: Path, max_cells: int, network_buffer_
         "coverage_fraction": reachable / total if total else None,
         "facility_proxy_count": len(destinations), "road_nodes": len(graph),
         "road_edges": edge_count, "boundary_source": boundary_source,
-        "population_source": str(raster.relative_to(ROOT)).replace("\\\\", "/"),
-        "road_source": str(pbf.relative_to(ROOT)).replace("\\\\", "/"),
+        "population_source": str(raster.relative_to(ROOT)).replace("\\", "/"),
+        "road_source": str(pbf.relative_to(ROOT)).replace("\\", "/"),
         "speed_profile_type": "PARAMETRIC_ASSUMPTION",
         "destination_classification": "OSM_HOSPITAL_PROXY_NOT_VERIFIED_EMONC",
     }
@@ -306,6 +306,11 @@ def main() -> None:
     parser.add_argument("--territory-id", help="Process one territory for a smoke test; omit for all 25")
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
+    args.output = (args.output if args.output.is_absolute() else Path.cwd() / args.output).resolve()
+    try:
+        output_source = str(args.output.relative_to(ROOT)).replace("\\", "/")
+    except ValueError:
+        output_source = str(args.output)
     if args.max_origin_cells <= 0 or args.network_buffer_km <= 0 or args.max_snap_km <= 0:
         raise ValueError("Origin limit and spatial thresholds must be positive")
     with DEMOGRAPHICS.open(newline="", encoding="utf-8-sig") as handle:
@@ -373,7 +378,7 @@ def main() -> None:
                 provenance[key] = {
                     "territory_id": item["territory_id"], "variable_name": variable,
                     "source_type": "DERIVED_MODEL_INPUT",
-                    "source_file": str(args.output.relative_to(ROOT)).replace("\\\\", "/"),
+                    "source_file": output_source,
                     "derivation_method": "population-weighted shortest modeled road path",
                     "original_value": prior.get("final_value", ""),
                     "final_value": value, "transformation": "OSM PBF + WorldPop + GADM",

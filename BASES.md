@@ -22,15 +22,17 @@
 
 **Pruebas estadísticas:**
 
--   **KS:** Para validar distribución de tiempo de llegada al centro de salud simulado vs. DHS observado.
+> *Estado de implementación (corte actual):* la **convergencia RK4**, **KS + Wilcoxon**, **Sobol** (SALib), **RMSE/R²/MAE externos** y **Bootstrap** están implementados en `backend/services/validation.py` y se calculan en vivo con los insumos versionados (los endpoints responden HTTP 200; el rechazo 410 queda solo para el caso de alcance insuficiente, < 5 distritos con datos). El análisis de equidad (Módulo 5) usa gradientes DHS por quintil de riqueza reales (`data/model_inputs/quintile_coverage_by_district.csv`, ponderado con v005) aplicados a la cobertura distrital; sin esos insumos no se muestra ninguna fila por quintil.
 
--   **Comparación:** Wilcoxon signed-rank para mortalidad materna predicha vs. observada por distrito.
+-   **KS:** Dos muestras (`ks_2samp`): distribución de tasas de parto institucional observadas (modelo DHS por país, 25 distritos) vs. baseline simulado; umbral crítico 1.36·√((n+m)/nm).
 
--   **Sensibilidad:** Método de Sobol para identificar qué parámetros (acceso geográfico, costo, calidad percibida) explican más varianza en outcomes.
+-   **Comparación:** Wilcoxon signed-rank pareado por distrito entre la tasa de parto institucional observada y la simulada (25 pares).
 
--   **Predictiva:** RMSE para predicción de tasa de mortalidad materna; R² para correlación con Countdown 2030.
+-   **Sensibilidad:** Método de Sobol (SALib, sin término de 2.º orden, N potencia de 2, seed fija) sobre los 8 parámetros del motor con rangos `PARAMETER_RANGES` documentados como supuestos paramétricos; outcome = vidas salvadas pareadas.
 
--   **Bootstrap:** IC 95% para vidas salvadas y costo-efectividad.
+-   **Predictiva:** RMSE, R² de Pearson y MAE entre MMR observado (modelo DHS anclado por país) y MMR baseline simulado en los 25 distritos (validación externa entre distritos).
+
+-   **Bootstrap:** IC 95% (percentiles 2.5/97.5) por Monte Carlo paramétrico sobre `PARAMETER_RANGES` para vidas salvadas y costo por vida salvada.
 
 **Protocolo:**
 

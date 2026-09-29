@@ -2,8 +2,9 @@ import { DistrictData, DEMTerrainGrid, HealthFacilityPoint, ObstetricReferralRou
 
 export class TerrainService {
   /**
-   * Generates a 3D DEM (Digital Elevation Model) terrain grid with realistic SRTM/ASTER topography
-   * tailored to the actual physical geomorphology of the district.
+   * Generates a synthetic 3D terrain grid from procedural country/district
+   * geomorphological profiles (elevation archetypes, ridges, valleys, noise).
+   * NOT a real SRTM/ASTER DEM: no elevation raster is loaded in this project.
    */
   public static generateDistrictDEM(district: DistrictData, gridSize = 36): DEMTerrainGrid {
     const latSpan = 0.45; // ~50 km width
@@ -59,7 +60,7 @@ export class TerrainService {
           h -= valleyFactor * topo.valleyFeature.depth;
         }
 
-        // 4. Multi-octave natural terrain noise (SRTM roughness)
+        // 4. Multi-octave procedural terrain noise (synthetic roughness)
         const n1 = Math.sin(u * 6.28 * 2.1 + topo.noiseSeed) * Math.cos(v * 6.28 * 2.1 + topo.noiseSeed * 0.7);
         const n2 = Math.sin(u * 6.28 * 5.4 + topo.noiseSeed * 1.3) * Math.cos(v * 6.28 * 4.8 + topo.noiseSeed * 1.9) * 0.45;
         const n3 = Math.sin(u * 6.28 * 11.2) * Math.cos(v * 6.28 * 9.7) * 0.2;
@@ -154,7 +155,10 @@ export class TerrainService {
   }
 
   /**
-   * Returns geocoded OpenStreetMap / Ministry of Health referral facilities for the district
+   * Returns illustrative EmONC facility templates for the district.
+   * Positions, names and capacities are synthetic templates anchored to district
+   * indicators (facility count, blood bank, staffing) - not a geocoded OSM or
+   * Ministry of Health facility layer.
    */
   public static getHealthFacilities(district: DistrictData, demGrid?: DEMTerrainGrid): HealthFacilityPoint[] {
     const topo = this.getDistrictTopographicalProfile(district);

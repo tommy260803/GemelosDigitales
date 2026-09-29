@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { CheckCircle2, XCircle, Info, AlertTriangle, X } from 'lucide-react';
+import { useLanguage } from '../../i18n/translations';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
@@ -22,6 +23,7 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -69,34 +71,35 @@ const VARIANT_STYLES: Record<ToastVariant, string> = {
 };
 
 function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
+  const { t } = useLanguage();
   if (toasts.length === 0) return null;
   return (
     <div
       role="region"
-      aria-label="Notificaciones"
+      aria-label={t.closeNotification}
       aria-live="polite"
       className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none"
     >
-      {toasts.map(t => (
+      {toasts.map(toast => (
         <div
-          key={t.id}
+          key={toast.id}
           role="alert"
           className={`
             pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl border
             shadow-2xl backdrop-blur-sm animate-slide-up
-            ${VARIANT_STYLES[t.variant]}
+            ${VARIANT_STYLES[toast.variant]}
           `}
         >
-          {ICONS[t.variant]}
+          {ICONS[toast.variant]}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white leading-snug">{t.message}</p>
-            {t.description && (
-              <p className="text-xs text-slate-300 mt-0.5 leading-snug">{t.description}</p>
+            <p className="text-sm font-semibold text-white leading-snug">{toast.message}</p>
+            {toast.description && (
+              <p className="text-xs text-slate-300 mt-0.5 leading-snug">{toast.description}</p>
             )}
           </div>
           <button
-            onClick={() => onDismiss(t.id)}
-            aria-label="Cerrar notificación"
+            onClick={() => onDismiss(toast.id)}
+            aria-label={t.closeNotification}
             className="p-0.5 text-slate-400 hover:text-white rounded transition-colors shrink-0"
           >
             <X className="w-4 h-4" />

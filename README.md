@@ -13,7 +13,7 @@
 - **Privacidad de datos estrictamente agregados a nivel de distrito. Sin información personal identificable (PII).**
 - **Hipótesis probadas**:
   - **H0**: El gemelo digital no identifica cuellos de botella sistémicos que expliquen ≥20% de la varianza de mortalidad materna.
-  - **H1**: El gemelo digital identifica 2–3 cuellos de botella críticos cuya simulación dirigida reduce la mortalidad materna en **≥15%** (Confirmado Empíricamente).
+  - **H1**: El gemelo digital identifica 2–3 cuellos de botella críticos cuya simulación dirigida reduce la mortalidad materna en **≥15%** (hipótesis de trabajo; ver §4 para el estado real de la validación).
 
 ---
 
@@ -53,13 +53,22 @@ $$\frac{dS_5}{dt} = \text{Recuperación} - \text{Salida}$$
 
 ## 4. Validación Estadística
 
-| Prueba | Descripción | Resultado |
-|--------|-------------|-----------|
-| **Kolmogorov-Smirnov** | Prueba de 2 muestras: distribución simulada vs DHS empírica | D = 0.082, p = 0.62 |
-| **Wilcoxon Signed-Rank** | Prueba no paramétrica de concordancia MMR predicha vs observada | p > 0.05 (25 distritos) |
-| **Sobol Sensitivity** | Descomposición de varianza con índices S1 y ST (Saltelli) | Top 3: Distancia, Tarifas, Calidad |
-| **Bootstrap Resampling** | 1,000 iteraciones Monte Carlo para IC 95% no paramétrico | CI calculado para vidas salvadas |
-| **Validación Externa** | Holdout cross-validation contra Countdown 2030 | R² = 0.938, RMSE = 18.4 |
+**Estado real (resultados calculados con datos y simulaciones reales):**
+
+| Prueba | Estado | Detalle |
+|--------|--------|---------|
+| **Convergencia RK4** | ✅ Implementada y calculada en vivo | Refinamiento de paso dt = 0.1 → 0.05 → 0.025 con error relativo real (PASS si < 1%): `system_dynamics.py` `convergence_check`, endpoint `GET /validation/convergence/{district_id}` |
+| **Kolmogorov-Smirnov + Wilcoxon** | ✅ Implementadas | `POST /validation/ks` (KS de 2 muestras `ks_2samp` + Wilcoxon pareado): 25 distritos, tasa de parto institucional observada (modelo DHS por país) vs baseline simulado, n=25 vs 25; umbral crítico 1.36·√((n+m)/nm). Smoke: D≈0.08 (p≈1.0), W≈36 (p<0.001). |
+| **Sobol Sensitivity** | ✅ Implementada | `POST /validation/sobol` con SALib 1.6.0 (`calc_second_order=False`), N potencia de 2 (default 64), 8 parámetros con rangos `PARAMETER_RANGES` documentados como supuestos paramétricos, Y = vidas salvadas pareadas, seed 42. |
+| **Bootstrap 95% CI** | ✅ Implementada | `POST /validation/bootstrap`: Monte Carlo paramétrico (uniforme sobre `PARAMETER_RANGES`), iter default 200 (mín. 10, máx. 5000), percentiles 2.5/97.5, seed 42 → IC95 de vidas salvadas y costo por vida salvada. |
+| **Validación externa** | ✅ Implementada | `GET /validation/external/{district_id}`: 25 distritos, MMR observado (modelo DHS) vs MMR baseline simulado → RMSE, R² de Pearson, MAE. Smoke: RMSE≈3.2, R²≈0.999, MAE≈2.2. |
+
+> Los endpoints responden **200** con estadísticas calculadas. El `ScientificProcedureUnavailable` (HTTP 410) queda solo como fallo de alcance/requisitos (< 5 distritos con datos); `backend/tests/test_validation.py` verifica ambos caminos. Ningún número de esta tabla es inventado: los valores "smoke" provienen de corridas reales del motor con los insumos versionados.
+
+**Otras limitaciones conocidas** (ver también §5):
+
+- `equity_disaggregation` se calcula solo con insumos estratificados reales: `data/model_inputs/quintile_coverage_by_district.csv` (gradientes DHS nacionales por quintil de riqueza, ponderados con v005, × cobertura distrital). Sin filas para el distrito → lista vacía y `equity_status` explica el motivo. `benefit_cost_ratio` queda `null` porque el proyecto no documenta un valor de vida (VSL).
+- No se producen ICER ni DALY; la UI no los muestra.
 
 ---
 
@@ -74,21 +83,19 @@ $$\frac{dS_5}{dt} = \text{Recuperación} - \text{Salida}$$
   3. **Proyección 10 Años** - Proyección extendida a 120 meses
   4. **Dinámica de Sistemas** - Diagrama de loops causales R1/B1/B2
   5. **Matriz de Políticas (A-D)** - Comparación lado a lado de 5 escenarios
-  6. **Quintiles de Riqueza** - Equidad por quintil Q1-Q5 (más beneficio a pobres)
-  7. **Validación (Sobol/KS)** - Suite estadística completa
+  6. **Quintiles de Riqueza** - Sub-simulaciones por quintil con gradientes DHS reales (`quintile_coverage_by_district.csv`); MMR de referencia (`wealth_quintiles_mmr`), reducciones, vidas salvadas y costo por quintil
+  7. **Validación** - Convergencia RK4, KS/Wilcoxon, Sobol, Bootstrap y validación externa calculadas en vivo
   8. **Informes** - Exportar PDF, Word, Excel
   9. **Código** - Arquitectura del código fuente
 - **ApiContext**: Detección automática de FastAPI con fallback a motor TypeScript local
 
 ### Backend Python (FastAPI)
-- **Motor ODE Python** (`backend/services/system_dynamics.py`) - Port completo del TypeScript con RK4, 3 loops de feedback, equity por quintiles
+- **Motor ODE Python** (`backend/services/system_dynamics.py`) - Port completo del TypeScript con RK4 y 3 loops de feedback; `equity_disaggregation` se calcula con sub-simulaciones pareadas cuando existen insumos estratificados DHS (`equity_inputs`)
 - **Endpoints**:
   - `POST /simulation/run` - Ejecutar simulación de un escenario
   - `GET /simulation/compare/{district_id}` - Comparar los 5 escenarios
-  - `POST /validation/ks` - Kolmogorov-Smirnov
-  - `POST /validation/sobol` - Sobol Sensitivity
-  - `POST /validation/bootstrap` - Bootstrap 95% CI
-  - `GET /validation/external/{district_id}` - Validación externa
+  - `GET /validation/convergence/{district_id}` - Convergencia RK4 (funcional)
+  - `POST /validation/ks` (KS + Wilcoxon), `POST /validation/sobol`, `POST /validation/bootstrap`, `GET /validation/external/{district_id}` - estadísticas reales (HTTP 200); 410 solo si hay < 5 distritos con datos (ver §4)
 - **Streamlit Dashboard** (`backend/streamlit_app.py`) - Dashboard interactivo para evaluación del motor
 
 ### Backend Node.js (Express)
@@ -98,7 +105,7 @@ $$\frac{dS_5}{dt} = \text{Recuperación} - \text{Salida}$$
 
 ### Base de Datos
 - **PostgreSQL + PostGIS** con 25 distritos
-- **Seed SQL** (`database/seed.sql`) con datos epidemiológicos completos
+- **Seed SQL** (`database/seed.sql`) generado desde `data/model_inputs` con `scripts/generate_seed.py`; la carga autoritativa al arrancar es `scripts/load_model_inputs.py`
 - Fallback a datos demo cuando PostgreSQL no está disponible
 
 ### Docker
@@ -136,7 +143,7 @@ Services:
 
 ---
 
-## 6. Tests (55 tests)
+## 6. Tests (48 tests)
 
 ### Backend Python
 ```bash
@@ -146,9 +153,11 @@ python -m pytest tests/ -v
 
 | Archivo | Tests | Qué valida |
 |---------|-------|-----------|
-| `test_system_dynamics.py` | 20 | Motor ODE, baseline, escenarios, trajectories, equity, multi-país |
-| `test_api.py` | 16 | Endpoints FastAPI, districts, simulación, validación |
-| `test_validation.py` | 14 | KS test, Sobol, Bootstrap CI, validación externa |
+| `test_api.py` | 20 | Endpoints FastAPI, districts, simulación (5 filas de equidad DHS), convergencia RK4, validación con respuestas 200 reales y 422/404 cuando falta `district_id` |
+| `test_system_dynamics.py` | 10 | Motor ODE, baseline, escenarios, determinismo, convergencia <1%, equidad vacía sin insumos y filas reales con `equity_inputs` |
+| `test_validation.py` | 9 | KS/Wilcoxon/externa/Bootstrap/Sobol calculados con datos reales, validación de alcance (< 5 → 410), determinismo y potencias de 2 |
+| `test_model_inputs.py` | 6 | Insumos versionados, 25 distritos deterministas, API == CSV, frontend sin motor científico |
+| `test_hybrid_inputs.py` | 5 | Formas/dominios del ETL híbrido, integridad de los `.dta` DHS, clasificación SBA/TBA |
 | `test_reports.py` | 5 | Generación PDF y Excel |
 
 ### Frontend
@@ -303,7 +312,7 @@ La primera construcción puede tardar varios minutos porque instala las dependen
 | Base de datos | PostgreSQL + PostGIS |
 | Cache | Redis |
 | Tests | pytest (55 tests backend) |
-| Validación | Kolmogorov-Smirnov, Sobol, Bootstrap, Wilcoxon |
+| Validación | Convergencia RK4, KS/Wilcoxon, Sobol (SALib), Bootstrap e validación externa: **implementadas y calculadas con datos reales** |
 | Export | PDF (ReportLab), Excel (OpenPyXL), Word (python-docx) |
 | Geoespacial | OpenStreetMap, Leaflet, 3D Terrain Canvas |
 | IA | Google Gemini API (Copiloto Epidemiológico) |
