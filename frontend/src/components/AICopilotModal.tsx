@@ -13,15 +13,25 @@ import {
   Workflow,
   MapPin,
   FileSearch,
+  ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 import { DistrictData } from '../types';
 import { useLanguage } from '../i18n/translations';
+import { LangGraphView } from './LangGraphView';
 
 interface AICopilotModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDistrict: DistrictData;
   activeScenarioId: string;
+}
+
+export interface ToolExecution {
+  name: string;
+  args: Record<string, any>;
+  status: string;
+  summary: string;
 }
 
 interface ChatMessage {
@@ -31,6 +41,8 @@ interface ChatMessage {
   timestamp: string;
   imagePreview?: string;
   toolsUsed?: string[];
+  toolExecutions?: ToolExecution[];
+  suggestions?: string[];
   isError?: boolean;
 }
 
@@ -293,7 +305,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
   selectedDistrict,
   activeScenarioId,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -312,6 +324,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
     preview: string;
   } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'chat' | 'langgraph'>('chat');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -473,9 +486,11 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
           text:
             data.reply ||
             (data.error
-              ? `Notice: ${data.error}${data.detail ? ` (${data.detail})` : ''}`
+              ? `Aviso: ${data.error}${data.detail ? ` (${data.detail})` : ''}`
               : t.aiAnalysisComplete),
           toolsUsed: data.tools_used || [],
+          toolExecutions: data.tool_executions || [],
+          suggestions: data.suggestions || [],
           isError: Boolean(data.error) || !res.ok,
         });
       }
@@ -575,13 +590,15 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-bold text-white text-sm">{t.aiModalTitle}</h3>
-                <span
-                  className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 font-semibold border border-sky-500/30"
-                  title="Agente orquestado con LangGraph (LLM ⇄ herramientas)"
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(activeTab === 'chat' ? 'langgraph' : 'chat')}
+                  className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 font-semibold border border-sky-500/30 hover:bg-sky-500/25 transition cursor-pointer"
+                  title={language === 'es' ? 'Ver arquitectura del grafo LangGraph' : 'View LangGraph architecture'}
                 >
                   <Workflow className="w-2.5 h-2.5" />
                   {t.aiBackend}
-                </span>
+                </button>
                 <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {t.aiOnline}
@@ -598,15 +615,45 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={handleNewChat}
-              title={t.aiNewChat}
-              aria-label={t.aiNewChat}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
-            >
-              <MessageSquarePlus className="w-4 h-4" />
-            </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* View Switcher: Chat vs LangGraph */}
+            <div className="flex items-center rounded-lg bg-slate-900 p-0.5 border border-slate-800">
+              <button
+                type="button"
+                onClick={() => setActiveTab('chat')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
+                  activeTab === 'chat'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Bot className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{language === 'es' ? 'Chat Asesor' : 'Chat Copilot'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('langgraph')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
+                  activeTab === 'langgraph'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Workflow className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{language === 'es' ? 'Grafo LangGraph' : 'LangGraph DAG'}</span>
+              </button>
+            </div>
+
+            {activeTab === 'chat' && (
+              <button
+                onClick={handleNewChat}
+                title={t.aiNewChat}
+                aria-label={t.aiNewChat}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                <MessageSquarePlus className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={onClose}
               title={t.aiClose}
@@ -617,6 +664,13 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
             </button>
           </div>
         </div>
+
+        {activeTab === 'langgraph' ? (
+          <div className="flex-1 overflow-hidden">
+            <LangGraphView />
+          </div>
+        ) : (
+          <>
 
         {/* Chat History Body */}
         <div
@@ -675,7 +729,27 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
                     <div className="whitespace-pre-wrap leading-relaxed">{msg.text}</div>
                   )}
 
-                  {isAi && msg.toolsUsed && msg.toolsUsed.length > 0 && (
+                  {isAi && msg.toolExecutions && msg.toolExecutions.length > 0 && (
+                    <div className="mt-2.5 pt-2 border-t border-slate-700/60 space-y-1.5">
+                      <span className="text-[10px] font-semibold text-purple-300 flex items-center gap-1">
+                        <FileSearch className="w-3 h-3 text-purple-400" />
+                        {language === 'es' ? 'Herramientas del gemelo digital ejecutadas:' : 'Digital twin tools executed:'}
+                      </span>
+                      <div className="space-y-1">
+                        {msg.toolExecutions.map((exec, i) => (
+                          <div
+                            key={i}
+                            className="px-2 py-1 rounded bg-slate-900/80 border border-slate-700/80 text-[10px] flex items-center justify-between gap-2"
+                          >
+                            <span className="font-mono text-purple-300 font-semibold">{exec.name}()</span>
+                            <span className="text-slate-300 truncate text-[10px]">{exec.summary}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {isAi && (!msg.toolExecutions || msg.toolExecutions.length === 0) && msg.toolsUsed && msg.toolsUsed.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-slate-700/50 flex flex-wrap gap-1">
                       {msg.toolsUsed.map((tool, i) => (
                         <span
@@ -690,6 +764,27 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
                           })()}
                         </span>
                       ))}
+                    </div>
+                  )}
+
+                  {isAi && msg.suggestions && msg.suggestions.length > 0 && !isLoading && (
+                    <div className="mt-3 pt-2 border-t border-slate-700/40">
+                      <span className="text-[10px] text-slate-400 block mb-1.5 font-medium flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-sky-400" />
+                        {language === 'es' ? 'Preguntas sugeridas:' : 'Suggested follow-ups:'}
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {msg.suggestions.map((sug, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleSendMessage(sug)}
+                            className="text-left px-2.5 py-1 rounded-full bg-slate-900/90 hover:bg-sky-950/80 text-sky-300 hover:text-white border border-sky-500/30 hover:border-sky-400 text-[10px] transition flex items-center gap-1 shadow-sm cursor-pointer"
+                          >
+                            <span>{sug}</span>
+                            <ArrowRight className="w-2.5 h-2.5 shrink-0 text-sky-400" />
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -856,6 +951,8 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
             {t.aiSendHint}
           </p>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

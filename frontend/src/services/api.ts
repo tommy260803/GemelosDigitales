@@ -52,13 +52,13 @@ export async function fetchDistricts(country?: string): Promise<DistrictData[]> 
 
   const response = await fetchWithTimeout(url);
   if (!response.ok) throw new Error(`Failed to fetch districts: ${response.status}`);
-  return readJsonResponse(response, 'KS test failed');
+  return readJsonResponse(response, 'Failed to fetch districts');
 }
 
 export async function fetchDistrict(districtId: string): Promise<DistrictData> {
   const response = await fetchWithTimeout(`${API_BASE}/districts/${districtId}`);
   if (!response.ok) throw new Error(`Failed to fetch district: ${response.status}`);
-  return readJsonResponse(response, 'Sobol analysis failed');
+  return readJsonResponse(response, 'Failed to fetch district');
 }
 
 // =========================================================
@@ -92,7 +92,7 @@ export async function runSimulation(
 export async function compareScenarios(districtId: string, months: number = 36): Promise<any> {
   const response = await fetchWithTimeout(`${API_BASE}/simulation/compare/${districtId}?months=${months}`);
   if (!response.ok) throw new Error(`Failed to compare scenarios: ${response.status}`);
-  return readJsonResponse(response, 'Bootstrap failed');
+  return readJsonResponse(response, 'Failed to compare scenarios');
 }
 
 // =========================================================

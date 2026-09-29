@@ -153,6 +153,8 @@ async function startServer() {
       return res.json({
         reply: data.reply,
         tools_used: data.tools_used,
+        tool_executions: data.tool_executions || [],
+        suggestions: data.suggestions || [],
       });
     } catch (err: any) {
       const isTimeout =
@@ -168,6 +170,23 @@ async function startServer() {
         detail: err?.cause?.code || err?.code || err?.message || 'Backend request failed',
         backendUrl: BACKEND_URL,
       });
+    }
+  });
+
+  // LangGraph Graph Specification Route
+  app.get('/api/agent/graph', async (_req, res) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/agent/graph`, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Failed to fetch agent graph from backend' });
+      }
+      const data = await response.json();
+      return res.json(data);
+    } catch (err: any) {
+      console.error('Agent graph proxy error:', err);
+      return res.status(502).json({ error: 'Agent backend unreachable' });
     }
   });
 

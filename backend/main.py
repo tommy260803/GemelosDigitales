@@ -52,10 +52,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database connection helper
-def get_db_connection():
-    db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@localhost:5434/maternal_twin_db')
-    return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+from services.district_repository import (
+    get_db_connection,
+    fetch_district_from_db,
+    fetch_all_districts_from_db,
+)
 
 # =========================================================
 # PYDANTIC MODELS
@@ -133,128 +134,7 @@ class SimulationResponse(BaseModel):
     equity_status: Optional[str] = None
     run_metadata: Dict[str, Any] = {}
 
-# =========================================================
-# HELPER FUNCTIONS
-# =========================================================
 
-def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
-    """Fetch PostgreSQL runtime data; CSV inputs are the non-DB fallback."""
-    # Try database first
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT id, name, country, region, population, annual_births, baseline_mmr,
-                   anc1_coverage, anc4_coverage, institutional_delivery_rate, c_section_rate,
-                   avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio, staff_247_availability_rate,
-                   blood_bank_availability, essential_drugs_availability, insurance_coverage,
-                   poverty_rate, female_secondary_education, tba_prevalence,
-                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr,
-                   road_quality_index, transport_cost_usd, facility_delivery_fee_usd, community_trust_baseline, baseline_complication_rate
-            FROM health_districts WHERE id = %s
-        """, (district_id,))
-        row = cur.fetchone()
-        cur.close()
-        conn.close()
-        
-        if row:
-            return DistrictData(
-                id=row['id'],
-                name=row['name'],
-                country=row['country'],
-                region=row['region'],
-                population=row['population'],
-                annual_births=row['annual_births'],
-                baseline_mmr=float(row['baseline_mmr']),
-                anc1_coverage=float(row['anc1_coverage']),
-                anc4_coverage=float(row['anc4_coverage']),
-                institutional_delivery_rate=float(row['institutional_delivery_rate']),
-                c_section_rate=float(row['c_section_rate']),
-                avg_distance_to_emonc=float(row['avg_distance_emonc_km']),
-                avg_travel_time_hours=float(row['avg_travel_time_hours']),
-                skilled_staff_ratio=float(row['skilled_staff_ratio']),
-                blood_bank_availability=float(row['blood_bank_availability']),
-                essential_drugs_availability=float(row['essential_drugs_availability']),
-                insurance_coverage=float(row['insurance_coverage']),
-                poverty_rate=float(row['poverty_rate']),
-                female_secondary_education=float(row['female_secondary_education']),
-                traditional_birth_attendant_prevalence=float(row['tba_prevalence']),
-                lat=float(row['lat']),
-                lng=float(row['lng']),
-                osm_health_facilities_count=row['osm_health_facilities_count'],
-                wealth_quintile_mmr=row['wealth_quintiles_mmr'],
-                staff_247_availability_rate=float(row['staff_247_availability_rate']) if row['staff_247_availability_rate'] is not None else None,
-                road_quality_index=float(row['road_quality_index']) if row['road_quality_index'] is not None else None,
-                transport_cost_usd=float(row['transport_cost_usd']) if row['transport_cost_usd'] is not None else None,
-                facility_delivery_fee_usd=float(row['facility_delivery_fee_usd']) if row['facility_delivery_fee_usd'] is not None else None,
-                community_trust_baseline=float(row['community_trust_baseline']) if row['community_trust_baseline'] is not None else None,
-                baseline_complication_rate=float(row['baseline_complication_rate']) if row['baseline_complication_rate'] is not None else None,
-            )
-    except Exception as e:
-        print(f"Database unavailable, using versioned model-input datasets: {e}")
-    
-    return next((d for d in districts_from_datasets() if d.id == district_id), None)
-
-def fetch_all_districts_from_db() -> List[DistrictData]:
-    """Fetch all runtime districts; versioned datasets are the fallback."""
-    districts = []
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT id, name, country, region, population, annual_births, baseline_mmr,
-                   anc1_coverage, anc4_coverage, institutional_delivery_rate, c_section_rate,
-                   avg_distance_emonc_km, avg_travel_time_hours, skilled_staff_ratio, staff_247_availability_rate,
-                   blood_bank_availability, essential_drugs_availability, insurance_coverage,
-                   poverty_rate, female_secondary_education, tba_prevalence,
-                   ST_Y(geom::geometry) as lat, ST_X(geom::geometry) as lng, health_facilities_count as osm_health_facilities_count, wealth_quintiles_mmr,
-                   road_quality_index, transport_cost_usd, facility_delivery_fee_usd, community_trust_baseline, baseline_complication_rate
-            FROM health_districts ORDER BY country, name
-        """)
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        for row in rows:
-            districts.append(DistrictData(
-                id=row['id'],
-                name=row['name'],
-                country=row['country'],
-                region=row['region'],
-                population=row['population'],
-                annual_births=row['annual_births'],
-                baseline_mmr=float(row['baseline_mmr']),
-                anc1_coverage=float(row['anc1_coverage']),
-                anc4_coverage=float(row['anc4_coverage']),
-                institutional_delivery_rate=float(row['institutional_delivery_rate']),
-                c_section_rate=float(row['c_section_rate']),
-                avg_distance_to_emonc=float(row['avg_distance_emonc_km']),
-                avg_travel_time_hours=float(row['avg_travel_time_hours']),
-                skilled_staff_ratio=float(row['skilled_staff_ratio']),
-                blood_bank_availability=float(row['blood_bank_availability']),
-                essential_drugs_availability=float(row['essential_drugs_availability']),
-                insurance_coverage=float(row['insurance_coverage']),
-                poverty_rate=float(row['poverty_rate']),
-                female_secondary_education=float(row['female_secondary_education']),
-                traditional_birth_attendant_prevalence=float(row['tba_prevalence']),
-                lat=float(row['lat']),
-                lng=float(row['lng']),
-                osm_health_facilities_count=row['osm_health_facilities_count'],
-                wealth_quintile_mmr=row['wealth_quintiles_mmr'],
-                staff_247_availability_rate=float(row['staff_247_availability_rate']) if row['staff_247_availability_rate'] is not None else None,
-                road_quality_index=float(row['road_quality_index']) if row['road_quality_index'] is not None else None,
-                transport_cost_usd=float(row['transport_cost_usd']) if row['transport_cost_usd'] is not None else None,
-                facility_delivery_fee_usd=float(row['facility_delivery_fee_usd']) if row['facility_delivery_fee_usd'] is not None else None,
-                community_trust_baseline=float(row['community_trust_baseline']) if row['community_trust_baseline'] is not None else None,
-                baseline_complication_rate=float(row['baseline_complication_rate']) if row['baseline_complication_rate'] is not None else None,
-            ))
-    except Exception as e:
-        print(f"Database unavailable, using versioned model-input datasets: {e}")
-        districts = districts_from_datasets()
-    if not districts:
-        print("Database returned zero districts, falling back to versioned model-input datasets.")
-        districts = districts_from_datasets()
-    return districts
 
 # =========================================================
 # API ENDPOINTS
@@ -565,10 +445,18 @@ def agent_chat(req: AgentChatRequest):
         return {
             "reply": result["reply"],
             "tools_used": result["tools_used"],
+            "tool_executions": result.get("tool_executions", []),
+            "suggestions": result.get("suggestions", []),
             "conversation_id": req.conversation_id or str(uuid.uuid4()),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
+
+@app.get("/agent/graph")
+def agent_graph():
+    """Returns the structural topology and execution schema of the LangGraph agent."""
+    from services.analysis_agent import get_langgraph_specification
+    return get_langgraph_specification()
 
 @app.post("/agent/analyze")
 def agent_analyze(req: AgentAnalyzeRequest):

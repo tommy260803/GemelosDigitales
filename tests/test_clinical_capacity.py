@@ -24,8 +24,12 @@ def test_spa_values_reach_all_25_districts_without_replacing_staff_density():
         assert district.staff_247_availability_rate == expected[district.country]
         assert district.skilled_staff_ratio == float(rows["capacity"][district.id]["skilled_staff_per_10k"])
         legacy = Engine.effective_parameters(district, "baseline")
-        assert legacy.road_quality_index == max(.2, 1 - district.avg_distance_to_emonc / 80)
-        assert legacy.facility_delivery_fee_usd == (2.5 if district.insurance_coverage > 50 else 18.)
+        assert legacy.road_quality_index == float(rows["access"][district.id]["road_quality_index"])
+        assert legacy.facility_delivery_fee_usd == float(rows["model"][district.id]["facility_delivery_fee_usd"])
+        fallback_district = replace(district, road_quality_index=None, facility_delivery_fee_usd=None)
+        fallback = Engine.effective_parameters(fallback_district, "baseline")
+        assert fallback.road_quality_index == max(.2, 1 - district.avg_distance_to_emonc / 80)
+        assert fallback.facility_delivery_fee_usd == (2.5 if district.insurance_coverage > 50 else 18.)
 
 
 def test_spa_extraction_matches_versioned_csv_and_loader_contract():

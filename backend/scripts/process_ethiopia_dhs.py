@@ -67,7 +67,7 @@ for idx, row in results.iterrows():
     print(f" - Parto Institucional: {row['inst_del_rate']*100:.1f}%\n")
 
 # Actualizar la Base de Datos PostgreSQL
-db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@127.0.0.1:5433/maternal_twin_db')
+db_url = os.environ.get('DATABASE_URL', 'postgresql://twin_admin:secure_twin_password_2026@127.0.0.1:5434/maternal_twin_db')
 try:
     print("🔌 Conectando a la base de datos PostgreSQL...")
     conn = psycopg2.connect(db_url)
@@ -82,18 +82,14 @@ try:
         anc4_cov = round(row['anc4_rate'] * 100, 2)
         inst_del = round(row['inst_del_rate'] * 100, 2)
         
-        # Opcional: También ajustamos ligeramente el MMR base según el parto institucional (heurística inversa)
-        # Si inst_del_rate es bajo, el MMR sube.
-        mmr_adj = max(200, 900 - (inst_del * 8)) 
-        
+        # baseline_mmr no se modifica: anclaje OMS riguroso
         cur.execute("""
             UPDATE health_districts 
             SET anc1_coverage = %s,
                 anc4_coverage = %s,
-                institutional_delivery_rate = %s,
-                baseline_mmr = %s
+                institutional_delivery_rate = %s
             WHERE id = %s
-        """, (anc1_cov, anc4_cov, inst_del, mmr_adj, dist_id))
+        """, (anc1_cov, anc4_cov, inst_del, dist_id))
         print(f"✅ Inyectado distrito: {dist_id}")
         
     conn.commit()

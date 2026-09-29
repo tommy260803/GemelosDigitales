@@ -12,6 +12,7 @@ import {
   AlignmentType,
   WidthType,
   ShadingType,
+  BorderStyle,
 } from 'docx';
 import { DistrictData, SimulationResult, ValidationMetrics } from '../types';
 import { Language, translations, Translations } from '../i18n/translations';
@@ -26,6 +27,28 @@ const ACCENT: [number, number, number] = [13, 148, 136];
 const SLATE: [number, number, number] = [15, 23, 42];
 const MUTED: [number, number, number] = [71, 85, 105];
 
+/**
+ * Rounds any number to at most 4 decimal places without trailing floating-point noise.
+ */
+export const roundMax4 = (n: number | string | undefined | null): number => {
+  if (n === undefined || n === null || n === '') return 0;
+  const num = typeof n === 'number' ? n : Number(n);
+  if (!Number.isFinite(num)) return 0;
+  return Math.round(num * 10000) / 10000;
+};
+
+/**
+ * Formats a number to at most 4 decimal places using clean locale representation.
+ */
+export const fmt = (n: number | string | undefined | null, fallback = '—'): string => {
+  if (n === undefined || n === null || n === '') return fallback;
+  const num = typeof n === 'number' ? n : Number(n);
+  if (isNaN(num)) return String(n);
+  if (!Number.isFinite(num)) return String(num);
+  const rounded = roundMax4(num);
+  return rounded.toLocaleString(undefined, { maximumFractionDigits: 4 });
+};
+
 const hasValidation = (v: ValidationMetrics | undefined | null): boolean => {
   if (!v) return false;
   return Boolean(
@@ -35,11 +58,6 @@ const hasValidation = (v: ValidationMetrics | undefined | null): boolean => {
     v.externalValidation ||
     v.bootstrap
   );
-};
-
-const fmt = (n: number | string | undefined | null, fallback = 'N/A'): string => {
-  if (n === undefined || n === null || n === '') return fallback;
-  return String(n);
 };
 
 const localeDate = (language: Language): string => {
@@ -75,15 +93,15 @@ const createEngine = (doc: jsPDF): PdfEngine => {
       engine.ensure(14);
       engine.y += 4;
       doc.setFillColor(...PRIMARY);
-      doc.rect(PAGE.ml, engine.y, CONTENT_W, 8, 'F');
+      doc.rect(PAGE.ml, engine.y, CONTENT_W, 7.5, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text(title, PAGE.ml + 3, engine.y + 5.5);
-      engine.y += 12;
+      doc.setFontSize(9.5);
+      doc.text(title, PAGE.ml + 3, engine.y + 5.2);
+      engine.y += 11;
     },
     paragraph(text, opts = {}) {
-      const size = opts.size ?? 9;
+      const size = opts.size ?? 8.5;
       const bold = opts.bold ?? false;
       const color = opts.color ?? [30, 41, 59] as [number, number, number];
       const indent = opts.indent ?? 0;
@@ -101,7 +119,7 @@ const createEngine = (doc: jsPDF): PdfEngine => {
       engine.y += 1.5;
     },
     bullets(items, opts = {}) {
-      const size = opts.size ?? 8.5;
+      const size = opts.size ?? 8;
       for (const item of items) {
         const bulletText = `• ${item}`;
         engine.paragraph(bulletText, { size, color: MUTED, indent: 2, lineHeight: size * 0.45 });
@@ -114,8 +132,9 @@ const createEngine = (doc: jsPDF): PdfEngine => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7.5);
         doc.setTextColor(148, 163, 184);
-        doc.text(label, PAGE.ml, PAGE.h - 8);
-        doc.text(`${i} / ${pages}`, PAGE.w - PAGE.mr, PAGE.h - 8, { align: 'right' });
+        doc.line(PAGE.ml, PAGE.h - 10, PAGE.w - PAGE.mr, PAGE.h - 10);
+        doc.text(`${label} · Integración RK4 (Δt = 0.05 meses)`, PAGE.ml, PAGE.h - 6);
+        doc.text(`${i} / ${pages}`, PAGE.w - PAGE.mr, PAGE.h - 6, { align: 'right' });
       }
     },
   };
@@ -123,21 +142,21 @@ const createEngine = (doc: jsPDF): PdfEngine => {
 };
 
 const drawHeaderBanner = (doc: jsPDF, district: DistrictData, t: T, language: Language) => {
-  doc.setFillColor(15, 23, 42);
-  doc.rect(0, 0, PAGE.w, 34, 'F');
+  doc.setFillColor(...SLATE);
+  doc.rect(0, 0, PAGE.w, 36, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text(t.docBannerTitle, PAGE.ml, 14);
+  doc.setFontSize(13);
+  doc.text(t.docBannerTitle, PAGE.ml, 13);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    `${t.docDistrictLabel} ${district.name} (${district.country}) | ${t.docEngineSub}`,
+    `${t.docDistrictLabel} ${district.name} (${district.country}, ${district.region}) | ${t.docEngineSub}`,
     PAGE.ml,
-    22
+    21
   );
-  doc.text(`${t.docGeneratedLabel} ${localeDate(language)}`, PAGE.ml, 28);
+  doc.text(`${t.docGeneratedLabel} ${localeDate(language)} | Calibración OMS/MMEIG & Tres Demoras`, PAGE.ml, 28);
 };
 
 const drawTable = (
@@ -213,7 +232,7 @@ const drawTable = (
     drawRow(row, engine.y, h, isLast ? 'highlight' : 'body');
     engine.y += h;
   });
-  engine.y += 4;
+  engine.y += 3;
 };
 
 const scenarioRows = (t: T, simResults: Record<string, SimulationResult>): { label: string; res: SimulationResult }[] => {
@@ -230,6 +249,9 @@ const scenarioRows = (t: T, simResults: Record<string, SimulationResult>): { lab
 };
 
 export class ReportGenerationService {
+  /**
+   * PDF Ejecutivo con rigor epidemiológico, diseño profesional y redondeo a máx 4 decimales.
+   */
   public static generateExecutivePDF(
     district: DistrictData,
     simResults: Record<string, SimulationResult>,
@@ -243,35 +265,42 @@ export class ReportGenerationService {
     drawHeaderBanner(doc, district, t, language);
     engine.y = 42;
 
+    // Sección 1: Perfil Epidemiológico y Sociodemográfico
     engine.sectionBar(t.docSection1);
     const left = [
       `${t.docTotalPop} ${district.population.toLocaleString()}`,
       `${t.docAnnualBirths} ${district.annualBirths.toLocaleString()}`,
-      `${t.docBaselineMMRLine} ${district.baselineMMR} ${t.docPer100kBirths}`,
+      `${t.docBaselineMMRLine} ${fmt(district.baselineMMR)} ${t.docPer100kBirths}`,
+      `Cobertura de Seguro: ${fmt(district.insuranceCoverage)}%`,
+      `Tasa de Pobreza: ${fmt(district.povertyRate)}%`,
     ];
     const right = [
-      `${t.docAnc4} ${district.anc4Coverage}%`,
-      `${t.docInstDelivery} ${district.institutionalDeliveryRate}%`,
-      `${t.docAvgDistance} ${district.avgDistanceToEmONC} km (${district.avgTravelTimeHours}h ${t.docHoursTransit})`,
+      `${t.docAnc4} ${fmt(district.anc4Coverage)}%`,
+      `${t.docInstDelivery} ${fmt(district.institutionalDeliveryRate)}%`,
+      `${t.docAvgDistance} ${fmt(district.avgDistanceToEmONC)} km (${fmt(district.avgTravelTimeHours)}h ${t.docHoursTransit})`,
+      `Personal Capacitado: ${fmt(district.skilledStaffRatio)} por 10k hab`,
+      `Disponibilidad 24/7 Personal (SPA): ${district.staff247AvailabilityRate != null ? `${fmt(district.staff247AvailabilityRate * 100)}%` : 'N/A'}`,
     ];
     const half = CONTENT_W / 2 - 2;
+    const initialY = engine.y;
     left.forEach((line) => {
       engine.ensure(5);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
+      doc.setFontSize(8);
       doc.setTextColor(...MUTED);
-      doc.text(doc.splitTextToSize(`• ${line}`, half)[0], PAGE.ml + 1, engine.y + 4);
-      engine.y += 5.5;
+      doc.text(doc.splitTextToSize(`• ${line}`, half)[0], PAGE.ml + 1, engine.y + 3.5);
+      engine.y += 4.8;
     });
-    const yRight = engine.y - left.length * 5.5;
+    const maxLeftY = engine.y;
     right.forEach((line, i) => {
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
+      doc.setFontSize(8);
       doc.setTextColor(...MUTED);
-      doc.text(doc.splitTextToSize(`• ${line}`, half)[0], PAGE.ml + CONTENT_W / 2 + 1, yRight + 4 + i * 5.5);
+      doc.text(doc.splitTextToSize(`• ${line}`, half)[0], PAGE.ml + CONTENT_W / 2 + 1, initialY + 3.5 + i * 4.8);
     });
-    engine.y = Math.max(engine.y, yRight + right.length * 5.5) + 2;
+    engine.y = Math.max(maxLeftY, initialY + right.length * 4.8) + 2;
 
+    // Sección 2: Evaluación Comparativa de Políticas (A, B, C, D)
     engine.sectionBar(t.docSection2);
     const headers = [
       t.docColScenario,
@@ -281,23 +310,55 @@ export class ReportGenerationService {
       t.docColCostLife,
       t.docColIcer,
     ];
-    const colW = [58, 40, 24, 22, 24, 14];
+    const colW = [56, 42, 24, 22, 24, 14];
     const rows = scenarioRows(t, simResults).map(({ label, res }) => [
       label,
-      `${res.summary.livesSaved} [${res.summary.livesSavedCI95[0]}-${res.summary.livesSavedCI95[1]}]`,
-      String(res.summary.mmrFinal),
-      `-${res.summary.mmrReductionPercent}%`,
-      res.summary.costPerLifeSavedUSD > 0 ? `$${res.summary.costPerLifeSavedUSD.toLocaleString()}` : '$0',
-      res.summary.icerPerDALY > 0 ? `$${res.summary.icerPerDALY}` : '$0',
+      `${fmt(res.summary.livesSaved)} [${fmt(res.summary.livesSavedCI95[0])}-${fmt(res.summary.livesSavedCI95[1])}]`,
+      fmt(res.summary.mmrFinal),
+      `-${fmt(res.summary.mmrReductionPercent)}%`,
+      res.summary.costPerLifeSavedUSD > 0 ? `$${fmt(res.summary.costPerLifeSavedUSD)}` : '$0',
+      res.summary.icerPerDALY > 0 ? `$${fmt(res.summary.icerPerDALY)}` : '$0',
     ]);
     drawTable(engine, headers, rows, colW, { highlightLast: true });
 
-    engine.sectionBar(t.docSection3);
-    const icer = simResults.scenario_d?.summary.icerPerDALY || 42;
-    engine.paragraph(t.docSynergy, { size: 8.5, color: MUTED });
-    engine.paragraph(t.docCostThreshold.replace('{icer}', String(icer)), { size: 8.5, color: MUTED });
-    engine.paragraph(t.docEquityFocus, { size: 8.5, color: MUTED });
+    // Sección 3: Análisis de Equidad por Quintiles de Riqueza
+    const comboRes = simResults.scenario_d || simResults.baseline;
+    if (comboRes?.equityDisaggregation?.length) {
+      engine.sectionBar(language === 'es' ? '3. Distribución del Impacto por Quintiles de Riqueza' : '3. Wealth Quintiles Equity Impact');
+      const eqHeaders = language === 'es'
+        ? ['Quintil', 'Población', 'MMR Base', 'MMR Sim.', 'Reducción %', 'Vidas Salv.', 'Costo Fiscal USD']
+        : ['Quintile', 'Pop Share', 'Base MMR', 'Sim MMR', 'Reduction %', 'Lives Saved', 'Fiscal Cost USD'];
+      const eqColW = [38, 22, 22, 22, 24, 24, 30];
+      const eqRows = comboRes.equityDisaggregation.map((q) => [
+        `${q.quintile} (${q.label})`,
+        `${fmt(q.populationShare * 100)}%`,
+        fmt(q.baselineMMR),
+        fmt(q.simulatedMMR),
+        `-${fmt(q.relativeReduction)}%`,
+        fmt(q.livesSaved),
+        q.fiscalCostUSD ? `$${fmt(q.fiscalCostUSD)}` : '—',
+      ]);
+      drawTable(engine, eqHeaders, eqRows, eqColW, { highlightLast: false });
+    }
 
+    // Sección 4: Especificaciones Técnicas y Marco de Tres Demoras
+    engine.sectionBar(language === 'es' ? '4. Especificaciones Técnicas del Gemelo Digital' : '4. Digital Twin Technical Specifications');
+    const icer = simResults.scenario_d?.summary.icerPerDALY || 42;
+    engine.paragraph(t.docSynergy, { size: 8, color: MUTED });
+    engine.paragraph(t.docCostThreshold.replace('{icer}', fmt(icer)), { size: 8, color: MUTED });
+    engine.bullets([
+      language === 'es'
+        ? 'Modelo ODE: 5 compartimentos continuos (Embarazadas, CPN, Parto Institucional, Puerperio, Complicaciones obstétricas).'
+        : 'ODE Model: 5 continuous compartments (Pregnant, ANC, Facility Delivery, Postpartum, Obstetric Complications).',
+      language === 'es'
+        ? 'Integrador Numérico: Runge-Kutta de 4to Orden (RK4) con paso de tiempo continuo Δt = 0.05 meses (1.5 días) y convergencia de Cauchy ε < 0.01%.'
+        : 'Numerical Integrator: 4th-Order Runge-Kutta (RK4) with continuous step size Δt = 0.05 months (1.5 days) and Cauchy error ε < 0.01%.',
+      language === 'es'
+        ? 'Mapeo de Tres Demoras: Fase 1 (confianza comunitaria/TBA), Fase 2 (transporte/red vial y moto-ambulancias), Fase 3 (capacidad EmONC 24/7 y stock uterotónico).'
+        : 'Three-Delays Mapping: Phase 1 (community trust/TBA), Phase 2 (road quality/moto-ambulances), Phase 3 (24/7 EmONC capacity and uterotonics).',
+    ], { size: 7.5 });
+
+    // Sección 5: Validación Científica (si disponible)
     if (hasValidation(validation)) {
       engine.sectionBar(t.docSection4);
       const na = t.docNA;
@@ -345,13 +406,16 @@ export class ReportGenerationService {
         );
       }
       items.push(t.docHypothesisLine);
-      engine.bullets(items, { size: 8 });
+      engine.bullets(items, { size: 7.5 });
     }
 
     engine.addFooters(t.docBannerTitle);
     doc.save(`Maternal_Health_SD_Digital_Twin_${district.id}_${t.docPdfFilename}.pdf`);
   }
 
+  /**
+   * Reporte Excel estructurado con 5 hojas, números con máx 4 decimales y metadatos del modelo.
+   */
   public static generateExcelReport(
     district: DistrictData,
     simResults: Record<string, SimulationResult>,
@@ -362,6 +426,7 @@ export class ReportGenerationService {
     const wb = XLSX.utils.book_new();
     const na = t.docNA;
 
+    // Hoja 1: Resumen Ejecutivo
     const summaryData: (string | number)[][] = [
       [t.docExcelSummaryTitle],
       [t.docExcelDistrictName, district.name],
@@ -369,10 +434,11 @@ export class ReportGenerationService {
       [t.docExcelRegion, district.region],
       [t.docExcelPopulation, district.population],
       [t.docExcelAnnualBirths, district.annualBirths],
-      [t.docExcelBaselineMMR, district.baselineMMR],
-      [t.docExcelAnc4, district.anc4Coverage],
-      [t.docExcelInstRate, district.institutionalDeliveryRate],
-      [t.docExcelTravelTime, district.avgTravelTimeHours],
+      [t.docExcelBaselineMMR, roundMax4(district.baselineMMR)],
+      [t.docExcelAnc4, roundMax4(district.anc4Coverage)],
+      [t.docExcelInstRate, roundMax4(district.institutionalDeliveryRate)],
+      [t.docExcelTravelTime, roundMax4(district.avgTravelTimeHours)],
+      ['Disponibilidad 24/7 Personal (SPA)', district.staff247AvailabilityRate != null ? roundMax4(district.staff247AvailabilityRate * 100) : na],
       [],
       [t.docExcelScenarioResults],
       [
@@ -393,30 +459,25 @@ export class ReportGenerationService {
       summaryData.push([
         r.scenarioId,
         r.scenarioName,
-        r.summary.livesSaved,
-        r.summary.livesSavedCI95[0],
-        r.summary.livesSavedCI95[1],
-        r.summary.mmrFinal,
-        r.summary.mmrReductionPercent,
-        r.summary.totalCostUSD,
-        r.summary.costPerLifeSavedUSD,
-        r.summary.icerPerDALY,
+        roundMax4(r.summary.livesSaved),
+        roundMax4(r.summary.livesSavedCI95[0]),
+        roundMax4(r.summary.livesSavedCI95[1]),
+        roundMax4(r.summary.mmrFinal),
+        roundMax4(r.summary.mmrReductionPercent),
+        roundMax4(r.summary.totalCostUSD),
+        roundMax4(r.summary.costPerLifeSavedUSD),
+        roundMax4(r.summary.icerPerDALY),
       ]);
     });
 
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     wsSummary['!cols'] = [
       { wch: 22 }, { wch: 34 }, { wch: 14 }, { wch: 16 }, { wch: 16 },
-      { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 18 }, { wch: 14 },
+      { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 18 }, { wch: 14 },
     ];
-    for (let r = 13; r < summaryData.length; r++) {
-      for (let c = 2; c < 10; c++) {
-        const ref = XLSX.utils.encode_cell({ r, c });
-        if (wsSummary[ref]) (wsSummary[ref] as XLSX.CellObject).z = '#,##0.00';
-      }
-    }
     XLSX.utils.book_append_sheet(wb, wsSummary, t.docExcelSummarySheet.slice(0, 31));
 
+    // Hoja 2: Trayectorias Temporales (RK4)
     const comboRes = simResults.scenario_d || simResults.baseline;
     const trajectoryData: (string | number)[][] = [
       [
@@ -440,35 +501,27 @@ export class ReportGenerationService {
     comboRes?.trajectories?.forEach((tr) => {
       trajectoryData.push([
         tr.timeMonth,
-        tr.pregnantWomen,
-        tr.inANC,
-        tr.inFacilityDelivery,
-        tr.inPostpartum,
-        tr.withComplications,
-        tr.monthlyBirths,
-        tr.monthlyMaternalDeaths,
-        tr.monthlyLivesSaved,
-        tr.calculatedMMR,
-        tr.ancCoveragePercent,
-        tr.facilityDeliveryPercent,
-        tr.systemTrustLevel,
-        tr.facilityCongestionIndex,
+        roundMax4(tr.pregnantWomen),
+        roundMax4(tr.inANC),
+        roundMax4(tr.inFacilityDelivery),
+        roundMax4(tr.inPostpartum),
+        roundMax4(tr.withComplications),
+        roundMax4(tr.monthlyBirths),
+        roundMax4(tr.monthlyMaternalDeaths),
+        roundMax4(tr.monthlyLivesSaved),
+        roundMax4(tr.calculatedMMR),
+        roundMax4(tr.ancCoveragePercent),
+        roundMax4(tr.facilityDeliveryPercent),
+        roundMax4(tr.systemTrustLevel),
+        roundMax4(tr.facilityCongestionIndex),
       ]);
     });
 
     const wsTrajectories = XLSX.utils.aoa_to_sheet(trajectoryData);
     wsTrajectories['!cols'] = Array.from({ length: 14 }, () => ({ wch: 16 }));
-    if (comboRes?.trajectories?.length) {
-      const range = XLSX.utils.decode_range(wsTrajectories['!ref'] || 'A1');
-      for (let r = 1; r <= range.e.r; r++) {
-        for (let c = 1; c <= 13; c++) {
-          const ref = XLSX.utils.encode_cell({ r, c });
-          if (wsTrajectories[ref]) (wsTrajectories[ref] as XLSX.CellObject).z = '#,##0.00';
-        }
-      }
-    }
     XLSX.utils.book_append_sheet(wb, wsTrajectories, t.docExcelTrajSheet.slice(0, 31));
 
+    // Hoja 3: Desagregación de Equidad
     const equityData: (string | number)[][] = [
       [
         t.docExcelColQuintile,
@@ -479,6 +532,7 @@ export class ReportGenerationService {
         t.docExcelColSaved,
         t.docExcelColRelRed,
         t.docExcelColAbsRed,
+        'Costo Fiscal USD',
       ],
     ];
 
@@ -486,46 +540,42 @@ export class ReportGenerationService {
       equityData.push([
         eq.quintile,
         eq.label,
-        eq.populationShare,
-        eq.baselineMMR,
-        eq.simulatedMMR,
-        eq.livesSaved,
-        eq.relativeReduction,
-        eq.absoluteReduction,
+        roundMax4(eq.populationShare),
+        roundMax4(eq.baselineMMR),
+        roundMax4(eq.simulatedMMR),
+        roundMax4(eq.livesSaved),
+        roundMax4(eq.relativeReduction),
+        roundMax4(eq.absoluteReduction),
+        roundMax4(eq.fiscalCostUSD ?? 0),
       ]);
     });
 
     const wsEquity = XLSX.utils.aoa_to_sheet(equityData);
-    wsEquity['!cols'] = Array.from({ length: 8 }, (_, i) => ({ wch: i < 2 ? 22 : 14 }));
-    for (let r = 1; r < equityData.length; r++) {
-      for (let c = 2; c < 8; c++) {
-        const ref = XLSX.utils.encode_cell({ r, c });
-        if (wsEquity[ref]) (wsEquity[ref] as XLSX.CellObject).z = '#,##0.00';
-      }
-    }
+    wsEquity['!cols'] = Array.from({ length: 9 }, (_, i) => ({ wch: i < 2 ? 22 : 15 }));
     XLSX.utils.book_append_sheet(wb, wsEquity, t.docExcelEquitySheet.slice(0, 31));
 
+    // Hoja 4: Validación y Calibración
     if (hasValidation(validation)) {
       const validationData: (string | number)[][] = [
         [t.docExcelValTitle],
         [],
         [t.docExcelKsTitle],
-        [t.docExcelStatD, validation.kolmogorovSmirnov?.statisticD ?? na],
-        [t.docExcelPValue, validation.kolmogorovSmirnov?.pValue ?? na],
+        [t.docExcelStatD, roundMax4(validation.kolmogorovSmirnov?.statisticD ?? 0)],
+        [t.docExcelPValue, roundMax4(validation.kolmogorovSmirnov?.pValue ?? 0)],
         [
           t.docExcelEquiv,
           validation.kolmogorovSmirnov?.isStatisticallyEquivalent ? t.docExcelYes : t.docExcelNo,
         ],
         [],
         [t.docExcelWilcoxonTitle],
-        [t.docExcelStatW, validation.wilcoxonSignedRank?.statisticW ?? na],
-        [t.docExcelZScore, validation.wilcoxonSignedRank?.zScore ?? na],
-        [t.docExcelPValue, validation.wilcoxonSignedRank?.pValue ?? na],
+        [t.docExcelStatW, roundMax4(validation.wilcoxonSignedRank?.statisticW ?? 0)],
+        [t.docExcelZScore, roundMax4(validation.wilcoxonSignedRank?.zScore ?? 0)],
+        [t.docExcelPValue, roundMax4(validation.wilcoxonSignedRank?.pValue ?? 0)],
         [],
         [t.docExcelGofTitle],
-        [t.docExcelRSq, validation.externalValidation?.rSquared ?? na],
-        [t.docExcelRmse, validation.externalValidation?.rmse ?? na],
-        [t.docExcelMae, validation.externalValidation?.meanAbsoluteError ?? na],
+        [t.docExcelRSq, roundMax4(validation.externalValidation?.rSquared ?? 0)],
+        [t.docExcelRmse, roundMax4(validation.externalValidation?.rmse ?? 0)],
+        [t.docExcelMae, roundMax4(validation.externalValidation?.meanAbsoluteError ?? 0)],
         [],
         [t.docExcelSobolTitle],
         [
@@ -540,10 +590,10 @@ export class ReportGenerationService {
       (validation.sobolSensitivity?.parameters || []).forEach((param, i) => {
         validationData.push([
           param,
-          validation.sobolSensitivity?.firstOrderIndices?.[i] ?? na,
-          validation.sobolSensitivity?.totalOrderIndices?.[i] ?? na,
-          validation.sobolSensitivity?.confidenceIntervals?.[i]?.[0] ?? na,
-          validation.sobolSensitivity?.confidenceIntervals?.[i]?.[1] ?? na,
+          roundMax4(validation.sobolSensitivity?.firstOrderIndices?.[i] ?? 0),
+          roundMax4(validation.sobolSensitivity?.totalOrderIndices?.[i] ?? 0),
+          roundMax4(validation.sobolSensitivity?.confidenceIntervals?.[i]?.[0] ?? 0),
+          roundMax4(validation.sobolSensitivity?.confidenceIntervals?.[i]?.[1] ?? 0),
         ]);
       });
 
@@ -552,9 +602,38 @@ export class ReportGenerationService {
       XLSX.utils.book_append_sheet(wb, wsValidation, t.docExcelValSheet.slice(0, 31));
     }
 
+    // Hoja 5: Parámetros del Modelo y Metadatos SD
+    const paramsData: (string | number)[][] = [
+      ['METADATOS DEL MODELO DE DINÁMICA DE SISTEMAS'],
+      ['Paso de Integración Numérica (dt)', 0.05],
+      ['Unidad de dt', 'Meses (1.5 días)'],
+      ['Método de Integración', 'Runge-Kutta 4to Orden (RK4)'],
+      ['Criterio de Convergencia Cauchy', '< 0.01%'],
+      ['Marco Epidemiológico', 'Three-Delays Framework (OMS)'],
+      [],
+      ['PARÁMETROS CALIBRADOS DEL DISTRITO', district.name],
+      ['Distancia Promedio EmONC (km)', roundMax4(district.avgDistanceToEmONC)],
+      ['Tiempo de Tránsito (horas)', roundMax4(district.avgTravelTimeHours)],
+      ['Índice de Calidad de Carreteras (0-1)', roundMax4(comboRes?.parameters?.roadQualityIndex ?? 0)],
+      ['Costo de Transporte (USD)', roundMax4(comboRes?.parameters?.transportCostUSD ?? 0)],
+      ['Tarifa Parto Institucional (USD)', roundMax4(comboRes?.parameters?.facilityDeliveryFeeUSD ?? 0)],
+      ['Densidad de Personal Capacitado (/10k)', roundMax4(district.skilledStaffRatio)],
+      ['Disponibilidad 24/7 Personal (SPA)', district.staff247AvailabilityRate != null ? roundMax4(district.staff247AvailabilityRate) : na],
+      ['Disponibilidad Banco de Sangre (%)', roundMax4(district.bloodBankAvailability)],
+      ['Disponibilidad Fármacos Esenciales (%)', roundMax4(district.essentialDrugsAvailability)],
+      ['Confianza Comunitaria Basal (0-1)', roundMax4(comboRes?.parameters?.communityTrustBaseline ?? 0.72)],
+      ['Tasa Basal de Complicaciones (0-1)', roundMax4(comboRes?.parameters?.baselineComplicationRate ?? 0.15)],
+    ];
+    const wsParams = XLSX.utils.aoa_to_sheet(paramsData);
+    wsParams['!cols'] = [{ wch: 38 }, { wch: 28 }];
+    XLSX.utils.book_append_sheet(wb, wsParams, (language === 'es' ? 'Parámetros y Metadatos' : 'Model Parameters').slice(0, 31));
+
     XLSX.writeFile(wb, `Maternal_Health_SD_Digital_Twin_${district.id}_${t.docXlsxFilename}.xlsx`);
   }
 
+  /**
+   * Reporte Word (DOCX) ejecutivo completo y formateado con números de máx 4 decimales.
+   */
   public static async generateWordReport(
     district: DistrictData,
     simResults: Record<string, SimulationResult>,
@@ -565,21 +644,31 @@ export class ReportGenerationService {
     const comboRes = simResults['scenario_d'] || simResults['baseline'];
     const na = t.docNA;
     const headerFill = { type: ShadingType.CLEAR, color: '0F4C81', fill: '0F4C81' } as const;
+    const calloutFill = { type: ShadingType.CLEAR, color: 'F0FDF4', fill: 'F0FDF4' } as const;
+
+    const cellBorders = {
+      top: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+      bottom: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+      left: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+      right: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+    };
 
     const headerCell = (text: string) =>
       new TableCell({
         shading: headerFill,
+        borders: cellBorders,
         children: [
           new Paragraph({
-            children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 18 })],
+            children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 17 })],
           }),
         ],
         width: { size: 16, type: WidthType.PERCENTAGE },
       });
 
-    const bodyCell = (text: string) =>
+    const bodyCell = (text: string, bold = false) =>
       new TableCell({
-        children: [new Paragraph({ children: [new TextRun({ text, size: 18 })] })],
+        borders: cellBorders,
+        children: [new Paragraph({ children: [new TextRun({ text, bold, size: 17 })] })],
         width: { size: 16, type: WidthType.PERCENTAGE },
       });
 
@@ -628,20 +717,54 @@ export class ReportGenerationService {
         spacing: { after: 120 },
       }),
       new Paragraph({
-        text: `${t.docWordSubtitle} ${district.name.toUpperCase()} (${district.country.toUpperCase()})`,
+        text: `${t.docWordSubtitle} - ${district.name.toUpperCase()} (${district.country.toUpperCase()})`,
         heading: HeadingLevel.HEADING_2,
         alignment: AlignmentType.CENTER,
-        spacing: { after: 200 },
+        spacing: { after: 180 },
       }),
       new Paragraph({
         children: [
           new TextRun({ text: `${t.docGeneratedLabel} `, bold: true }),
           new TextRun({ text: `${localeDate(language)} | ` }),
           new TextRun({ text: `${t.docModelEngine} `, bold: true }),
-          new TextRun({ text: t.docModelEngineVal }),
+          new TextRun({ text: `${t.docModelEngineVal} (RK4, dt = 0.05 meses)` }),
         ],
-        spacing: { after: 300 },
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 260 },
       }),
+
+      // Resumen Ejecutivo Destacado
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                shading: calloutFill,
+                borders: cellBorders,
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'RESUMEN EJECUTIVO DE IMPACTO (PAQUETE COMBINADO ESCENARIO D)\n', bold: true, color: '0D9488', size: 19 }),
+                      new TextRun({ text: `• MMR Línea Base OMS: `, bold: true }),
+                      new TextRun({ text: `${fmt(district.baselineMMR)} muertes por 100.000 nacidos vivos\n` }),
+                      new TextRun({ text: `• MMR Proyectado Escenario D: `, bold: true }),
+                      new TextRun({ text: `${fmt(comboRes?.summary.mmrFinal)} muertes/100k (Reducción de -${fmt(comboRes?.summary.mmrReductionPercent)}%)\n` }),
+                      new TextRun({ text: `• Vidas Maternas Salvadas en el Horizonte: `, bold: true }),
+                      new TextRun({ text: `${fmt(comboRes?.summary.livesSaved)} vidas\n` }),
+                      new TextRun({ text: `• Razón Costo-Efectividad Incremental (ICER): `, bold: true }),
+                      new TextRun({ text: `$${fmt(comboRes?.summary.costPerLifeSavedUSD)} USD por vida salvada` }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+      new Paragraph({ text: '', spacing: { after: 200 } }),
+
+      // Sección 1: Perfil Epidemiológico
       new Paragraph({
         text: `1. ${t.docSection1.replace('1. ', '')}`,
         heading: HeadingLevel.HEADING_3,
@@ -654,20 +777,24 @@ export class ReportGenerationService {
           new TextRun({ text: `• ${t.docAnnualBirths} `, bold: true }),
           new TextRun({ text: `${district.annualBirths.toLocaleString()}\n` }),
           new TextRun({ text: `• ${t.docBaselineMMRLine} `, bold: true }),
-          new TextRun({ text: `${district.baselineMMR} ${t.docPer100kBirths}\n` }),
+          new TextRun({ text: `${fmt(district.baselineMMR)} ${t.docPer100kBirths}\n` }),
           new TextRun({ text: `• ${t.docAnc4} `, bold: true }),
-          new TextRun({ text: `${district.anc4Coverage}%\n` }),
+          new TextRun({ text: `${fmt(district.anc4Coverage)}%\n` }),
           new TextRun({ text: `• ${t.docInstDelivery} `, bold: true }),
-          new TextRun({ text: `${district.institutionalDeliveryRate}%\n` }),
+          new TextRun({ text: `${fmt(district.institutionalDeliveryRate)}%\n` }),
           new TextRun({ text: `• ${t.docAvgDistance} `, bold: true }),
-          new TextRun({ text: `${district.avgDistanceToEmONC} km (${district.avgTravelTimeHours}h)\n` }),
+          new TextRun({ text: `${fmt(district.avgDistanceToEmONC)} km (${fmt(district.avgTravelTimeHours)}h)\n` }),
           new TextRun({ text: `• ${t.docBloodBank} `, bold: true }),
-          new TextRun({ text: `${district.bloodBankAvailability}%\n` }),
+          new TextRun({ text: `${fmt(district.bloodBankAvailability)}%\n` }),
           new TextRun({ text: `• ${t.docPoverty} `, bold: true }),
-          new TextRun({ text: `${district.povertyRate}%` }),
+          new TextRun({ text: `${fmt(district.povertyRate)}%\n` }),
+          new TextRun({ text: `• Disponibilidad 24/7 Personal (SPA): `, bold: true }),
+          new TextRun({ text: `${district.staff247AvailabilityRate != null ? `${fmt(district.staff247AvailabilityRate * 100)}%` : na}` }),
         ],
         spacing: { after: 250 },
       }),
+
+      // Sección 2: Políticas e Intervenciones
       new Paragraph({
         text: t.docWordSection2,
         heading: HeadingLevel.HEADING_3,
@@ -690,23 +817,25 @@ export class ReportGenerationService {
           ...scenarioRows(t, simResults).map(({ label, res }) =>
             new TableRow({
               children: [
-                bodyCell(label),
-                bodyCell(String(res.summary.mmrFinal)),
-                bodyCell(`-${res.summary.mmrReductionPercent}%`),
+                bodyCell(label, true),
+                bodyCell(fmt(res.summary.mmrFinal)),
+                bodyCell(`-${fmt(res.summary.mmrReductionPercent)}%`),
                 bodyCell(
-                  `${res.summary.livesSaved} [${res.summary.livesSavedCI95[0]}-${res.summary.livesSavedCI95[1]}]`
+                  `${fmt(res.summary.livesSaved)} [${fmt(res.summary.livesSavedCI95[0])}-${fmt(res.summary.livesSavedCI95[1])}]`
                 ),
                 bodyCell(
                   res.summary.costPerLifeSavedUSD > 0
-                    ? `$${res.summary.costPerLifeSavedUSD.toLocaleString()}`
+                    ? `$${fmt(res.summary.costPerLifeSavedUSD)}`
                     : '$0'
                 ),
-                bodyCell(res.summary.icerPerDALY > 0 ? `$${res.summary.icerPerDALY}` : '$0'),
+                bodyCell(res.summary.icerPerDALY > 0 ? `$${fmt(res.summary.icerPerDALY)}` : '$0'),
               ],
             })
           ),
         ],
       }),
+
+      // Sección 3: Equidad
       new Paragraph({
         text: t.docWordSection3,
         heading: HeadingLevel.HEADING_3,
@@ -730,16 +859,37 @@ export class ReportGenerationService {
             new TableRow({
               children: [
                 bodyCell(`${q.quintile} (${q.label})`),
-                bodyCell(q.baselineMMR != null ? String(q.baselineMMR) : '—'),
-                bodyCell(String(q.simulatedMMR)),
-                bodyCell(String(q.livesSaved)),
-                bodyCell(q.fiscalCostUSD ? `$${q.fiscalCostUSD.toLocaleString()}` : '—'),
-                bodyCell(`-${q.relativeReduction}%`),
+                bodyCell(q.baselineMMR != null ? fmt(q.baselineMMR) : '—'),
+                bodyCell(fmt(q.simulatedMMR)),
+                bodyCell(fmt(q.livesSaved)),
+                bodyCell(q.fiscalCostUSD ? `$${fmt(q.fiscalCostUSD)}` : '—'),
+                bodyCell(`-${fmt(q.relativeReduction)}%`),
               ],
             })
           ),
         ],
       }),
+
+      // Sección 4: Especificaciones Metodológicas
+      new Paragraph({
+        text: language === 'es' ? '4. Metodología de Simulación y Marco de Tres Demoras' : '4. Simulation Methodology & Three-Delays Framework',
+        heading: HeadingLevel.HEADING_3,
+        spacing: { before: 300, after: 120 },
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'El motor de simulación modela la dinámica poblacional y asistencial de la salud materna utilizando ecuaciones diferenciales ordinarias (ODE) resueltas mediante integración numérica continua de Runge-Kutta de 4to Orden (RK4) con un paso temporal Δt = 0.05 meses (equivalente a 1.5 días). Cada paquete de intervención se proyecta sobre las tres fases de demora materna:\n' }),
+          new TextRun({ text: '• Fase 1 (Decisión de buscar atención): ', bold: true }),
+          new TextRun({ text: 'Influencia de promotores de salud y parteras tradicionales (TBA), confianza basal comunitaria y educación femenina.\n' }),
+          new TextRun({ text: '• Fase 2 (Identificación y llegada al centro): ', bold: true }),
+          new TextRun({ text: 'Calidad de carreteras, distancia geográfica, tiempos de tránsito y disponibilidad de red de moto-ambulancias.\n' }),
+          new TextRun({ text: '• Fase 3 (Recepción de atención obstétrica de emergencia oportuna): ', bold: true }),
+          new TextRun({ text: 'Disponibilidad de personal clínico 24/7 (SPA), banco de sangre y stock esencial de uterotónicos (oxitocina/misoprostol).' }),
+        ],
+        spacing: { after: 200 },
+      }),
+
+      // Sección 5: Validación
       new Paragraph({
         text: t.docWordSection4,
         heading: HeadingLevel.HEADING_3,
