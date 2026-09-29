@@ -23,10 +23,18 @@ function getAI(): GoogleGenAI | null {
   return aiClient;
 }
 
-const configuredBackendUrl = process.env.BACKEND_URL || process.env.API_URL || (process.env.NODE_ENV === 'production' ? 'http://backend:8000' : 'http://localhost:8000');
+const configuredBackendUrl =
+  process.env.BACKEND_URL ||
+  process.env.API_URL ||
+  (process.env.NODE_ENV === 'production' ? 'http://backend:8000' : 'http://localhost:8000');
 const BACKEND_URL = /^https?:\/\//i.test(configuredBackendUrl)
   ? configuredBackendUrl
   : `https://${configuredBackendUrl}`;
+
+if (process.env.NODE_ENV === 'production' && !process.env.BACKEND_URL && !process.env.API_URL) {
+  console.warn('[server] BACKEND_URL/API_URL no definidos; se usa el fallback http://backend:8000 (solo Docker Compose). En Render, define BACKEND_URL con el hostname público del servicio FastAPI (sin puerto).');
+}
+console.log(`[server] Backend FastAPI: ${BACKEND_URL}`);
 
 function backendUrlFor(pathname: string): string {
   return `${BACKEND_URL.replace(/\/$/, '')}${pathname}`;
