@@ -192,7 +192,13 @@ export const ValidationView: React.FC<ValidationViewProps> = ({ district }) => {
       {/* Run All Button */}
       <div className="flex gap-2">
         <button
-          onClick={async () => { await Promise.all([runConvergence(), runKS(), runSobol(), runBootstrap(), runExternal()]); }}
+          onClick={async () => {
+            await runConvergence();
+            await runKS();
+            await runExternal();
+            await runSobol();
+            await runBootstrap();
+          }}
           disabled={Object.values(loading).some(Boolean)}
           className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 rounded-lg text-sm font-medium transition-colors"
         >

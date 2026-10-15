@@ -315,7 +315,7 @@ async def calibrate_model(req: CalibrationRequest):
         raise HTTPException(status_code=500, detail=f"Calibration failed: {str(e)}")
 
 @app.post("/validation/ks")
-async def kolmogorov_smirnov_test(req: ValidationRequest):
+def kolmogorov_smirnov_test(req: ValidationRequest):
     """Two-sample KS and paired Wilcoxon across all districts.
 
     Scope is the full district set (observed DHS-anchored inputs vs simulated
@@ -334,7 +334,7 @@ async def kolmogorov_smirnov_test(req: ValidationRequest):
         raise HTTPException(status_code=422, detail=str(e))
 
 @app.post("/validation/sobol")
-async def sobol_sensitivity(req: ValidationRequest):
+def sobol_sensitivity(req: ValidationRequest):
     if not req.district_id:
         raise HTTPException(status_code=422, detail="district_id is required for Sobol sensitivity")
     district = fetch_district_from_db(req.district_id)
@@ -344,7 +344,7 @@ async def sobol_sensitivity(req: ValidationRequest):
         return StatisticalValidationPy.sobol_sensitivity(
             district,
             scenario_id=req.scenario_id,
-            n_samples=req.n_samples or 64,
+            n_samples=req.n_samples or 32,
             months=req.months or 12,
             seed=req.seed if req.seed is not None else 42,
         )
@@ -354,7 +354,7 @@ async def sobol_sensitivity(req: ValidationRequest):
         raise HTTPException(status_code=422, detail=str(e))
 
 @app.post("/validation/bootstrap")
-async def bootstrap_confidence(req: ValidationRequest):
+def bootstrap_confidence(req: ValidationRequest):
     if not req.district_id:
         raise HTTPException(status_code=422, detail="district_id is required for bootstrap intervals")
     district = fetch_district_from_db(req.district_id)
@@ -364,7 +364,7 @@ async def bootstrap_confidence(req: ValidationRequest):
         return StatisticalValidationPy.bootstrap_confidence_intervals(
             district,
             scenario_id=req.scenario_id,
-            iterations=req.iterations or 200,
+            iterations=req.iterations or 100,
             months=req.months or 36,
             seed=req.seed if req.seed is not None else 42,
         )
@@ -374,7 +374,7 @@ async def bootstrap_confidence(req: ValidationRequest):
         raise HTTPException(status_code=422, detail=str(e))
 
 @app.get("/validation/external/{district_id}")
-async def external_validation(district_id: str, months: int = 36):
+def external_validation(district_id: str, months: int = 36):
     """Cross-district external consistency for all districts (requested id echoed)."""
     district = fetch_district_from_db(district_id)
     if not district:
@@ -390,7 +390,7 @@ async def external_validation(district_id: str, months: int = 36):
         raise HTTPException(status_code=422, detail=str(e))
 
 @app.get("/validation/convergence/{district_id}")
-async def rk4_convergence(district_id: str, scenario_id: str = "scenario_d", months: int = 36):
+def rk4_convergence(district_id: str, scenario_id: str = "scenario_d", months: int = 36):
     """Validate numerical convergence across integration timesteps (dt=0.1, 0.05, 0.025)."""
     district = fetch_district_from_db(district_id)
     if not district:

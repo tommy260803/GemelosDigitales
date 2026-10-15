@@ -15,7 +15,10 @@ from typing import Any, Dict, List, Optional, Sequence
 import numpy as np
 from scipy import stats as sps
 
-from services.system_dynamics import DistrictData, SystemDynamicsEngine
+try:
+    from services.system_dynamics import DistrictData, SystemDynamicsEngine
+except ImportError:
+    from backend.services.system_dynamics import DistrictData, SystemDynamicsEngine
 
 
 class ScientificProcedureUnavailable(RuntimeError):
@@ -77,9 +80,13 @@ def _sample_parameters(district: DistrictData, rng: np.random.Generator) -> Dict
     return draw
 
 
+_sobol_cache: Dict[str, Any] = {}
+_bootstrap_cache: Dict[str, Any] = {}
+
+
 def _paired_deaths_avoided(district: DistrictData, scenario_id: str, custom_params: Dict[str, float], months: int) -> Dict[str, float]:
-    baseline = SystemDynamicsEngine.simulate(district, "baseline", custom_params, months)
-    scenario = SystemDynamicsEngine.simulate(district, scenario_id, custom_params, months, baseline_result=baseline)
+    baseline = SystemDynamicsEngine.simulate(district, "baseline", custom_params, months, record_trajectories=False)
+    scenario = SystemDynamicsEngine.simulate(district, scenario_id, custom_params, months, baseline_result=baseline, record_trajectories=False)
     return {
         "deaths_avoided": float(scenario.summary.deaths_avoided),
         "cost_usd": float(scenario.summary.total_cost_usd),
@@ -164,6 +171,10 @@ class StatisticalValidationPy:
         computed as a paired baseline/scenario run per sample.  Parameter
         ranges come from PARAMETER_RANGES (documented assumptions).
         """
+        cache_key = f"{district.id}:{scenario_id}:{n_samples}:{months}:{seed}"
+        if cache_key in _sobol_cache:
+            return _sobol_cache[cache_key]
+
         if n_samples < 16 or n_samples > 4096 or (n_samples & (n_samples - 1)) != 0:
             raise ValueError("n_samples must be a power of two in [16, 4096]")
         try:
@@ -199,7 +210,7 @@ class StatisticalValidationPy:
         s1 = [float(x) for x in analysis["S1"]]
         st = [float(x) for x in analysis["ST"]]
         order = sorted(range(len(names)), key=lambda i: st[i], reverse=True)
-        return {
+        res = {
             "method": "Sobol global sensitivity analysis (SALib Saltelli design, Jansen total-order estimator)",
             "output_variable": f"deaths_avoided:{scenario_id}",
             "scenario_id": scenario_id,
@@ -216,6 +227,8 @@ class StatisticalValidationPy:
             "parameter_ranges": PARAMETER_RANGES,
             "top_variance_contributors": [names[i] for i in order[:3]],
         }
+        _sobol_cache[cache_key] = res
+        return res
 
     @staticmethod
     def bootstrap_confidence_intervals(district: DistrictData, scenario_id: str = "scenario_d",
@@ -228,6 +241,10 @@ class StatisticalValidationPy:
         and cost per death avoided.  The reported intervals propagate input
         uncertainty through the model; they are not output-noise heuristics.
         """
+        cache_key = f"{district.id}:{scenario_id}:{iterations}:{months}:{seed}"
+        if cache_key in _bootstrap_cache:
+            return _bootstrap_cache[cache_key]
+
         if not 10 <= iterations <= 5000:
             raise ValueError("iterations must be in [10, 5000]")
         rng = np.random.default_rng(seed)
@@ -245,7 +262,7 @@ class StatisticalValidationPy:
             raise ScientificProcedureUnavailable(
                 "Bootstrap produced no positive deaths-avoided draws; cost-per-death interval undefined."
             )
-        return {
+        res = {
             "method": "parametric bootstrap (uniform draws over documented parameter ranges, paired engine runs)",
             "district_id": district.id,
             "scenario_id": scenario_id,
@@ -259,6 +276,8 @@ class StatisticalValidationPy:
             "positive_draws": int(cost_arr.size),
             "parameter_ranges": PARAMETER_RANGES,
         }
+        _bootstrap_cache[cache_key] = res
+        return res
 
     @staticmethod
     def external_validation(districts: Sequence[DistrictData], months: int = 36) -> Dict[str, Any]:

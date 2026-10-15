@@ -153,7 +153,7 @@ class SystemDynamicsEngine:
             })
         return rows
     @staticmethod
-    def simulate(district,scenario_id='baseline',custom_params=None,simulation_months=36,dt=None,baseline_result=None,clinical_capacity_model=DEFAULT_CLINICAL_CAPACITY_MODEL,equity_inputs=None):
+    def simulate(district,scenario_id='baseline',custom_params=None,simulation_months=36,dt=None,baseline_result=None,clinical_capacity_model=DEFAULT_CLINICAL_CAPACITY_MODEL,equity_inputs=None,record_trajectories=True):
         if not isinstance(simulation_months,int) or not 1<=simulation_months<=240: raise ValueError('simulation_months must be an integer in [1, 240]')
         dt=SystemDynamicsEngine.DEFAULT_DT_MONTHS if dt is None else _valid(float(dt),.001,1,'dt'); steps=round(simulation_months/dt)
         if not math.isclose(steps*dt,simulation_months,abs_tol=1e-9): raise ValueError('simulation_months must be divisible by dt')
@@ -174,16 +174,19 @@ class SystemDynamicsEngine:
             for k in parts: parts[k]+=ds[k]
             if (step+1)%round(1/dt)==0:
                 mmr=md/mb*1e5 if mb else 0.; hmmr=cd/cb*1e5 if cb else 0.; b['rolling']=.7*b['rolling']+.3*mmr
-                traj.append(StockState(len(traj)+1,*s[:5],mb,md,mmr,cb,cd,hmmr,c['anc']*100,c['facility']*100,s[5],c['cong'],c['d2'],c['d3'],c['home_del'],c['facility_del'],c['risk'],c['hcomp']+c['icomp'],c['referral'],c['refs'],c['unref'],parts['home'],parts['transit'],parts['fac'],c['quality'],c['cap'],c['fee'],c['travel'],c['tba'],c['effective_cap'],c['staff_availability'])); mb=md=0.; parts={'home':0.,'transit':0.,'fac':0.}
-        f=traj[-1]
-        if scenario_id=='baseline': bd=cd; da=0.; bm=f.horizon_mmr; cost=0.
+                if record_trajectories:
+                    traj.append(StockState(len(traj)+1,*s[:5],mb,md,mmr,cb,cd,hmmr,c['anc']*100,c['facility']*100,s[5],c['cong'],c['d2'],c['d3'],c['home_del'],c['facility_del'],c['risk'],c['hcomp']+c['icomp'],c['referral'],c['refs'],c['unref'],parts['home'],parts['transit'],parts['fac'],c['quality'],c['cap'],c['fee'],c['travel'],c['tba'],c['effective_cap'],c['staff_availability']))
+                mb=md=0.; parts={'home':0.,'transit':0.,'fac':0.}
+        hmmr=cd/cb*1e5 if cb else 0.
+        final_anc=c['anc']*100; final_fac=c['facility']*100
+        if scenario_id=='baseline': bd=cd; da=0.; bm=hmmr; cost=0.
         else:
-            paired=baseline_result or SystemDynamicsEngine.simulate(district,'baseline',custom_params,simulation_months,dt,clinical_capacity_model=clinical_capacity_model)
+            paired=baseline_result or SystemDynamicsEngine.simulate(district,'baseline',custom_params,simulation_months,dt,clinical_capacity_model=clinical_capacity_model,record_trajectories=record_trajectories)
             if paired.district_id!=district.id or paired.summary.clinical_capacity_model!=clinical_capacity_model or paired.summary.simulation_months!=simulation_months or paired.summary.dt_months!=dt: raise ValueError('Incompatible paired baseline simulation')
             bd=paired.summary.total_maternal_deaths; bm=paired.summary.horizon_mmr; da=bd-cd; cost=district.population*next(x for x in SCENARIO_DEFINITIONS if x['id']==scenario_id)['cost_per_capita_usd']*simulation_months/12
-        reduction=(bm-f.horizon_mmr)/bm*100 if bm else 0.; cpda=cost/da if da>0 else None; summary=SimulationSummary(cb,cd,f.horizon_mmr,da,reduction,f.anc_coverage_percent,f.facility_delivery_percent,cost,cost,cpda,'RK4',dt,simulation_months,bd,da,bm,f.horizon_mmr,reduction,f.anc_coverage_percent,cpda,clinical_capacity_model)
+        reduction=(bm-hmmr)/bm*100 if bm else 0.; cpda=cost/da if da>0 else None; summary=SimulationSummary(cb,cd,hmmr,da,reduction,final_anc,final_fac,cost,cost,cpda,'RK4',dt,simulation_months,bd,da,bm,hmmr,reduction,final_anc,cpda,clinical_capacity_model)
         definition=next(x for x in SCENARIO_DEFINITIONS if x['id']==scenario_id)
-        equity=SystemDynamicsEngine._equity(district,scenario_id,equity_inputs,simulation_months,dt,clinical_capacity_model,custom_params) if equity_inputs else []
+        equity=SystemDynamicsEngine._equity(district,scenario_id,equity_inputs,simulation_months,dt,clinical_capacity_model,custom_params) if (equity_inputs and record_trajectories) else []
         return SimulationResult(district.id,district.name,district.country,scenario_id,definition['name'],p,traj,summary,equity)
     @staticmethod
     def convergence_check(district,scenario_id='baseline',months=36):

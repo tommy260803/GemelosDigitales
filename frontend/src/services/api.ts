@@ -106,7 +106,7 @@ export async function runKolmogorovSmirnov(districtId: string): Promise<any> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ district_id: districtId, test_type: 'KS' }),
-  }, 60000);
+  }, 90000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`KS test failed: ${response.status}`);
   return readJsonResponse(response, 'KS validation failed');
@@ -117,7 +117,7 @@ export async function runSobolSensitivity(districtId: string): Promise<any> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ district_id: districtId, test_type: 'SOBOL' }),
-  }, 60000);
+  }, 90000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`Sobol analysis failed: ${response.status}`);
   return readJsonResponse(response, 'Sobol validation failed');
@@ -128,23 +128,27 @@ export async function runBootstrap(districtId: string, scenarioId: string = 'sce
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ district_id: districtId, test_type: 'BOOTSTRAP', scenario_id: scenarioId }),
-  }, 60000);
+  }, 90000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`Bootstrap failed: ${response.status}`);
-  return response.json();
+  return readJsonResponse(response, 'Bootstrap validation failed');
 }
 
 export async function runExternalValidation(districtId: string): Promise<any> {
-  const response = await fetchWithTimeout(`${API_BASE}/validation/external/${districtId}`, {}, 60000);
+  const response = await fetchWithTimeout(`${API_BASE}/validation/external/${districtId}`, {}, 90000);
   if (response.status === 410) throw new Error('VALIDATION_UNAVAILABLE');
   if (!response.ok) throw new Error(`External validation failed: ${response.status}`);
-  return response.json();
+  return readJsonResponse(response, 'External validation failed');
 }
 
 export async function runRK4Convergence(districtId: string, scenarioId = 'scenario_d', months = 36): Promise<any> {
-  const response = await fetchWithTimeout(`${API_BASE}/validation/convergence/${encodeURIComponent(districtId)}?scenario_id=${encodeURIComponent(scenarioId)}&months=${months}`);
+  const response = await fetchWithTimeout(
+    `${API_BASE}/validation/convergence/${encodeURIComponent(districtId)}?scenario_id=${encodeURIComponent(scenarioId)}&months=${months}`,
+    {},
+    60000
+  );
   if (!response.ok) throw new Error(`RK4 convergence validation failed: ${response.status}`);
-  return response.json();
+  return readJsonResponse(response, 'RK4 convergence failed');
 }
 
 // =========================================================

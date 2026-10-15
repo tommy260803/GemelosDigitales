@@ -271,7 +271,7 @@ async function startServer() {
       const backendPath = req.path.replace(/^\/api/, '');
       const url = `${BACKEND_URL}${backendPath}${req.url.includes('?') ? '?' + req.url.split('?')[1] : ''}`;
       console.log(`[PROXY GET] ${req.method} ${req.originalUrl} -> ${url}`);
-      const response = await fetch(url, { signal: AbortSignal.timeout(45_000) });
+      const response = await fetch(url, { signal: AbortSignal.timeout(90_000) });
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
         const data = await response.json();
@@ -294,7 +294,7 @@ async function startServer() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req.body),
-        signal: AbortSignal.timeout(90_000),
+        signal: AbortSignal.timeout(120_000),
       });
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
