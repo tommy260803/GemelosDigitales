@@ -11,7 +11,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Literal
 from datetime import datetime, timezone
 
+import sys
 from dotenv import load_dotenv
+
+_backend_dir = str(Path(__file__).resolve().parent)
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
@@ -222,7 +227,7 @@ async def get_district(district_id: str):
     }
 
 @app.post("/simulation/run", response_model=SimulationResponse)
-async def run_simulation(req: SimulationRequest):
+def run_simulation(req: SimulationRequest):
     district = fetch_district_from_db(req.district_id)
     if not district:
         raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")
@@ -279,11 +284,11 @@ async def run_simulation(req: SimulationRequest):
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
 @app.post("/simulation/scenario")
-async def run_scenario(req: SimulationRequest):
-    return await run_simulation(req)
+def run_scenario(req: SimulationRequest):
+    return run_simulation(req)
 
 @app.get("/simulation/compare/{district_id}")
-async def compare_scenarios(district_id: str, months: int = 36):
+def compare_scenarios(district_id: str, months: int = 36):
     district = fetch_district_from_db(district_id)
     if not district:
         raise HTTPException(status_code=404, detail=f"District {district_id} not found")
@@ -303,7 +308,7 @@ async def compare_scenarios(district_id: str, months: int = 36):
     return {"district_id": district_id, "district_name": district.name, "comparison": results}
 
 @app.post("/simulation/calibrate")
-async def calibrate_model(req: CalibrationRequest):
+def calibrate_model(req: CalibrationRequest):
     district = fetch_district_from_db(req.district_id)
     if not district:
         raise HTTPException(status_code=404, detail=f"District {req.district_id} not found")

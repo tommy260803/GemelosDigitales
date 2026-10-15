@@ -10,8 +10,12 @@ from typing import List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from services.system_dynamics import DistrictData
-from services.model_inputs import districts_from_datasets
+try:
+    from services.system_dynamics import DistrictData
+    from services.model_inputs import districts_from_datasets
+except ImportError:
+    from backend.services.system_dynamics import DistrictData
+    from backend.services.model_inputs import districts_from_datasets
 
 DEFAULT_DB_URL = "postgresql://twin_admin:secure_twin_password_2026@localhost:5434/maternal_twin_db"
 
@@ -73,18 +77,23 @@ def _row_to_district(row: dict) -> DistrictData:
 
 def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
     """Fetch PostgreSQL runtime district; versioned CSV datasets are the non-DB fallback."""
+    conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(f"{DISTRICT_SELECT_SQL} WHERE id = %s", (district_id,))
         row = cur.fetchone()
         cur.close()
-        conn.close()
-
         if row:
             return _row_to_district(row)
     except Exception as e:
         print(f"Database unavailable, using versioned model-input datasets: {e}")
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     return next((d for d in districts_from_datasets() if d.id == district_id), None)
 
@@ -92,19 +101,25 @@ def fetch_district_from_db(district_id: str) -> Optional[DistrictData]:
 def fetch_all_districts_from_db() -> List[DistrictData]:
     """Fetch all runtime districts from PostgreSQL; versioned CSV datasets are the fallback."""
     districts = []
+    conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(f"{DISTRICT_SELECT_SQL} ORDER BY country, name")
         rows = cur.fetchall()
         cur.close()
-        conn.close()
 
         for row in rows:
             districts.append(_row_to_district(row))
     except Exception as e:
         print(f"Database unavailable, using versioned model-input datasets: {e}")
         districts = districts_from_datasets()
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     if not districts:
         print("Database returned zero districts, falling back to versioned model-input datasets.")
