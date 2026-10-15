@@ -32,9 +32,9 @@ async function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = 
 }
 
 // Check if FastAPI backend is available (via Express /api/backend-health proxy)
-export async function checkApiAvailability(): Promise<boolean> {
+export async function checkApiAvailability(timeoutMs = 25000): Promise<boolean> {
   try {
-    const response = await fetchWithTimeout(`${API_BASE}/backend-health`, {}, 8000);
+    const response = await fetchWithTimeout(`${API_BASE}/backend-health`, {}, timeoutMs);
     if (!response.ok) return false;
     const data = await response.json();
     return Boolean(data.backendHealthy);

@@ -13,6 +13,7 @@ import {
 import { DistrictData, SimulationResult } from '../types';
 import { useLanguage } from '../i18n/translations';
 import { useTheme } from '../context/ThemeContext';
+import { useApi } from '../context/ApiContext';
 import { StatCard } from './ui/StatCard';
 import { SectionHeader } from './ui/SectionHeader';
 import { Badge } from './ui/Badge';
@@ -45,6 +46,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { retryConnection, refreshApiData } = useApi();
 
   if (isLoading || !simulationResult) {
     if (isLoading) {
@@ -68,11 +70,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="space-y-4">
         <div className="flex gap-3 bg-amber-950/30 border border-amber-500/40 rounded-lg p-5">
           <AlertTriangle className="text-amber-300 shrink-0 mt-0.5" />
-          <div>
-            <h2 className="font-semibold">{t.dashBackendDown}</h2>
-            <p className="text-sm text-slate-400 mt-1">
+          <div className="flex-1">
+            <h2 className="font-semibold text-amber-200">{t.dashBackendDown}</h2>
+            <p className="text-sm text-slate-300 mt-1">
               {t.dashBackendDownDesc}
             </p>
+            <div className="mt-3">
+              <button
+                onClick={() => {
+                  if (district) refreshApiData(district);
+                  else retryConnection();
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                {t.retryConnection || 'Reintentar Conexión'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
