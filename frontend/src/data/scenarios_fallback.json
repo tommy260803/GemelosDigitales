@@ -1,0 +1,128 @@
+[
+  {
+    "id": "baseline",
+    "letter": "Base",
+    "name": "Status quo baseline",
+    "description": "No supplementary intervention.",
+    "mechanism": "Existing modeled inputs.",
+    "cost_per_capita_usd": 0.0,
+    "parameter_overrides": {},
+    "rules": {}
+  },
+  {
+    "id": "scenario_a",
+    "letter": "A",
+    "name": "Access and transport package",
+    "description": "Transport/access intervention.",
+    "mechanism": "Reduces modeled travel time by 50%; road and transport rules are retained from the access package.",
+    "cost_per_capita_usd": 1.45,
+    "cost_source_type": "PARAMETRIC_ASSUMPTION",
+    "effect_source_type": "PARAMETRIC_ASSUMPTION",
+    "rules": {
+      "travel_time_hours": [
+        "at_most_fraction",
+        0.5
+      ],
+      "road_quality_index": [
+        "at_least",
+        0.85
+      ],
+      "transport_cost_usd": [
+        "at_most_fraction",
+        0.2
+      ]
+    }
+  },
+  {
+    "id": "scenario_b",
+    "letter": "B",
+    "name": "Financial access package",
+    "description": "Delivery-fee removal and insurance coverage floor.",
+    "mechanism": "Improves modeled affordability.",
+    "cost_per_capita_usd": 2.8,
+    "cost_source_type": "PARAMETRIC_ASSUMPTION",
+    "effect_source_type": "PARAMETRIC_ASSUMPTION",
+    "rules": {
+      "facility_delivery_fee_usd": [
+        "set",
+        0.0
+      ],
+      "insurance_coverage_rate": [
+        "at_least",
+        0.95
+      ]
+    }
+  },
+  {
+    "id": "scenario_c",
+    "letter": "C",
+    "name": "Community package",
+    "description": "TBA/community trust intervention.",
+    "mechanism": "Improves modeled community pathway.",
+    "cost_per_capita_usd": 0.95,
+    "cost_source_type": "PARAMETRIC_ASSUMPTION",
+    "effect_source_type": "PARAMETRIC_ASSUMPTION",
+    "rules": {
+      "tba_influence_factor": [
+        "at_most_fraction",
+        0.25
+      ],
+      "community_trust_baseline": [
+        "at_least",
+        0.9
+      ]
+    }
+  },
+  {
+    "id": "scenario_d",
+    "letter": "D",
+    "name": "Combined expanded package (A+B+C+clinical capacity)",
+    "description": "Combined access, financial, community and clinical-capacity package.",
+    "mechanism": "Combines A, B and C with 95% modeled 24/7 staff coverage, blood availability and uterotonic availability.",
+    "cost_per_capita_usd": 5.2,
+    "cost_source_type": "PARAMETRIC_ASSUMPTION",
+    "effect_source_type": "PARAMETRIC_ASSUMPTION",
+    "rules": {
+      "travel_time_hours": [
+        "at_most_fraction",
+        0.5
+      ],
+      "road_quality_index": [
+        "at_least",
+        0.85
+      ],
+      "transport_cost_usd": [
+        "at_most_fraction",
+        0.2
+      ],
+      "facility_delivery_fee_usd": [
+        "set",
+        0.0
+      ],
+      "insurance_coverage_rate": [
+        "at_least",
+        0.95
+      ],
+      "tba_influence_factor": [
+        "at_most_fraction",
+        0.25
+      ],
+      "community_trust_baseline": [
+        "at_least",
+        0.9
+      ],
+      "blood_availability_rate": [
+        "set",
+        0.95
+      ],
+      "oxytocin_misoprostol_stock_rate": [
+        "set",
+        0.95
+      ],
+      "staff_247_availability_rate": [
+        "set",
+        0.95
+      ]
+    }
+  }
+]

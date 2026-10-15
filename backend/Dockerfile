@@ -45,7 +45,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY backend ./backend
 COPY data/model_inputs ./data/model_inputs
 COPY scripts/load_model_inputs.py ./scripts/load_model_inputs.py
-COPY database/migrations/003_staff_247_availability.sql ./database/migrations/003_staff_247_availability.sql
+COPY database ./database
 
 # Environment
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -62,4 +62,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 RUN touch backend/services/__init__.py
 
 WORKDIR /app/backend
-CMD ["sh", "-c", "python ../scripts/load_model_inputs.py && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "python ../scripts/load_model_inputs.py || true; exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

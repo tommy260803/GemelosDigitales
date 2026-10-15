@@ -4,6 +4,8 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { TerrainService } from './frontend/src/services/terrainService.ts';
+import districtsFallback from './frontend/src/data/districts_fallback.json';
+import scenariosFallback from './frontend/src/data/scenarios_fallback.json';
 
 dotenv.config();
 
@@ -84,9 +86,19 @@ async function startServer() {
   // =========================================================
   const getDistrict = async (districtId: unknown) => {
     if (typeof districtId !== 'string') throw new Error('districtId is required');
-    const response = await fetch(backendUrlFor(`/districts/${encodeURIComponent(districtId)}`));
-    if (!response.ok) throw new Error(`FastAPI district request failed: ${response.status}`);
-    return response.json();
+    try {
+      const response = await fetch(backendUrlFor(`/districts/${encodeURIComponent(districtId)}`), {
+        signal: AbortSignal.timeout(6000),
+      });
+      if (response.ok) {
+        return response.json();
+      }
+    } catch {
+      // Backend temporarily unreachable; use fallback
+    }
+    const found = (districtsFallback as any[]).find((d: any) => d.id === districtId);
+    if (found) return found;
+    throw new Error(`District ${districtId} not found`);
   };
 
   app.get('/api/geospatial/dem', async (req, res) => {
@@ -259,7 +271,7 @@ async function startServer() {
       const backendPath = req.path.replace(/^\/api/, '');
       const url = `${BACKEND_URL}${backendPath}${req.url.includes('?') ? '?' + req.url.split('?')[1] : ''}`;
       console.log(`[PROXY GET] ${req.method} ${req.originalUrl} -> ${url}`);
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: AbortSignal.timeout(45_000) });
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
         const data = await response.json();
@@ -282,6 +294,7 @@ async function startServer() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req.body),
+        signal: AbortSignal.timeout(90_000),
       });
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
@@ -296,9 +309,69 @@ async function startServer() {
     }
   };
 
-  app.get('/api/districts', proxyGet);
-  app.get('/api/districts/:id', proxyGet);
-  app.get('/api/scenarios', proxyGet);
+  // Districts list with automatic fallback if FastAPI is sleeping or unreachable
+  app.get('/api/districts', async (req, res) => {
+    const country = typeof req.query.country === 'string' ? req.query.country : undefined;
+    const url = `${BACKEND_URL}/districts${country ? `?country=${encodeURIComponent(country)}` : ''}`;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(12_000) });
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          return res.json(data);
+        }
+      }
+      console.warn(`[PROXY FALLBACK] Backend status ${response.status} for /districts, serving cached fallback dataset.`);
+    } catch (fetchErr: any) {
+      console.warn(`[PROXY FALLBACK] Backend unreachable (${fetchErr.message}) for /districts, serving cached fallback dataset.`);
+    }
+
+    let list = districtsFallback as any[];
+    if (country) {
+      list = list.filter((d: any) => d.country?.toLowerCase() === country.toLowerCase());
+    }
+    res.setHeader('x-data-source', 'fallback-cache');
+    return res.json(list);
+  });
+
+  // Single district with automatic fallback
+  app.get('/api/districts/:id', async (req, res) => {
+    const districtId = req.params.id;
+    const url = `${BACKEND_URL}/districts/${encodeURIComponent(districtId)}`;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(12_000) });
+      if (response.ok) {
+        const data = await response.json();
+        return res.json(data);
+      }
+    } catch (fetchErr: any) {
+      console.warn(`[PROXY FALLBACK] Backend unreachable for /districts/${districtId}, serving cached fallback.`);
+    }
+
+    const district = (districtsFallback as any[]).find((d: any) => d.id === districtId);
+    if (district) {
+      res.setHeader('x-data-source', 'fallback-cache');
+      return res.json(district);
+    }
+    return res.status(404).json({ error: `District ${districtId} not found` });
+  });
+
+  // Scenarios with automatic fallback
+  app.get('/api/scenarios', async (_req, res) => {
+    const url = `${BACKEND_URL}/scenarios`;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
+      if (response.ok) {
+        const data = await response.json();
+        return res.json(data);
+      }
+    } catch {
+      // Backend asleep or down
+    }
+    res.setHeader('x-data-source', 'fallback-cache');
+    return res.json(scenariosFallback);
+  });
+
   app.post('/api/simulation/run', proxyPost);
   app.post('/api/validation/run', proxyPost);
   app.post('/api/validation/ks', proxyPost);
