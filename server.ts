@@ -406,6 +406,20 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Maternal Health Digital Twin server running on http://0.0.0.0:${PORT}`);
+
+    // Keep-alive ping to prevent Render free-tier backend from sleeping (Render sleeps after 15m)
+    if (process.env.NODE_ENV === 'production' && BACKEND_URL.includes('onrender.com')) {
+      const PING_INTERVAL_MS = 8 * 60 * 1000; // 8 minutes
+      setInterval(async () => {
+        try {
+          const pingUrl = backendUrlFor('/health');
+          const res = await fetch(pingUrl, { signal: AbortSignal.timeout(15_000) });
+          console.log(`[KEEP-ALIVE] Backend ping: ${res.status}`);
+        } catch (err: any) {
+          console.warn(`[KEEP-ALIVE] Backend ping failed: ${err.message}`);
+        }
+      }, PING_INTERVAL_MS);
+    }
   });
 }
 

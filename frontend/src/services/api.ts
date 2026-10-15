@@ -16,8 +16,8 @@ async function readJsonResponse(response: Response, fallbackMessage: string): Pr
   return response.json();
 }
 
-// Helper for fetch with timeout
-async function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = 15000): Promise<Response> {
+// Helper for fetch with timeout (increased to 45s for cloud free-tier cold starts)
+async function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = 45000): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -31,11 +31,13 @@ async function fetchWithTimeout(url: string, options?: RequestInit, timeoutMs = 
   }
 }
 
-// Check if API is available (no caching — always re-check on explicit calls)
+// Check if FastAPI backend is available (via Express /api/backend-health proxy)
 export async function checkApiAvailability(): Promise<boolean> {
   try {
-    const response = await fetchWithTimeout(`${API_BASE}/health`, {}, 5000);
-    return response.ok;
+    const response = await fetchWithTimeout(`${API_BASE}/backend-health`, {}, 8000);
+    if (!response.ok) return false;
+    const data = await response.json();
+    return Boolean(data.backendHealthy);
   } catch {
     return false;
   }
@@ -76,7 +78,7 @@ export async function runSimulation(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ district_id: districtId, scenario_id: scenarioId, months, custom_params: customParams, clinical_capacity_model: clinicalCapacityModel }),
-  });
+  }, 60000);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Simulation failed' }));

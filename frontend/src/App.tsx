@@ -24,7 +24,7 @@ import { DHSImportModal } from './components/DHSImportModal';
 
 function AppContent() {
   const { t, language } = useLanguage();
-  const { apiAvailable, apiResults, refreshApiData } = useApi();
+  const { apiAvailable, apiResults, refreshApiData, isLoading } = useApi();
   const { toast } = useToast();
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [districtsList, setDistrictsList] = useState<DistrictData[]>([]);
@@ -219,6 +219,7 @@ function AppContent() {
                 onScenarioChange={setActiveScenarioId}
                 onOpenCopilot={() => setIsCopilotOpen(true)}
                 simulationResult={allResults[activeScenarioId]}
+                isLoading={isLoading}
               />
             )}
 

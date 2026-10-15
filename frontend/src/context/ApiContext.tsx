@@ -30,30 +30,35 @@ export const ApiProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const refreshApiData = useCallback(async (district: DistrictData) => {
     setIsLoading(true);
     setApiError(null);
-    try {
-      const available = await ApiClient.checkApiAvailability();
-      setApiAvailable(available);
-      if (!available) {
-        setApiResults({});
-        throw new Error('Backend unavailable; no client-side simulation is available.');
+    let attempts = 0;
+    while (attempts < 2) {
+      try {
+        attempts++;
+        const scenarios = await ApiClient.fetchScenarios();
+        const simPromises = scenarios.map(async (scenario) => {
+          const res = await ApiClient.runSimulation(district.id, scenario.id, 36);
+          return { id: scenario.id, res };
+        });
+        const resolved = await Promise.all(simPromises);
+        const results: Record<string, SimulationResult> = {};
+        resolved.forEach(({ id, res }) => {
+          results[id] = res;
+        });
+        setApiResults(results);
+        setApiAvailable(true);
+        setIsLoading(false);
+        return;
+      } catch (error: unknown) {
+        if (attempts < 2) {
+          console.warn('Simulation attempt 1 encountered issue (backend might be waking up). Retrying in 2.5s...', error);
+          await new Promise((r) => setTimeout(r, 2500));
+        } else {
+          setApiResults({});
+          setApiError(error instanceof Error ? error.message : 'Failed to fetch backend simulation results');
+          setApiAvailable(false);
+          setIsLoading(false);
+        }
       }
-      const scenarios = await ApiClient.fetchScenarios();
-      const simPromises = scenarios.map(async (scenario) => {
-        const res = await ApiClient.runSimulation(district.id, scenario.id, 36);
-        return { id: scenario.id, res };
-      });
-      const resolved = await Promise.all(simPromises);
-      const results: Record<string, SimulationResult> = {};
-      resolved.forEach(({ id, res }) => {
-        results[id] = res;
-      });
-      setApiResults(results);
-    } catch (error: unknown) {
-      setApiResults({});
-      setApiError(error instanceof Error ? error.message : 'Failed to fetch backend simulation results');
-      setApiAvailable(false);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 

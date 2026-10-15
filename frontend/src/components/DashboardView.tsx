@@ -24,6 +24,7 @@ interface DashboardViewProps {
   onScenarioChange: (id: 'baseline' | 'scenario_a' | 'scenario_b' | 'scenario_c' | 'scenario_d') => void;
   onOpenCopilot: () => void;
   simulationResult?: SimulationResult;
+  isLoading?: boolean;
 }
 
 const SCENARIO_META: Record<string, { labelKey: string; color: string; letter: string }> = {
@@ -40,11 +41,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onScenarioChange,
   onOpenCopilot,
   simulationResult,
+  isLoading = false,
 }) => {
   const { t } = useLanguage();
   const { theme } = useTheme();
 
-  if (!simulationResult) {
+  if (isLoading || !simulationResult) {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-center p-12 bg-slate-900/40 border border-sky-500/20 rounded-xl">
+            <div className="text-center space-y-3">
+              <div className="w-10 h-10 border-3 border-sky-500/20 border-t-sky-400 rounded-full animate-spin mx-auto" />
+              <h3 className="text-base font-semibold text-white tracking-wide">
+                {t.appLoadingTitle || 'Ejecutando simulación RK4...'}
+              </h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                Calculando integración de 5 stocks continuos (Δt = 0.05 meses) para {district.name}...
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="space-y-4">
         <div className="flex gap-3 bg-amber-950/30 border border-amber-500/40 rounded-lg p-5">
