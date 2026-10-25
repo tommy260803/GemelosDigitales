@@ -1,0 +1,6 @@
+{
+  "quintiles_compared": 5,
+  "cells_per_quintile": 8,
+  "all_published_cells_match_at_published_precision": true,
+  "rounding_or_adjustment_applied": false
+}

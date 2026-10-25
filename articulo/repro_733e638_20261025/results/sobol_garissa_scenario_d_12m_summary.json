@@ -1,0 +1,107 @@
+{
+  "method": "Sobol global sensitivity analysis (SALib Saltelli design, Jansen total-order estimator)",
+  "output_variable": "deaths_avoided:scenario_d",
+  "scenario_id": "scenario_d",
+  "district_id": "ke-garissa",
+  "months": 12,
+  "n_samples": 64,
+  "n_model_runs": 640,
+  "seed": 42,
+  "parameters": [
+    "travel_time_hours",
+    "road_quality_index",
+    "transport_cost_usd",
+    "facility_delivery_fee_usd",
+    "insurance_coverage_rate",
+    "skilled_staff_ratio",
+    "blood_availability_rate",
+    "community_trust_baseline"
+  ],
+  "first_order_indices": [
+    -0.0014897473539182654,
+    0.001107470211103918,
+    0.0,
+    0.0,
+    0.0,
+    0.9423933537257265,
+    0.0341165970602888,
+    -0.0012358948149109642
+  ],
+  "total_order_indices": [
+    0.0003932955375710008,
+    0.002788003957413947,
+    0.0,
+    0.0,
+    0.0,
+    0.9545812450821355,
+    0.0549788747092978,
+    0.0001147012178757782
+  ],
+  "first_order_confidence": [
+    0.00684574721666189,
+    0.017423084240568765,
+    0.0,
+    0.0,
+    0.0,
+    0.262258491411822,
+    0.08677778676789027,
+    0.0035334753106154694
+  ],
+  "total_order_confidence": [
+    0.0001212228287194208,
+    0.0008013374724547506,
+    0.0,
+    0.0,
+    0.0,
+    0.26724433001531633,
+    0.025680114804537742,
+    5.708199064830645e-05
+  ],
+  "parameter_ranges": {
+    "travel_time_hours": {
+      "kind": "multiplier",
+      "low": 0.5,
+      "high": 1.5
+    },
+    "road_quality_index": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "transport_cost_usd": {
+      "kind": "multiplier",
+      "low": 0.7,
+      "high": 1.3
+    },
+    "facility_delivery_fee_usd": {
+      "kind": "multiplier",
+      "low": 0.5,
+      "high": 1.5
+    },
+    "insurance_coverage_rate": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "skilled_staff_ratio": {
+      "kind": "multiplier",
+      "low": 0.6,
+      "high": 1.4
+    },
+    "blood_availability_rate": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "community_trust_baseline": {
+      "kind": "additive",
+      "low": -0.12,
+      "high": 0.12
+    }
+  },
+  "top_variance_contributors": [
+    "skilled_staff_ratio",
+    "blood_availability_rate",
+    "road_quality_index"
+  ]
+}

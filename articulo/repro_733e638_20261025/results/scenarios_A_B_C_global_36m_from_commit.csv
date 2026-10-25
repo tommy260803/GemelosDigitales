@@ -1,0 +1,4 @@
+scenario,cumulative_births,horizon_mmr,deaths_avoided,months,provenance
+scenario_a,3297531.9645560156,225.28863897504328,1230.4313883842826,36,read from immutable 733e638 data/results/final_global_results.csv; not simulated by this runner
+scenario_b,3298959.6629472896,198.7558166815246,2102.5220510145796,36,read from immutable 733e638 data/results/final_global_results.csv; not simulated by this runner
+scenario_c,3298369.0265973173,222.95783947974718,1305.4239513289908,36,read from immutable 733e638 data/results/final_global_results.csv; not simulated by this runner

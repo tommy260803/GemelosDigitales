@@ -1,0 +1,9 @@
+parameter,reproduced_S1,manuscript_S1,S1_matches_at_published_precision,reproduced_S1_conf,manuscript_S1_conf,S1_conf_matches_at_published_precision,reproduced_ST,manuscript_ST,ST_matches_at_published_precision,reproduced_ST_conf,manuscript_ST_conf,ST_conf_matches_at_published_precision,all_four_match_at_published_precision
+skilled_staff_ratio,0.9423933537257265,0.9424,True,0.262258491411822,0.2623,True,0.9545812450821355,0.9546,True,0.26724433001531633,0.2672,True,True
+blood_availability_rate,0.0341165970602888,0.0341,True,0.08677778676789027,0.0868,True,0.0549788747092978,0.0550,True,0.025680114804537742,0.0257,True,True
+road_quality_index,0.001107470211103918,0.0011,True,0.017423084240568765,0.0174,True,0.002788003957413947,0.0028,True,0.0008013374724547506,0.0008,True,True
+travel_time_hours,-0.0014897473539182654,-0.0015,True,0.00684574721666189,0.0068,True,0.0003932955375710008,0.0004,True,0.0001212228287194208,0.0001,True,True
+community_trust_baseline,-0.0012358948149109642,-0.0012,True,0.0035334753106154694,0.0035,True,0.0001147012178757782,0.0001,True,5.708199064830645e-05,0.00006,True,True
+transport_cost_usd,0.0,0.0000,True,0.0,0.0000,True,0.0,0.0000,True,0.0,0.0000,True,True
+facility_delivery_fee_usd,0.0,0.0000,True,0.0,0.0000,True,0.0,0.0000,True,0.0,0.0000,True,True
+insurance_coverage_rate,0.0,0.0000,True,0.0,0.0000,True,0.0,0.0000,True,0.0,0.0000,True,True

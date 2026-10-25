@@ -1,0 +1,5 @@
+2026-10-25T18:05:26Z INFO Source commit=733e63816e424bed53f2094646f46f6ca93955e4; runtime=3.13.7; package_versions={'SALib': '1.6.0', 'numpy': '2.2.6', 'scipy': '1.16.2', 'pandas': '2.3.2'}
+2026-10-25T18:05:26Z INFO Equity rows=5; Q1=169.3884015923; Q5=174.6302571791; signed Q1-Q5=-5.2418555868
+2026-10-25T18:05:33Z INFO Sobol N=64; model runs=640; seed=42; staff ST=0.9545812451; blood ST=0.0549788747
+2026-10-25T18:05:38Z INFO Monte Carlo n=200 seed=42 positive_cost_draws=200 mean_deaths_avoided=173.1521430738 interval=[135.4512534068,195.6264165164]
+2026-10-25T18:05:38Z INFO Finished at 2026-10-25T18:05:38.306791+00:00; no existing project results were overwritten

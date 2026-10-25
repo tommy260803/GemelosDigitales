@@ -1,0 +1,73 @@
+{
+  "equity": {
+    "rows": 5,
+    "q1_simulated_mmr": 169.38840159232822,
+    "q5_simulated_mmr": 174.630257179136,
+    "q1_minus_q5_signed_gap": -5.241855586807787,
+    "absolute_q1_q5_gap": 5.241855586807787,
+    "manuscript_rounded_q1": 169.39,
+    "manuscript_rounded_q5": 174.63,
+    "manuscript_reported_absolute_gap": 5.24,
+    "reproduction_rounded_values_match": true
+  },
+  "sobol": {
+    "reproduction_runs": 640,
+    "reproduction_staff_ST": 0.9545812450821355,
+    "manuscript_staff_ST": 0.9546,
+    "reproduction_blood_ST": 0.0549788747092978,
+    "manuscript_blood_ST": 0.055,
+    "rounded_ST_match": true
+  },
+  "monte_carlo": {
+    "method": "parametric bootstrap (uniform draws over documented parameter ranges, paired engine runs)",
+    "iterations": 200,
+    "seed": 42,
+    "positive_draws_for_cost_metric": 200,
+    "mean_deaths_avoided": 173.15214307380964,
+    "percentile_2_5_deaths_avoided": 135.45125340677257,
+    "percentile_97_5_deaths_avoided": 195.6264165164097,
+    "mean_cost_per_death_avoided": 76844.9014139957,
+    "percentile_2_5_cost_per_death_avoided": 67092.71332216174,
+    "percentile_97_5_cost_per_death_avoided": 96899.87879818567,
+    "manuscript_mean_deaths_avoided": 173.15,
+    "manuscript_ci95_deaths_avoided": [
+      135.45,
+      195.63
+    ],
+    "manuscript_mean_cost_per_death_avoided": 76844.9,
+    "manuscript_ci95_cost_per_death_avoided": [
+      67092.71,
+      96899.88
+    ],
+    "rounded_means_and_intervals_match": true
+  },
+  "scenario_a_b_c_global_36m": [
+    {
+      "scenario": "scenario_a",
+      "cumulative_births": 3297531.9645560156,
+      "horizon_mmr": 225.28863897504328,
+      "deaths_avoided": 1230.4313883842826,
+      "months": 36,
+      "provenance": "read from immutable 733e638 data/results/final_global_results.csv; not simulated by this runner"
+    },
+    {
+      "scenario": "scenario_b",
+      "cumulative_births": 3298959.6629472896,
+      "horizon_mmr": 198.7558166815246,
+      "deaths_avoided": 2102.5220510145796,
+      "months": 36,
+      "provenance": "read from immutable 733e638 data/results/final_global_results.csv; not simulated by this runner"
+    },
+    {
+      "scenario": "scenario_c",
+      "cumulative_births": 3298369.0265973173,
+      "horizon_mmr": 222.95783947974718,
+      "deaths_avoided": 1305.4239513289908,
+      "months": 36,
+      "provenance": "read from immutable 733e638 data/results/final_global_results.csv; not simulated by this runner"
+    }
+  ],
+  "article_location": "articulo/G23_GarciaVenturaAnthony_GonzalesEsquivelJeanfranco (1) (1).docx and ARTICLE_UPDATE_PACKAGE.md",
+  "interpretation_of_95_percent_range": "Percentiles 2.5 and 97.5 of seeded parametric simulation outputs; not a sampling CI from observed patient/district outcome data.",
+  "no_values_adjusted_to_match_manuscript": true
+}

@@ -1,0 +1,9 @@
+{
+  "sobol_all_8_parameters_match_at_published_precision": true,
+  "sobol_parameters_compared": 8,
+  "monte_carlo_mean_and_percentiles_match_at_published_precision": true,
+  "equity_rounded_quintile_mmr_and_gap_match": true,
+  "garissa_quintile_input_rows_used": 5,
+  "quintile_input_source": "data/model_inputs/quintile_coverage_by_district.csv at source commit 733e63816e424bed53f2094646f46f6ca93955e4",
+  "no_simulation_executed_by_this_comparator": true
+}

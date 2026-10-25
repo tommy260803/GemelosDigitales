@@ -1,0 +1,11 @@
+Read-only database investigation for article reproduction
+Date checked: 2026-10-25
+
+1. `docker compose ps --format json` returned no running services. The only output was the compose-file warning about the obsolete `version` key.
+2. The current process had no `DATABASE_URL` environment variable.
+3. The configured Compose PostgreSQL address is localhost:5434. A read-only psycopg2 connection to that address was refused (connection refused); no SQL was executed.
+4. Backend schema/model declarations include `simulation_runs` and `validation_executions` (`database/schema.sql`, `backend/models.py`). A repository search found declarations but no API code that inserts simulation or validation records into those tables.
+5. Therefore database records for the article could not be inspected; no claim is made that the database tables are empty. The database service was unavailable.
+6. These local directories were also unreadable even after an elevated read-only listing attempt: `.final-integration-tests`, `.geo-script-tests`, `.geospatial-final-tests`, `.phase-final-param-tests` and suffixes `-2`, `-3`, `-4`, `.phase-spa-all-tests` and suffix `-2`, `.phase-spa-final-tests`, `.phase-spa-test-tmp`, `.pytest-tmp-full`, `.pytest-tmp-geo`. Their contents could not be searched.
+
+No database write, migration, container start, or modification of existing result CSVs was performed.

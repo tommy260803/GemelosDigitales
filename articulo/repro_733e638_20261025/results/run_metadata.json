@@ -1,0 +1,58 @@
+{
+  "source_commit": "733e63816e424bed53f2094646f46f6ca93955e4",
+  "source_commit_date": "2026-09-29T10:21:18-05:00",
+  "execution_started_utc": "2026-10-25T18:05:26.012285+00:00",
+  "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "package_versions": {
+    "SALib": "1.6.0",
+    "numpy": "2.2.6",
+    "scipy": "1.16.2",
+    "pandas": "2.3.2"
+  },
+  "analysis_config": {
+    "equity": {
+      "district_id": "ke-garissa",
+      "scenario_id": "scenario_d",
+      "months": 36,
+      "dt": null,
+      "model": "spa_247",
+      "seed": null
+    },
+    "sobol": {
+      "district_id": "ke-garissa",
+      "scenario_id": "scenario_d",
+      "months": 12,
+      "n_samples": 64,
+      "model_runs_expected": 640,
+      "seed": 42,
+      "dt": null
+    },
+    "monte_carlo_parametric": {
+      "district_id": "ke-garissa",
+      "scenario_id": "scenario_d",
+      "months": 36,
+      "iterations": 200,
+      "seed": 42,
+      "dt": null
+    },
+    "scenarios_abc": "Read directly from the committed 36-month global results CSV; no new simulation for these rows."
+  },
+  "inputs_sha256": {
+    "backend/services/system_dynamics.py": "39453d8a443cd4024f55e834a6561912ac7f63237b6a9cd7df0725530e686af6",
+    "backend/services/validation.py": "48ad3af5c2216ece19c2d29418b47b1e662a7bd540bdb0f5622f034372be2ef2",
+    "backend/services/model_inputs.py": "95f4061612c53ff107cb1d1a42cf694f797c97ca8b283640ff9542f052b44b7d",
+    "scripts/export_final_simulation_results.py": "8c769300887933accc5045bdbc7411159ffc5cfbaf9095b9a6fb5679a6dc0af8",
+    "data/model_inputs/territorial_demographics.csv": "04a679c1651a61a0bd1642be123c7a2841abd6f86a7116f7fd939db67fd71160",
+    "data/model_inputs/maternal_health_context.csv": "cecf6c0f91ed93af64b8444a8b6282d2026f7c6d5cd2981fa09058ab7d1cb874",
+    "data/model_inputs/health_system_capacity.csv": "385ccb1112a881f301c98749c44108d2bed689d565ee2e1be7f49779e22841f4",
+    "data/model_inputs/geographic_access.csv": "8526d766b834bd11173667c7f89445136ef329fcaa880e63d9a3828e9c04c436",
+    "data/model_inputs/model_context.csv": "d035abfe0c154cecd51a27c12b79159909a113937fa96258b934049540f19218",
+    "data/model_inputs/quintile_coverage_by_district.csv": "f6c87756722d0669b0995e4a46f07bffcd2becf3e5a87aadb46919c30fda3f14",
+    "data/results/final_global_results.csv": "2c47f68a2fa2784e1a7269a5b8169a0c1e021379e44ca3fdcbc40b98b516e81a",
+    "data/results/final_country_results.csv": "c56f8200873abe75208718fb8b4504cb4d09cb3cbb01c1311a447fc53efdac03",
+    "data/results/final_simulation_results.csv": "b1a6cf590a17c1c05ed19f8743b80bae3027cb8f77a2183387ca5dc8150eec1a"
+  },
+  "database": "Not queried by this runner; read-only check and result are in logs/database_check.txt.",
+  "execution_finished_utc": "2026-10-25T18:05:38.306791+00:00"
+}

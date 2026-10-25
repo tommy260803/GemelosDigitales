@@ -1,0 +1,61 @@
+{
+  "method": "parametric bootstrap (uniform draws over documented parameter ranges, paired engine runs)",
+  "district_id": "ke-garissa",
+  "scenario_id": "scenario_d",
+  "months": 36,
+  "seed": 42,
+  "iterations": 200,
+  "mean_lives_saved": 173.15214307380964,
+  "ci95_lives_saved": [
+    135.45125340677257,
+    195.6264165164097
+  ],
+  "mean_cost_per_life_saved": 76844.9014139957,
+  "ci95_cost_per_life_saved": [
+    67092.71332216174,
+    96899.87879818567
+  ],
+  "positive_draws": 200,
+  "parameter_ranges": {
+    "travel_time_hours": {
+      "kind": "multiplier",
+      "low": 0.5,
+      "high": 1.5
+    },
+    "road_quality_index": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "transport_cost_usd": {
+      "kind": "multiplier",
+      "low": 0.7,
+      "high": 1.3
+    },
+    "facility_delivery_fee_usd": {
+      "kind": "multiplier",
+      "low": 0.5,
+      "high": 1.5
+    },
+    "insurance_coverage_rate": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "skilled_staff_ratio": {
+      "kind": "multiplier",
+      "low": 0.6,
+      "high": 1.4
+    },
+    "blood_availability_rate": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "community_trust_baseline": {
+      "kind": "additive",
+      "low": -0.12,
+      "high": 0.12
+    }
+  }
+}

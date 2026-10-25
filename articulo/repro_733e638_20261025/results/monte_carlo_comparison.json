@@ -1,0 +1,23 @@
+{
+  "method": "parametric bootstrap (uniform draws over documented parameter ranges, paired engine runs)",
+  "iterations": 200,
+  "seed": 42,
+  "positive_draws_for_cost_metric": 200,
+  "mean_deaths_avoided": 173.15214307380964,
+  "percentile_2_5_deaths_avoided": 135.45125340677257,
+  "percentile_97_5_deaths_avoided": 195.6264165164097,
+  "mean_cost_per_death_avoided": 76844.9014139957,
+  "percentile_2_5_cost_per_death_avoided": 67092.71332216174,
+  "percentile_97_5_cost_per_death_avoided": 96899.87879818567,
+  "manuscript_mean_deaths_avoided": 173.15,
+  "manuscript_ci95_deaths_avoided": [
+    135.45,
+    195.63
+  ],
+  "manuscript_mean_cost_per_death_avoided": 76844.9,
+  "manuscript_ci95_cost_per_death_avoided": [
+    67092.71,
+    96899.88
+  ],
+  "rounded_means_and_intervals_match": true
+}

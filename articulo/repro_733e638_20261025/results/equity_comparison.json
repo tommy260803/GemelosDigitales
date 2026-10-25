@@ -1,0 +1,11 @@
+{
+  "rows": 5,
+  "q1_simulated_mmr": 169.38840159232822,
+  "q5_simulated_mmr": 174.630257179136,
+  "q1_minus_q5_signed_gap": -5.241855586807787,
+  "absolute_q1_q5_gap": 5.241855586807787,
+  "manuscript_rounded_q1": 169.39,
+  "manuscript_rounded_q5": 174.63,
+  "manuscript_reported_absolute_gap": 5.24,
+  "reproduction_rounded_values_match": true
+}
