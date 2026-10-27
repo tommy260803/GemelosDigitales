@@ -1,0 +1,25 @@
+{
+  "started_utc": "2026-10-27T04:05:08.608914+00:00",
+  "finished_utc": "2026-10-27T04:05:19.934244+00:00",
+  "started_lima": "2026-10-26T23:05:08.608914-05:00",
+  "finished_lima": "2026-10-26T23:05:19.934244-05:00",
+  "python": "3.13.7",
+  "numpy": "2.2.6",
+  "pandas": "2.3.2",
+  "scipy": "1.16.2",
+  "SALib": "1.6.0",
+  "source_git_head": "e87c4d2b629b29de1a7039942a4345b4a640ac94",
+  "source_branch": "main",
+  "working_tree": "modified; see code_changes.diff and source_snapshot_sha256.json",
+  "territories": 25,
+  "scenarios": [
+    "baseline",
+    "scenario_a",
+    "scenario_b",
+    "scenario_c",
+    "scenario_d"
+  ],
+  "months": 36,
+  "clinical_capacity_model": "spa_247",
+  "database_used": false
+}

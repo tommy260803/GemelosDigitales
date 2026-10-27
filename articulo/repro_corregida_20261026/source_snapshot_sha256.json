@@ -1,0 +1,62 @@
+[
+  {
+    "path": "source_snapshot\\backend\\services\\model_inputs.py",
+    "sha256": "95F4061612C53FF107CB1D1A42CF694F797C97CA8B283640FF9542F052B44B7D"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\system_dynamics.py",
+    "sha256": "9C3B994E4FE5CAE3DD411B9F43B651E25196A9674C86E66F5427B69092221B41"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\validation.py",
+    "sha256": "EC1EC543CD207C3870BD68E22B53EF6BC53EE67BBA137B1FC20CCF9F97E90BE9"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\__pycache__\\model_inputs.cpython-313.pyc",
+    "sha256": "F628A2B1EB95CC4F1F5E27413B9E58B7F76E1F6075CE04365E083C45EE64CEE7"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\__pycache__\\system_dynamics.cpython-313.pyc",
+    "sha256": "56A0142342AAB3B64080B5E7B168BB2CF539539C8D9A28E222E65B8D8C705696"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\__pycache__\\validation.cpython-313.pyc",
+    "sha256": "1543341AEC8044C0410391132D82B139EC3E063FB35BDC63A8791E61528038DB"
+  },
+  {
+    "path": "source_snapshot\\backend\\tests\\test_model_integrity_corrections.py",
+    "sha256": "F9863FB62AA373662292F9535F47EA78E68C016AC2F0E07E4D8D8F98F00C2F87"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\geographic_access.csv",
+    "sha256": "8526D766B834BD11173667C7F89445136EF329FCAA880E63D9A3828E9C04C436"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\health_system_capacity.csv",
+    "sha256": "385CCB1112A881F301C98749C44108D2BED689D565EE2E1BE7F49779E22841F4"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\input_provenance.csv",
+    "sha256": "3171681E9CF7B8E8E3EEB0BD03831C38E6D471388037476850F7DCFB08D0DEF2"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\maternal_health_context.csv",
+    "sha256": "CECF6C0F91ED93AF64B8444A8B6282D2026F7C6D5CD2981FA09058AB7D1CB874"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\model_context.csv",
+    "sha256": "D035ABFE0C154CECD51A27C12B79159909A113937FA96258B934049540F19218"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\quintile_coverage_by_district.csv",
+    "sha256": "F6C87756722D0669B0995E4A46F07BFFCD2BECF3E5A87AADB46919C30FDA3F14"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\README.md",
+    "sha256": "479464316CCDC8DD4CD17F139392477470B6DCEDC0E487CD5B2E93F98FD5D987"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\territorial_demographics.csv",
+    "sha256": "04A679C1651A61A0BD1642BE123C7A2841ABD6F86A7116F7FD939DB67FD71160"
+  }
+]

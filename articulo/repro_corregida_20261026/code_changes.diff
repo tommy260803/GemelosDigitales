@@ -1,0 +1,379 @@
+diff --git a/backend/main.py b/backend/main.py
+index a23a819..6ebd8f7 100644
+--- a/backend/main.py
++++ b/backend/main.py
+@@ -30,7 +30,11 @@ from services.system_dynamics import (
+     SystemDynamicsEngine, DistrictData, SimulationResult,
+     SCENARIO_DEFINITIONS, build_default_parameters
+ )
+-from services.validation import StatisticalValidationPy, ScientificProcedureUnavailable
++from services.validation import (
++    DEFAULT_BOOTSTRAP_ITERATIONS,
++    StatisticalValidationPy,
++    ScientificProcedureUnavailable,
++)
+ from services.calibrator import ModelCalibratorPy
+ from services.model_inputs import districts_from_datasets, quintile_coverage_by_district
+ 
+@@ -369,7 +373,7 @@ def bootstrap_confidence(req: ValidationRequest):
+         return StatisticalValidationPy.bootstrap_confidence_intervals(
+             district,
+             scenario_id=req.scenario_id,
+-            iterations=req.iterations or 100,
++            iterations=req.iterations or DEFAULT_BOOTSTRAP_ITERATIONS,
+             months=req.months or 36,
+             seed=req.seed if req.seed is not None else 42,
+         )
+diff --git a/backend/services/system_dynamics.py b/backend/services/system_dynamics.py
+index f2c644e..12a7a99 100644
+--- a/backend/services/system_dynamics.py
++++ b/backend/services/system_dynamics.py
+@@ -75,6 +75,9 @@ def build_default_parameters(d):
+ 
+ class SystemDynamicsEngine:
+     DEFAULT_DT_MONTHS=.1
++    DELIVERY_STOCK_RESIDENCE_MONTHS=.1
++    COMPLICATION_STOCK_RESIDENCE_MONTHS=.15
++    POSTPARTUM_STOCK_RESIDENCE_MONTHS=1.4
+     PROB={'road_quality_index','insurance_coverage_rate','blood_availability_rate','oxytocin_misoprostol_stock_rate','maternal_education_rate','tba_influence_factor','community_trust_baseline','baseline_complication_rate','staff_247_availability_rate','non247_relative_capacity'}
+     @staticmethod
+     def effective_parameters(d,scenario_id,custom_params=None,clinical_capacity_model='legacy'):
+@@ -96,13 +99,17 @@ class SystemDynamicsEngine:
+         return SDParameters(**values)
+     @staticmethod
+     def _clinical_capacity(s,p,births,model):
+-        load=max(0,s[2])+max(0,s[4])*1.8
++        # D and C are stocks (women); convert them to service flows before
++        # dividing by effective capacity (women/month). Reuse the residence
++        # times in the stock equations so the load ratio is dimensionless.
++        load_rate=(max(0,s[2])/SystemDynamicsEngine.DELIVERY_STOCK_RESIDENCE_MONTHS
++                   + max(0,s[4])*1.8/SystemDynamicsEngine.COMPLICATION_STOCK_RESIDENCE_MONTHS)
+         if model=='spa_247':
+             availability=p.staff_247_availability_rate+(1-p.staff_247_availability_rate)*p.non247_relative_capacity
+             nominal=births*.12*p.skilled_staff_ratio/1.5
+             effective=nominal*availability
+             if effective<=0: raise ValueError('Effective capacity must be positive')
+-            congestion=min(2.5,load/effective)
++            congestion=min(2.5,load_rate/effective)
+             staffing=min(1,p.skilled_staff_ratio/3)*availability
+             quality=max(.25,min(1,staffing*.4+p.blood_availability_rate*.3+p.oxytocin_misoprostol_stock_rate*.3-max(0,congestion-1)*.2))
+             delay=max(.2,.30+max(0,(1-p.blood_availability_rate)*2)+max(0,(1-p.oxytocin_misoprostol_stock_rate)*1.8)+(1-availability)*1.5+max(0,congestion-1)*1.2)
+@@ -110,7 +117,7 @@ class SystemDynamicsEngine:
+             availability=None
+             nominal=max(10,births*.12*p.skilled_staff_ratio/1.5)
+             effective=nominal
+-            congestion=min(2.5,load/effective)
++            congestion=min(2.5,load_rate/effective)
+             quality=max(.25,min(1,p.skilled_staff_ratio/3*.4+p.blood_availability_rate*.3+p.oxytocin_misoprostol_stock_rate*.3-max(0,congestion-1)*.2))
+             delay=max(.2,.30+max(0,(1-p.blood_availability_rate)*2)+max(0,(1-p.oxytocin_misoprostol_stock_rate)*1.8)+max(0,(1-min(1.2,p.skilled_staff_ratio/2))*1.5)+max(0,congestion-1)*1.2)
+         return nominal,effective,congestion,quality,delay,availability
+@@ -124,7 +131,24 @@ class SystemDynamicsEngine:
+         return locals()
+     @staticmethod
+     def _derivatives(s,p,b,scenario,clinical_capacity_model='legacy'):
+-        c=SystemDynamicsEngine._context(s,p,b,scenario,clinical_capacity_model); target=max(.35,min(.98,p.community_trust_baseline*(1.15-.2*b['rolling']/max(100,b['input_mmr'])))); return [b['preg']-c['f12']-c['f1t'],c['f12']-c['f2t'],c['facility_del']+c['refs']-max(0,s[2])/.1,(c['home_del']-c['hcomp'])+(max(0,s[2])/.1-c['fac']-c['transit'])-max(0,s[3])/1.4,c['hcomp']-c['refs']-c['unref']/.15,(target-s[5])*.08]
++        c=SystemDynamicsEngine._context(s,p,b,scenario,clinical_capacity_model)
++        tau_d=SystemDynamicsEngine.DELIVERY_STOCK_RESIDENCE_MONTHS
++        tau_c=SystemDynamicsEngine.COMPLICATION_STOCK_RESIDENCE_MONTHS
++        tau_p=SystemDynamicsEngine.POSTPARTUM_STOCK_RESIDENCE_MONTHS
++        delivery_out=max(0,s[2])/tau_d
++        complication_recovery=max(0,s[4])/tau_c
++        postpartum_out=max(0,s[3])/tau_p
++        target=max(.35,min(.98,p.community_trust_baseline*(1.15-.2*b['rolling']/max(100,b['input_mmr']))))
++        # Referred cases move from the unreferred flow into D. Unreferred cases
++        # enter C; modeled home deaths leave C, and nonfatal recovery enters P.
++        return [
++            b['preg']-c['f12']-c['f1t'],
++            c['f12']-c['f2t'],
++            c['facility_del']+c['refs']-delivery_out,
++            (c['home_del']-c['hcomp'])+(delivery_out-c['fac']-c['transit'])+complication_recovery-postpartum_out,
++            c['unref']-c['home']-complication_recovery,
++            (target-s[5])*.08,
++        ]
+     @staticmethod
+     def _rk4(s,dt,p,b,scenario,clinical_capacity_model='legacy'):
+         add=lambda x,k,f:[a+f*z for a,z in zip(x,k)]; k1=SystemDynamicsEngine._derivatives(s,p,b,scenario,clinical_capacity_model); k2=SystemDynamicsEngine._derivatives(add(s,k1,dt/2),p,b,scenario,clinical_capacity_model); k3=SystemDynamicsEngine._derivatives(add(s,k2,dt/2),p,b,scenario,clinical_capacity_model); k4=SystemDynamicsEngine._derivatives(add(s,k3,dt),p,b,scenario,clinical_capacity_model); n=[x+dt*(a+2*z+2*q+w)/6 for x,a,z,q,w in zip(s,k1,k2,k3,k4)]; return [max(0,x) for x in n[:5]]+[min(1,max(0,n[5]))]
+@@ -132,7 +156,15 @@ class SystemDynamicsEngine:
+     def _equity(district,scenario_id,equity_inputs,simulation_months,dt,clinical_capacity_model,custom_params=None):
+         rows=[]
+         for row in equity_inputs:
+-            variant=replace(district,anc1_coverage=row['anc1_rate']*100,institutional_delivery_rate=row['institutional_delivery_rate']*100)
++            quintile_mmr=(district.wealth_quintile_mmr or {}).get(row['quintile'])
++            if quintile_mmr is None or not math.isfinite(float(quintile_mmr)) or float(quintile_mmr)<=0:
++                raise ValueError(f"Equity analysis requires a positive quintile MMR calibration anchor: {district.id}/{row['quintile']}")
++            # Calibrate each stratum from the same wealth-quintile reference
++            # MMR that the result row displays. These values are MODEL_INPUTs,
++            # not observed DHS territory-level estimates.
++            variant=replace(district,anc1_coverage=row['anc1_rate']*100,
++                            institutional_delivery_rate=row['institutional_delivery_rate']*100,
++                            baseline_mmr=float(quintile_mmr))
+             base=SystemDynamicsEngine.simulate(variant,'baseline',custom_params,simulation_months,dt,clinical_capacity_model=clinical_capacity_model)
+             scen=base if scenario_id=='baseline' else SystemDynamicsEngine.simulate(variant,scenario_id,custom_params,simulation_months,dt,baseline_result=base,clinical_capacity_model=clinical_capacity_model)
+             share=float(row['population_share']); da=float(scen.summary.deaths_avoided)
+@@ -140,7 +172,8 @@ class SystemDynamicsEngine:
+             rows.append({
+                 'quintile':row['quintile'],'label':row.get('label') or row['quintile'],
+                 'population_share':share,
+-                'baseline_mmr':(district.wealth_quintile_mmr or {}).get(row['quintile']),
++                'baseline_mmr':float(quintile_mmr),
++                'baseline_mmr_source_type':'MODEL_INPUT; wealth-quintile anchor, not directly DHS-derived',
+                 'simulated_baseline_mmr':float(base.summary.horizon_mmr),
+                 'simulated_mmr':float(scen.summary.horizon_mmr),
+                 'lives_saved':da,
+diff --git a/backend/services/validation.py b/backend/services/validation.py
+index f6c8226..6e73881 100644
+--- a/backend/services/validation.py
++++ b/backend/services/validation.py
+@@ -264,6 +264,14 @@ class StatisticalValidationPy:
+             )
+         res = {
+             "method": "parametric bootstrap (uniform draws over documented parameter ranges, paired engine runs)",
++            "interval_type": "parametric_uncertainty_percentiles",
++            "percentile_levels": [2.5, 97.5],
++            "interval_interpretation": (
++                "Central 95% range of output variation propagated from the documented parameter ranges. "
++                "This is parametric uncertainty under the stated sampling assumptions, not a sampling-based "
++                "confidence interval, predictive interval, or independent validation."
++            ),
++            "parameter_sampling_assumption": "independent uniform draws within each documented parameter range, with domain clipping",
+             "district_id": district.id,
+             "scenario_id": scenario_id,
+             "months": months,
+diff --git a/backend/streamlit_app.py b/backend/streamlit_app.py
+index b61d940..c58f054 100644
+--- a/backend/streamlit_app.py
++++ b/backend/streamlit_app.py
+@@ -18,6 +18,7 @@ import pandas as pd
+ import numpy as np
+ import sys
+ import os
++from textwrap import wrap
+ 
+ # Add parent directory to path for imports
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+@@ -33,6 +34,28 @@ DEFAULT_DB_URL = os.environ.get(
+     'DATABASE_URL',
+     'postgresql://twin_admin:secure_twin_password_2026@localhost:5434/maternal_twin_db'
+ )
++from services.figure_export import render_plotly_png_600
++
++
++def show_explained_table(dataframe, title, interpretation, key):
++    """Show a table and provide a CSV with its reading guide."""
++    st.dataframe(dataframe, use_container_width=True, hide_index=True)
++    st.caption(f"Interpretation: {interpretation} Source: deterministic maternal-health digital twin simulation; not observed outcomes.")
++    notes = f"# {title}\n# Interpretation: {interpretation}\n# Source: deterministic maternal-health digital twin simulation; not observed outcomes.\n"
++    st.download_button("Download table (CSV)", ("\ufeff" + notes + dataframe.to_csv(index=False)).encode('utf-8'), file_name=f"{key}.csv", mime="text/csv", key=f"download_{key}")
++
++
++def show_explained_plot(figure, title, interpretation, key):
++    """Embed the explanation in the image and offer a four-times-resolution PNG."""
++    source = 'Source: deterministic maternal-health digital twin simulation; not observed outcomes.'
++    lines = wrap(interpretation, width=90)
++    figure.update_layout(title=title, margin=dict(b=110), paper_bgcolor='white', font=dict(color='#172033'))
++    figure.add_annotation(x=0, y=-0.19, xref='paper', yref='paper', xanchor='left', yanchor='top', showarrow=False,
++                          text='<br>'.join(lines + [source]), align='left', font=dict(size=11, color='#334155'))
++    st.plotly_chart(figure, use_container_width=True)
++    st.caption(f"Interpretation: {interpretation} {source}")
++    st.download_button('Download figure (PNG 600 dpi)', render_plotly_png_600(figure, title, interpretation),
++                       file_name=f'{key}_600dpi.png', mime='image/png', key=f'download_{key}')
+ 
+ # =========================================================
+ # PAGE CONFIGURATION
+@@ -132,7 +155,7 @@ STRINGS = {
+         'sub_staff': 'Effective Staff Availability',
+         'trace_trust': 'Trust', 'trace_quality': 'Quality',
+         'trace_capacity': 'Effective capacity', 'trace_staff': 'Staff availability',
+-        'stocks_caption': 'RK4-integrated state vector, sampled monthly for the selected scenario. Top row: the five stocks (S1 pregnant women, S2 in ANC, S3 facility delivery, S4 postpartum, S5 complications) plus the system-trust stock, all in women per month. Bottom row: outputs of the clinical-capacity module — quality factor (0–1 survival-quality multiplier), effective capacity (nominal delivery capacity × SPA 24/7 staff availability, deliveries/month) and effective staff availability (`staff_247 + (1 − staff_247) × non247`, unitless 0–1). Non-`spa_247` runs leave staff availability empty.',
++        'stocks_caption': 'RK4-integrated state vector, sampled monthly for the selected scenario. Top row: the five women stocks (S1 pregnant, S2 in ANC, S3 facility delivery, S4 postpartum, S5 complications) are counts of women; system trust is unitless (0–1). Bottom row: clinical-capacity outputs — quality and congestion are dimensionless indices; effective capacity is deliveries/month; effective staff availability (`staff_247 + (1 − staff_247) × non247`) is unitless (0–1). Non-`spa_247` runs leave staff availability empty.',
+         'equity_header': '⚖️ Equity Analysis by Wealth Quintile',
+         'equity_info': 'No quintile rows were computed for this run: `data/model_inputs/quintile_coverage_by_district.csv` (DHS wealth-quintile coverage gradients) has no rows for this district, so the engine received no stratified inputs. Nothing is imputed: quintile outcomes are only shown when those DHS-derived inputs exist, and `equity_status` reports their provenance when they do.',
+         'equity_chart_title': 'MMR by Wealth Quintile',
+@@ -143,7 +166,7 @@ STRINGS = {
+         'ks_title': 'Kolmogorov-Smirnov Test (25 districts)',
+         'wilcoxon_title': 'Wilcoxon Signed-Rank (paired)',
+         'sobol_title': 'Sobol Sensitivity (SALib)',
+-        'boot_title': 'Bootstrap 95% CI (parameter uncertainty)',
++        'boot_title': 'Parameter-uncertainty percentiles (Monte Carlo)',
+         'external_title': 'External Consistency (cross-district)',
+         'conv_title': '**RK4 Convergence (available)**',
+         'unavailable': '⛔ Unavailable: {msg}',
+@@ -153,7 +176,7 @@ STRINGS = {
+         'conv_rel': 'Relative error: {value}',
+         'conv_yes': 'Convergent (<1%): ✅ Yes',
+         'conv_no': 'Convergent (<1%): ❌ No',
+-        'val_caption': 'All statistics are computed live: the two-sample KS and paired Wilcoxon compare DHS-anchored observed district rates against simulated baseline end-states (n=25); Sobol indices come from a SALib Saltelli design over documented parameter ranges; the bootstrap percentile CIs propagate those ranges through paired engine runs; external consistency reports observed-input vs simulated-baseline agreement across districts. Procedures report `ScientificProcedureUnavailable` only when a scope/prerequisite requirement is unmet.',
++        'val_caption': 'All statistics are computed live: the two-sample KS and paired Wilcoxon compare DHS-anchored observed district rates against simulated baseline end-states (n=25); Sobol indices come from a SALib Saltelli design over documented parameter ranges; Monte Carlo percentile ranges propagate those parameter ranges through paired engine runs and are not sampling-based confidence intervals or independent validation; external consistency reports observed-input vs simulated-baseline agreement across districts. Procedures report `ScientificProcedureUnavailable` only when a scope/prerequisite requirement is unmet.',
+         'delays_header': '⏱️ Three-Delays Model Analysis',
+         'trace_phase2': 'Phase 2: Transit', 'trace_phase3': 'Phase 3: Care Quality',
+         'trace_congestion': 'Congestion Index',
+@@ -238,7 +261,7 @@ STRINGS = {
+         'sub_staff': 'Disponibilidad efectiva de personal',
+         'trace_trust': 'Confianza', 'trace_quality': 'Calidad',
+         'trace_capacity': 'Capacidad efectiva', 'trace_staff': 'Disponibilidad de personal',
+-        'stocks_caption': 'Vector de estado integrado con RK4, muestreado mensualmente para el escenario seleccionado. Fila superior: las cinco existencias (S1 mujeres embarazadas, S2 en ANC, S3 parto en establecimiento, S4 puerperio, S5 complicaciones) más la existencia de confianza, todas en mujeres por mes. Fila inferior: salidas del módulo de capacidad clínica — factor de calidad (multiplicador 0–1 de calidad de supervivencia), capacidad efectiva (capacidad nominal de partos × disponibilidad de personal SPA 24/7, partos/mes) y disponibilidad efectiva de personal (`staff_247 + (1 − staff_247) × non247`, unitaria 0–1). Las corridas que no son `spa_247` dejan la disponibilidad de personal vacía.',
++        'stocks_caption': 'Vector de estado integrado con RK4, muestreado mensualmente para el escenario seleccionado. Fila superior: las cinco existencias de mujeres (S1 embarazadas, S2 en ANC, S3 parto en establecimiento, S4 puerperio, S5 complicaciones) son conteos; la confianza del sistema es adimensional (0–1). Fila inferior: calidad y congestión son índices adimensionales; capacidad efectiva se expresa en partos/mes y disponibilidad efectiva de personal (`staff_247 + (1 − staff_247) × non247`) es adimensional (0–1). Las corridas que no son `spa_247` dejan la disponibilidad de personal vacía.',
+         'equity_header': '⚖️ Análisis de equidad por quintil de riqueza',
+         'equity_info': 'Esta corrida no produjo filas por quintil: `data/model_inputs/quintile_coverage_by_district.csv` (gradientes DHS de cobertura por quintil de riqueza) no tiene filas para este distrito, así que el motor no recibió insumos estratificados. No se imputa nada: los resultados por quintil solo se muestran cuando existen esos insumos derivados de DHS, y `equity_status` reporta su procedencia cuando existen.',
+         'equity_chart_title': 'MMR por quintil de riqueza',
+@@ -249,7 +272,7 @@ STRINGS = {
+         'ks_title': 'Kolmogorov-Smirnov (25 distritos)',
+         'wilcoxon_title': 'Wilcoxon por pares (signed-rank)',
+         'sobol_title': 'Sensibilidad de Sobol (SALib)',
+-        'boot_title': 'IC 95% bootstrap (incertidumbre de parámetros)',
++        'boot_title': 'Percentiles de incertidumbre paramétrica (Monte Carlo)',
+         'external_title': 'Consistencia externa (cross-district)',
+         'conv_title': '**Convergencia RK4 (disponible)**',
+         'unavailable': '⛔ No disponible: {msg}',
+@@ -259,7 +282,7 @@ STRINGS = {
+         'conv_rel': 'Error relativo: {value}',
+         'conv_yes': 'Convergente (<1%): ✅ Sí',
+         'conv_no': 'Convergente (<1%): ❌ No',
+-        'val_caption': 'Todas las estadísticas se calculan en vivo: KS de dos muestras y Wilcoxon por pares comparan tasas observadas ancladas a DHS contra los estados finales simulados (n=25); los índices de Sobol provienen de un diseño Saltelli de SALib sobre rangos de parámetros documentados; los IC porcentuales del bootstrap propagan esos rangos mediante corridas pareadas del motor; la consistencia externa reporta el acuerdo entre entradas observadas y baseline simulado entre distritos. Un procedimiento solo reporta `ScientificProcedureUnavailable` cuando no se cumple un requisito de alcance o de datos.',
++        'val_caption': 'Todas las estadísticas se calculan en vivo: KS de dos muestras y Wilcoxon por pares comparan tasas observadas ancladas a DHS contra estados finales simulados (n=25); Sobol usa un diseño Saltelli de SALib sobre rangos documentados; los percentiles Monte Carlo propagan incertidumbre paramétrica mediante corridas pareadas y no son intervalos de confianza muestrales ni validación independiente; la consistencia externa resume el acuerdo entre entradas y baseline simulado. Un procedimiento solo reporta `ScientificProcedureUnavailable` si no cumple un requisito de alcance o datos.',
+         'delays_header': '⏱️ Análisis del modelo de tres retrasos',
+         'trace_phase2': 'Fase 2: Tránsito', 'trace_phase3': 'Fase 3: Calidad de atención',
+         'trace_congestion': 'Índice de congestión',
+@@ -582,7 +605,7 @@ if run_simulation:
+         })
+ 
+     comparison_df = pd.DataFrame(comparison_data)
+-    st.dataframe(comparison_df, width='stretch', hide_index=True)
++    show_explained_table(comparison_df, 'Scenario comparison', 'Compare scenarios over the same horizon. Lower MMR means fewer modelled maternal deaths per 100,000 live births.', 'scenario_comparison')
+     st.caption(t('comparison_caption', months=simulation_months, model=clinical_capacity_model))
+ 
+     # --- TRAJECTORY PLOTS ---
+@@ -611,7 +634,7 @@ if run_simulation:
+         height=500,
+     )
+ 
+-    st.plotly_chart(fig, width='stretch')
++    show_explained_plot(fig, 'MMR trajectory over time', 'Months are on the horizontal axis and maternal deaths per 100,000 live births on the vertical axis. Lower lines indicate lower simulated MMR.', 'mmr_trajectory')
+     st.caption(t('traj_caption'))
+ 
+     # --- STOCK DYNAMICS ---
+@@ -647,7 +670,7 @@ if run_simulation:
+                                    mode='lines', name=t('trace_staff'), line=dict(color='#8e44ad')), row=3, col=3)
+ 
+     fig_stocks.update_layout(height=800, showlegend=False)
+-    st.plotly_chart(fig_stocks, width='stretch')
++    show_explained_plot(fig_stocks, 'System dynamics stocks', 'Each panel shows one model stock or factor over time; compare trends within panels and do not add unlike units.', 'system_stocks')
+     st.caption(t('stocks_caption'))
+ 
+     # --- EQUITY ANALYSIS ---
+@@ -676,7 +699,7 @@ if run_simulation:
+         col_eq1, col_eq2 = st.columns(2)
+ 
+         with col_eq1:
+-            st.dataframe(equity_df, width='stretch', hide_index=True)
++            show_explained_table(equity_df, 'Equity by wealth quintile', 'Compare baseline and simulated MMR within each quintile; shares affect the population total.', 'equity_quintiles')
+ 
+         with col_eq2:
+             fig_eq = go.Figure()
+@@ -698,7 +721,7 @@ if run_simulation:
+                 yaxis_title=t('equity_chart_y'),
+                 height=400,
+             )
+-            st.plotly_chart(fig_eq, width='stretch')
++            show_explained_plot(fig_eq, 'MMR by wealth quintile', 'Compare baseline and simulated maternal deaths per 100,000 live births within each quintile.', 'equity_mmr')
+             st.caption(t('equity_caption'))
+ 
+     # --- STATISTICAL VALIDATION ---
+@@ -782,7 +805,7 @@ if run_simulation:
+         yaxis2=dict(title=t('delays_y2'), overlaying='y', side='right', showgrid=False),
+         height=400,
+     )
+-    st.plotly_chart(fig_delays, width='stretch')
++    show_explained_plot(fig_delays, 'Systemic delay dynamics', 'Months are on the horizontal axis. Phase 2 and 3 delays use hours; congestion uses its separate right axis.', 'system_delays')
+     st.caption(t('delays_caption'))
+ 
+ else:
+@@ -830,7 +853,7 @@ else:
+     ]
+     param_df = pd.DataFrame(param_rows)
+ 
+-    st.dataframe(param_df, width='stretch', hide_index=True)
++    show_explained_table(param_df, 'Derived SD parameters', 'These are model inputs with the displayed units, not estimated intervention effects.', 'derived_parameters')
+ 
+     # Show scenario info
+     st.subheader(t('scen_header'))
+diff --git a/backend/tests/test_validation.py b/backend/tests/test_validation.py
+index 891190b..5643244 100644
+--- a/backend/tests/test_validation.py
++++ b/backend/tests/test_validation.py
+@@ -73,6 +73,9 @@ def test_bootstrap_propagates_parameter_uncertainty(garissa_district):
+     assert 0 <= clow <= chigh
+     assert set(result["parameter_ranges"]) == set(PARAMETER_RANGES)
+     assert result["seed"] == 7
++    assert result["interval_type"] == "parametric_uncertainty_percentiles"
++    assert result["percentile_levels"] == [2.5, 97.5]
++    assert "not a sampling-based" in result["interval_interpretation"]
+ 
+ 
+ def test_bootstrap_rejects_tiny_iteration_counts(garissa_district):
+diff --git a/frontend/src/i18n/translations.tsx b/frontend/src/i18n/translations.tsx
+index e780781..893a52b 100644
+--- a/frontend/src/i18n/translations.tsx
++++ b/frontend/src/i18n/translations.tsx
+@@ -2131,17 +2131,17 @@ export const translations: Record<Language, Translations> = {
+     rvTopVariance: 'Mayores contribuyentes a la varianza:',
+     rvConfigureRanges: 'Documente rangos de parámetros para habilitar el análisis.',
+     rvRunSobolHint: 'Ejecute Sobol para calcular índices de sensibilidad.',
+-    rvBootTitle: 'Intervalos de Confianza Bootstrap',
+-    rvBootSub: 'Intervalos percentiles IC 95% vía Monte Carlo sobre rangos de parámetros documentados (corridas pareadas del motor)',
++    rvBootTitle: 'Incertidumbre paramétrica (Monte Carlo)',
++    rvBootSub: 'Rango percentil 2.5–97.5 de variación propagada desde los rangos paramétricos documentados; no es un intervalo de confianza muestral.',
+     rvRunBootstrap: 'Ejecutar Bootstrap',
+     rvBootDisabled: 'Intervalos de confianza Bootstrap no disponibles en este build.',
+     rvIterations: 'Iteraciones',
+     rvMeanLives: 'Media Vidas Salvadas',
+-    rvCi95: 'IC 95%:',
++    rvCi95: 'P2.5–P97.5:',
+     rvMeanCostLife: 'Media Costo/Vida',
+     rvIcWidthRatio: 'Razón Ancho IC',
+     rvConfigureUncertainty: 'Configure incertidumbre paramétrica para habilitar el remuestreo.',
+-    rvRunBootHint: 'Ejecute Bootstrap para calcular intervalos de confianza.',
++    rvRunBootHint: 'Ejecute Monte Carlo para calcular percentiles de incertidumbre paramétrica.',
+     rvExternalTitle: 'Validación Externa vs. Datos Observados',
+     rvExternalSub: 'Consistencia entre distritos: entradas observadas (MMR anclado a WHO/DHS, coberturas DHS) vs baseline simulado (n=25)',
+     rvRunExternal: 'Ejecutar Validación',
+@@ -2192,7 +2192,7 @@ export const translations: Record<Language, Translations> = {
+     docWilcoxonLine: 'Prueba Wilcoxon: W = {w}, p = {p} (Sesgo de calibración no significativo en 25 distritos).',
+     docSobolLine: 'Sensibilidad Global Sobol: principales contribuyentes de varianza: {top}.',
+     docGofLine: 'Bondad de Ajuste vs Countdown 2030: R² = {r2}, RMSE = {rmse} por 100,000 nacidos vivos.',
+-    docBootstrapLine: 'IC 95% Bootstrap (1,000 iteraciones): Media Vidas Salvadas = {mean} [IC: {lo} - {hi}].',
++    docBootstrapLine: 'Incertidumbre paramétrica Monte Carlo: media de muertes evitadas = {mean}; percentiles P2.5–P97.5 = [{lo} - {hi}]. No representa un intervalo de confianza muestral.',
+     docHypothesisLine: 'Validación de Hipótesis: H1 CONFIRMADO (el gemelo identificó cuellos de botella cuya mitigación reduce la RMM >15%).',
+     docNA: 'N/D',
+     docNotAvailable: 'No disponible',
+@@ -3262,17 +3262,17 @@ export const translations: Record<Language, Translations> = {
+     rvTopVariance: 'Top variance contributors:',
+     rvConfigureRanges: 'Document parameter ranges to enable the analysis.',
+     rvRunSobolHint: 'Run Sobol to compute sensitivity indices.',
+-    rvBootTitle: 'Bootstrap Confidence Intervals',
+-    rvBootSub: '95% percentile CIs from Monte Carlo draws over documented parameter ranges (paired engine runs)',
++    rvBootTitle: 'Parametric uncertainty (Monte Carlo)',
++    rvBootSub: 'Percentile range 2.5–97.5 of variation propagated from documented parameter ranges; not a sampling-based confidence interval.',
+     rvRunBootstrap: 'Run Bootstrap',
+     rvBootDisabled: 'Bootstrap confidence intervals not available in this build.',
+     rvIterations: 'Iterations',
+     rvMeanLives: 'Mean Lives Saved',
+-    rvCi95: '95% CI:',
++    rvCi95: 'P2.5–P97.5:',
+     rvMeanCostLife: 'Mean Cost/Life',
+     rvIcWidthRatio: 'CI Width Ratio',
+     rvConfigureUncertainty: 'Configure parametric uncertainty to enable resampling.',
+-    rvRunBootHint: 'Run Bootstrap to compute confidence intervals.',
++    rvRunBootHint: 'Run Monte Carlo to compute parametric-uncertainty percentiles.',
+     rvExternalTitle: 'External Validation vs Observed Data',
+     rvExternalSub: 'Cross-district consistency: observed inputs (WHO/DHS-anchored MMR, DHS coverage) vs simulated baseline (n=25)',
+     rvRunExternal: 'Run Validation',
+@@ -3323,7 +3323,7 @@ export const translations: Record<Language, Translations> = {
+     docWilcoxonLine: 'Wilcoxon Test: W = {w}, p = {p} (Non-significant calibration bias across 25 districts).',
+     docSobolLine: 'Sobol Global Sensitivity: Top variance drivers: {top}.',
+     docGofLine: 'Goodness-of-Fit vs Countdown 2030: R² = {r2}, RMSE = {rmse} per 100,000 live births.',
+-    docBootstrapLine: 'Bootstrap 95% CI (1,000 iterations): Mean Lives Saved = {mean} [CI: {lo} - {hi}].',
++    docBootstrapLine: 'Parametric uncertainty from Monte Carlo: mean deaths avoided = {mean}; percentiles P2.5–P97.5 = [{lo} - {hi}]. This is not a sampling-based confidence interval.',
+     docHypothesisLine: 'Hypothesis Validation: H1 CONFIRMED (Twin identified critical bottlenecks whose mitigation reduces MMR >15%).',
+     docNA: 'N/A',
+     docNotAvailable: 'Not available',

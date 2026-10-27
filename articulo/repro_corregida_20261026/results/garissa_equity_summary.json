@@ -1,0 +1,12 @@
+{
+  "territory_id": "ke-garissa",
+  "scenario": "scenario_d",
+  "months": 36,
+  "q1_simulated_mmr": 418.7519270484939,
+  "q5_simulated_mmr": 162.25403797366783,
+  "signed_gap_q1_minus_q5": 256.49788907482605,
+  "gap_definition": "simulated Q1 MMR minus simulated Q5 MMR; negative means Q1 lower",
+  "q1_anchor_mmr": 890.0,
+  "q5_anchor_mmr": 340.0,
+  "anchor_source_type": "MODEL_INPUT; wealth-quintile anchor, not directly DHS-derived"
+}

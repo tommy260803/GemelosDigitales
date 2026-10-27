@@ -1,0 +1,154 @@
+[
+  {
+    "path": "code_changes.diff",
+    "sha256": "F8136A0F16A862A86A1C849532CA52C455EB0C11440F360FB354A93F137172F5"
+  },
+  {
+    "path": "INFORME_RESULTADOS_NUEVOS.md",
+    "sha256": "32345F3E0F96916CDFB91BE64F856FF21C7E7D2402F0451EBA5962586E20D483"
+  },
+  {
+    "path": "README.md",
+    "sha256": "2F9D20A89159EF3A372EA88A302E5F997A41C0769639AF96955770E54E62F702"
+  },
+  {
+    "path": "run_analysis.py",
+    "sha256": "2CC06AC35DBC10B64DEDAB2D339F7E86E65539C7193C697E6089AD7CE0F33470"
+  },
+  {
+    "path": "run_metadata.json",
+    "sha256": "13225158604ECCFF581D7CD72EA5B0E775988E5B926F63FFF9E2CD6B2B81F5B2"
+  },
+  {
+    "path": "source_snapshot_sha256.json",
+    "sha256": "A47C320185F431FFB55532E853DC0796241EBBB75EE975F68965916BC8AC94ED"
+  },
+  {
+    "path": "logs\\run.log",
+    "sha256": "E395644A50F7A988BD9CC3AA4C917896A077B943751CD836A2320EB1586753FF"
+  },
+  {
+    "path": "logs\\targeted_tests.log",
+    "sha256": "BFACCEFC215CC024373892B062A612441C30EE77C40B3983B370848E4D967701"
+  },
+  {
+    "path": "results\\country_results.csv",
+    "sha256": "AD1FFA66CD77DF91A433AEE599426191BC1D9AB84A86AF1A76B267699D061045"
+  },
+  {
+    "path": "results\\effective_inputs_by_territory_scenario.csv",
+    "sha256": "4BD5A0DAC45C47D07454CF062CFAD760FBAA779C5980EA9702D16BD164A0BCC7"
+  },
+  {
+    "path": "results\\effective_parameters.csv",
+    "sha256": "5A1494189A437F4AFBE485701E423281FCBADED8D3847556978F6DA917899DD3"
+  },
+  {
+    "path": "results\\garissa_equity_d36.csv",
+    "sha256": "2A92A5DEB8AA13B0662C712F815C949AEF07515050F7B0A4EF718C50348DCD97"
+  },
+  {
+    "path": "results\\garissa_equity_summary.json",
+    "sha256": "178C7B08CA700A247D667D2159978EACF50E54A6FAA6E1936E16AFBCF5884692"
+  },
+  {
+    "path": "results\\garissa_monte_carlo_draws.csv",
+    "sha256": "3DA46F3CC7BC66BA394675EA10EEF9A1BC221FEC441352654CE84E55D1236DC7"
+  },
+  {
+    "path": "results\\garissa_monte_carlo_summary.json",
+    "sha256": "65B7816B97A890A8BCF4EB9AC121FB4EA16F4F577B43A00BD2F878482A0FC167"
+  },
+  {
+    "path": "results\\garissa_sobol_draws.csv",
+    "sha256": "022ABEF940CFA1D29C1C6A5AFB3D26165F2551D6D566784666674B86263C8CD6"
+  },
+  {
+    "path": "results\\garissa_sobol_indices.csv",
+    "sha256": "5649A12C22CD1372EA2025EA0D64A6246BE840D79E0493929ABE7FE9F26148E1"
+  },
+  {
+    "path": "results\\garissa_sobol_summary.json",
+    "sha256": "F4A7199C0E9866DCA8BD724C87211618BC050F98C8572B43120D47967A61A1BE"
+  },
+  {
+    "path": "results\\global_results.csv",
+    "sha256": "D80D4FFBB69B891A5DBBAF2557C2D63DEE14B7D64065B0EE3FEC83AF24923BA4"
+  },
+  {
+    "path": "results\\previous_global_csv_comparison.csv",
+    "sha256": "3D54334C119ABEF7089BD195BAB8F8C32AD86FD84C9F4D51A842B7792B9F485B"
+  },
+  {
+    "path": "results\\previous_territory_csv_comparison.csv",
+    "sha256": "8762E82D2EE3A898F167B47623BEDF73D58D1DCB6B8F6592E6FF4FFA27C50967"
+  },
+  {
+    "path": "results\\scenario_d_monthly_trajectories.csv",
+    "sha256": "99E74A74EA41D3373E8D36D42CA51B80A7255533C3327A89884812E1DE4B751F"
+  },
+  {
+    "path": "results\\territory_scenario_results.csv",
+    "sha256": "535B4C2BCC0394E0FA9350D1E0E61FB9CDAE8B7C8939446EC07F7C0A37FADFB7"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\model_inputs.py",
+    "sha256": "95F4061612C53FF107CB1D1A42CF694F797C97CA8B283640FF9542F052B44B7D"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\system_dynamics.py",
+    "sha256": "9C3B994E4FE5CAE3DD411B9F43B651E25196A9674C86E66F5427B69092221B41"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\validation.py",
+    "sha256": "EC1EC543CD207C3870BD68E22B53EF6BC53EE67BBA137B1FC20CCF9F97E90BE9"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\__pycache__\\model_inputs.cpython-313.pyc",
+    "sha256": "F628A2B1EB95CC4F1F5E27413B9E58B7F76E1F6075CE04365E083C45EE64CEE7"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\__pycache__\\system_dynamics.cpython-313.pyc",
+    "sha256": "56A0142342AAB3B64080B5E7B168BB2CF539539C8D9A28E222E65B8D8C705696"
+  },
+  {
+    "path": "source_snapshot\\backend\\services\\__pycache__\\validation.cpython-313.pyc",
+    "sha256": "1543341AEC8044C0410391132D82B139EC3E063FB35BDC63A8791E61528038DB"
+  },
+  {
+    "path": "source_snapshot\\backend\\tests\\test_model_integrity_corrections.py",
+    "sha256": "F9863FB62AA373662292F9535F47EA78E68C016AC2F0E07E4D8D8F98F00C2F87"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\geographic_access.csv",
+    "sha256": "8526D766B834BD11173667C7F89445136EF329FCAA880E63D9A3828E9C04C436"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\health_system_capacity.csv",
+    "sha256": "385CCB1112A881F301C98749C44108D2BED689D565EE2E1BE7F49779E22841F4"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\input_provenance.csv",
+    "sha256": "3171681E9CF7B8E8E3EEB0BD03831C38E6D471388037476850F7DCFB08D0DEF2"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\maternal_health_context.csv",
+    "sha256": "CECF6C0F91ED93AF64B8444A8B6282D2026F7C6D5CD2981FA09058AB7D1CB874"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\model_context.csv",
+    "sha256": "D035ABFE0C154CECD51A27C12B79159909A113937FA96258B934049540F19218"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\quintile_coverage_by_district.csv",
+    "sha256": "F6C87756722D0669B0995E4A46F07BFFCD2BECF3E5A87AADB46919C30FDA3F14"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\README.md",
+    "sha256": "479464316CCDC8DD4CD17F139392477470B6DCEDC0E487CD5B2E93F98FD5D987"
+  },
+  {
+    "path": "source_snapshot\\data\\model_inputs\\territorial_demographics.csv",
+    "sha256": "04A679C1651A61A0BD1642BE123C7A2841ABD6F86A7116F7FD939DB67FD71160"
+  }
+]

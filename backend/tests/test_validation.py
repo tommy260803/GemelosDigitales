@@ -73,6 +73,9 @@ def test_bootstrap_propagates_parameter_uncertainty(garissa_district):
     assert 0 <= clow <= chigh
     assert set(result["parameter_ranges"]) == set(PARAMETER_RANGES)
     assert result["seed"] == 7
+    assert result["interval_type"] == "parametric_uncertainty_percentiles"
+    assert result["percentile_levels"] == [2.5, 97.5]
+    assert "not a sampling-based" in result["interval_interpretation"]
 
 
 def test_bootstrap_rejects_tiny_iteration_counts(garissa_district):

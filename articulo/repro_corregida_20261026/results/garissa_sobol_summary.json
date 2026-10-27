@@ -1,0 +1,11 @@
+{
+  "territory_id": "ke-garissa",
+  "scenario": "scenario_d",
+  "months": 12,
+  "N": 64,
+  "model_runs": 640,
+  "seed": 42,
+  "output": "paired deaths avoided",
+  "design": "SALib Sobol sequence; calc_second_order=False",
+  "estimator": "SALib S1 and ST"
+}

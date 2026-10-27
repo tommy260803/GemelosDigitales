@@ -264,6 +264,14 @@ class StatisticalValidationPy:
             )
         res = {
             "method": "parametric bootstrap (uniform draws over documented parameter ranges, paired engine runs)",
+            "interval_type": "parametric_uncertainty_percentiles",
+            "percentile_levels": [2.5, 97.5],
+            "interval_interpretation": (
+                "Central 95% range of output variation propagated from the documented parameter ranges. "
+                "This is parametric uncertainty under the stated sampling assumptions, not a sampling-based "
+                "confidence interval, predictive interval, or independent validation."
+            ),
+            "parameter_sampling_assumption": "independent uniform draws within each documented parameter range, with domain clipping",
             "district_id": district.id,
             "scenario_id": scenario_id,
             "months": months,

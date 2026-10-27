@@ -1,0 +1,44 @@
+{
+  "started_utc": "2026-10-27T04:33:03.686297+00:00",
+  "finished_utc": "2026-10-27T04:33:07.663434+00:00",
+  "started_lima": "2026-10-26T23:33:03.686297-05:00",
+  "finished_lima": "2026-10-26T23:33:07.663434-05:00",
+  "command": "python articulo/robustez_escenario_d_20261026/run_stress_analysis.py",
+  "python": "3.13.7",
+  "numpy": "2.2.6",
+  "pandas": "2.3.2",
+  "scipy": "1.16.2",
+  "SALib": "1.6.0",
+  "source_commit": "e87c4d2b629b29de1a7039942a4345b4a640ac94",
+  "source_branch": "main",
+  "code_state": "reproduction corrected snapshot; local working tree had pre-existing changes",
+  "source_hashes": {
+    "source_snapshot/backend/services/model_inputs.py": "95f4061612c53ff107cb1d1a42cf694f797c97ca8b283640ff9542f052b44b7d",
+    "source_snapshot/backend/services/system_dynamics.py": "9c3b994e4fe5cae3dd411b9f43b651e25196a9674c86e66f5427b69092221b41",
+    "source_snapshot/backend/services/validation.py": "ec1ec543cd207c3870bd68e22b53ef6bc53ee67bba137b1fc20ccf9f97e90be9",
+    "source_snapshot/backend/tests/test_model_integrity_corrections.py": "f9863fb62aa373662292f9535f47ea78e68c016ac2f0e07e4d8d8f98f00c2f87",
+    "source_snapshot/data/model_inputs/geographic_access.csv": "8526d766b834bd11173667c7f89445136ef329fcaa880e63d9a3828e9c04c436",
+    "source_snapshot/data/model_inputs/health_system_capacity.csv": "385ccb1112a881f301c98749c44108d2bed689d565ee2e1be7f49779e22841f4",
+    "source_snapshot/data/model_inputs/input_provenance.csv": "3171681e9cf7b8e8e3eeb0bd03831c38e6d471388037476850f7dcfb08d0def2",
+    "source_snapshot/data/model_inputs/maternal_health_context.csv": "cecf6c0f91ed93af64b8444a8b6282d2026f7c6d5cd2981fa09058ab7d1cb874",
+    "source_snapshot/data/model_inputs/model_context.csv": "d035abfe0c154cecd51a27c12b79159909a113937fa96258b934049540f19218",
+    "source_snapshot/data/model_inputs/quintile_coverage_by_district.csv": "f6c87756722d0669b0995e4a46f07bffcd2becf3e5a87aadb46919c30fda3f14",
+    "source_snapshot/data/model_inputs/README.md": "479464316ccdc8dd4cd17f139392477470b6dcedc0e487cd5b2e93f98fd5d987",
+    "source_snapshot/data/model_inputs/territorial_demographics.csv": "04a679c1651a61a0bd1642be123c7a2841abd6f86a7116f7fd939db67fd71160"
+  },
+  "database_used": false,
+  "territories": 25,
+  "horizon_months": 36,
+  "scenario_variants": [
+    "D_corrected",
+    "D_moderate_readiness_stress",
+    "D_severe_readiness_stress"
+  ],
+  "baseline_pairing": "one simulated baseline object per territory reused for A/B/C and every D variant",
+  "checks": {
+    "territories_each_variant": 25,
+    "country_aggregates_checked": true,
+    "global_aggregates_checked": true,
+    "paired_baseline_checked": true
+  }
+}

@@ -75,6 +75,9 @@ def build_default_parameters(d):
 
 class SystemDynamicsEngine:
     DEFAULT_DT_MONTHS=.1
+    DELIVERY_STOCK_RESIDENCE_MONTHS=.1
+    COMPLICATION_STOCK_RESIDENCE_MONTHS=.15
+    POSTPARTUM_STOCK_RESIDENCE_MONTHS=1.4
     PROB={'road_quality_index','insurance_coverage_rate','blood_availability_rate','oxytocin_misoprostol_stock_rate','maternal_education_rate','tba_influence_factor','community_trust_baseline','baseline_complication_rate','staff_247_availability_rate','non247_relative_capacity'}
     @staticmethod
     def effective_parameters(d,scenario_id,custom_params=None,clinical_capacity_model='legacy'):
@@ -96,13 +99,17 @@ class SystemDynamicsEngine:
         return SDParameters(**values)
     @staticmethod
     def _clinical_capacity(s,p,births,model):
-        load=max(0,s[2])+max(0,s[4])*1.8
+        # D and C are stocks (women); convert them to service flows before
+        # dividing by effective capacity (women/month). Reuse the residence
+        # times in the stock equations so the load ratio is dimensionless.
+        load_rate=(max(0,s[2])/SystemDynamicsEngine.DELIVERY_STOCK_RESIDENCE_MONTHS
+                   + max(0,s[4])*1.8/SystemDynamicsEngine.COMPLICATION_STOCK_RESIDENCE_MONTHS)
         if model=='spa_247':
             availability=p.staff_247_availability_rate+(1-p.staff_247_availability_rate)*p.non247_relative_capacity
             nominal=births*.12*p.skilled_staff_ratio/1.5
             effective=nominal*availability
             if effective<=0: raise ValueError('Effective capacity must be positive')
-            congestion=min(2.5,load/effective)
+            congestion=min(2.5,load_rate/effective)
             staffing=min(1,p.skilled_staff_ratio/3)*availability
             quality=max(.25,min(1,staffing*.4+p.blood_availability_rate*.3+p.oxytocin_misoprostol_stock_rate*.3-max(0,congestion-1)*.2))
             delay=max(.2,.30+max(0,(1-p.blood_availability_rate)*2)+max(0,(1-p.oxytocin_misoprostol_stock_rate)*1.8)+(1-availability)*1.5+max(0,congestion-1)*1.2)
@@ -110,7 +117,7 @@ class SystemDynamicsEngine:
             availability=None
             nominal=max(10,births*.12*p.skilled_staff_ratio/1.5)
             effective=nominal
-            congestion=min(2.5,load/effective)
+            congestion=min(2.5,load_rate/effective)
             quality=max(.25,min(1,p.skilled_staff_ratio/3*.4+p.blood_availability_rate*.3+p.oxytocin_misoprostol_stock_rate*.3-max(0,congestion-1)*.2))
             delay=max(.2,.30+max(0,(1-p.blood_availability_rate)*2)+max(0,(1-p.oxytocin_misoprostol_stock_rate)*1.8)+max(0,(1-min(1.2,p.skilled_staff_ratio/2))*1.5)+max(0,congestion-1)*1.2)
         return nominal,effective,congestion,quality,delay,availability
@@ -124,7 +131,24 @@ class SystemDynamicsEngine:
         return locals()
     @staticmethod
     def _derivatives(s,p,b,scenario,clinical_capacity_model='legacy'):
-        c=SystemDynamicsEngine._context(s,p,b,scenario,clinical_capacity_model); target=max(.35,min(.98,p.community_trust_baseline*(1.15-.2*b['rolling']/max(100,b['input_mmr'])))); return [b['preg']-c['f12']-c['f1t'],c['f12']-c['f2t'],c['facility_del']+c['refs']-max(0,s[2])/.1,(c['home_del']-c['hcomp'])+(max(0,s[2])/.1-c['fac']-c['transit'])-max(0,s[3])/1.4,c['hcomp']-c['refs']-c['unref']/.15,(target-s[5])*.08]
+        c=SystemDynamicsEngine._context(s,p,b,scenario,clinical_capacity_model)
+        tau_d=SystemDynamicsEngine.DELIVERY_STOCK_RESIDENCE_MONTHS
+        tau_c=SystemDynamicsEngine.COMPLICATION_STOCK_RESIDENCE_MONTHS
+        tau_p=SystemDynamicsEngine.POSTPARTUM_STOCK_RESIDENCE_MONTHS
+        delivery_out=max(0,s[2])/tau_d
+        complication_recovery=max(0,s[4])/tau_c
+        postpartum_out=max(0,s[3])/tau_p
+        target=max(.35,min(.98,p.community_trust_baseline*(1.15-.2*b['rolling']/max(100,b['input_mmr']))))
+        # Referred cases move from the unreferred flow into D. Unreferred cases
+        # enter C; modeled home deaths leave C, and nonfatal recovery enters P.
+        return [
+            b['preg']-c['f12']-c['f1t'],
+            c['f12']-c['f2t'],
+            c['facility_del']+c['refs']-delivery_out,
+            (c['home_del']-c['hcomp'])+(delivery_out-c['fac']-c['transit'])+complication_recovery-postpartum_out,
+            c['unref']-c['home']-complication_recovery,
+            (target-s[5])*.08,
+        ]
     @staticmethod
     def _rk4(s,dt,p,b,scenario,clinical_capacity_model='legacy'):
         add=lambda x,k,f:[a+f*z for a,z in zip(x,k)]; k1=SystemDynamicsEngine._derivatives(s,p,b,scenario,clinical_capacity_model); k2=SystemDynamicsEngine._derivatives(add(s,k1,dt/2),p,b,scenario,clinical_capacity_model); k3=SystemDynamicsEngine._derivatives(add(s,k2,dt/2),p,b,scenario,clinical_capacity_model); k4=SystemDynamicsEngine._derivatives(add(s,k3,dt),p,b,scenario,clinical_capacity_model); n=[x+dt*(a+2*z+2*q+w)/6 for x,a,z,q,w in zip(s,k1,k2,k3,k4)]; return [max(0,x) for x in n[:5]]+[min(1,max(0,n[5]))]
@@ -132,7 +156,15 @@ class SystemDynamicsEngine:
     def _equity(district,scenario_id,equity_inputs,simulation_months,dt,clinical_capacity_model,custom_params=None):
         rows=[]
         for row in equity_inputs:
-            variant=replace(district,anc1_coverage=row['anc1_rate']*100,institutional_delivery_rate=row['institutional_delivery_rate']*100)
+            quintile_mmr=(district.wealth_quintile_mmr or {}).get(row['quintile'])
+            if quintile_mmr is None or not math.isfinite(float(quintile_mmr)) or float(quintile_mmr)<=0:
+                raise ValueError(f"Equity analysis requires a positive quintile MMR calibration anchor: {district.id}/{row['quintile']}")
+            # Calibrate each stratum from the same wealth-quintile reference
+            # MMR that the result row displays. These values are MODEL_INPUTs,
+            # not observed DHS territory-level estimates.
+            variant=replace(district,anc1_coverage=row['anc1_rate']*100,
+                            institutional_delivery_rate=row['institutional_delivery_rate']*100,
+                            baseline_mmr=float(quintile_mmr))
             base=SystemDynamicsEngine.simulate(variant,'baseline',custom_params,simulation_months,dt,clinical_capacity_model=clinical_capacity_model)
             scen=base if scenario_id=='baseline' else SystemDynamicsEngine.simulate(variant,scenario_id,custom_params,simulation_months,dt,baseline_result=base,clinical_capacity_model=clinical_capacity_model)
             share=float(row['population_share']); da=float(scen.summary.deaths_avoided)
@@ -140,7 +172,8 @@ class SystemDynamicsEngine:
             rows.append({
                 'quintile':row['quintile'],'label':row.get('label') or row['quintile'],
                 'population_share':share,
-                'baseline_mmr':(district.wealth_quintile_mmr or {}).get(row['quintile']),
+                'baseline_mmr':float(quintile_mmr),
+                'baseline_mmr_source_type':'MODEL_INPUT; wealth-quintile anchor, not directly DHS-derived',
                 'simulated_baseline_mmr':float(base.summary.horizon_mmr),
                 'simulated_mmr':float(scen.summary.horizon_mmr),
                 'lives_saved':da,

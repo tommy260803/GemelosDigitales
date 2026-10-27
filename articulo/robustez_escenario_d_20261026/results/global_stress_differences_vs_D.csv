@@ -1,0 +1,3 @@
+variant,delta_births_vs_D_corrected,delta_deaths_vs_D_corrected,delta_horizon_mmr_vs_D_corrected,delta_deaths_avoided_vs_D_corrected,delta_death_reduction_percent_vs_D_corrected,delta_mmr_reduction_percent_vs_D_corrected
+D_moderate_readiness_stress,-7.815699032973498,544.8421564294545,16.512692921770977,-544.842156429454,-6.318596116727868,-6.314636445741719
+D_severe_readiness_stress,-11.842602919787169,987.7207327173551,29.935111551606056,-987.7207327173546,-11.454709061169282,-11.44751781593974

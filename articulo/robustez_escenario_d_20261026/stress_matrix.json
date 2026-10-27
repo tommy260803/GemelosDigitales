@@ -1,0 +1,40 @@
+{
+  "basis": "D corrected rules set each preparation component to 0.95. Stress values 0.75 and 0.50 are analyst-defined sensitivity setpoints, not empirical estimates or probabilities; they represent 20 pp and 45 pp reductions from D's modeled assumption.",
+  "fixed": [
+    "same source inputs",
+    "same engine snapshot",
+    "same 36-month horizon and dt",
+    "same per-territory baseline result reused for every comparator",
+    "all other A+B+C and D rules"
+  ],
+  "varies": [
+    "staff_247_availability_rate",
+    "blood_availability_rate",
+    "oxytocin_misoprostol_stock_rate"
+  ],
+  "matrix": [
+    {
+      "variant": "D_corrected",
+      "staff_247": 0.95,
+      "blood": 0.95,
+      "uterotonics": 0.95,
+      "meaning": "D tal como est\u00e1 definido en el motor corregido."
+    },
+    {
+      "variant": "D_moderate_readiness_stress",
+      "staff_247": 0.75,
+      "blood": 0.75,
+      "uterotonics": 0.75,
+      "meaning": "Sensibilidad: disponibilidad de los tres componentes 20 puntos porcentuales bajo D."
+    },
+    {
+      "variant": "D_severe_readiness_stress",
+      "staff_247": 0.5,
+      "blood": 0.5,
+      "uterotonics": 0.5,
+      "meaning": "Sensibilidad severa: disponibilidad de los tres componentes 45 puntos porcentuales bajo D."
+    }
+  ],
+  "clinical_capacity_model": "spa_247; non247_relative_capacity remains the engine's assumed 0.33",
+  "scenario_id_for_variants": "scenario_d; variants are sensitivity overrides, not the original D definition"
+}

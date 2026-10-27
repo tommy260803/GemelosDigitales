@@ -1,0 +1,63 @@
+{
+  "territory_id": "ke-garissa",
+  "scenario": "scenario_d",
+  "months": 36,
+  "iterations": 200,
+  "seed": 42,
+  "sampling_assumption": "independent uniform parameter draws within ranges, domain clipping",
+  "interval_type": "parametric_uncertainty_percentiles",
+  "percentile_levels": [
+    2.5,
+    97.5
+  ],
+  "interpretation": "central 95% propagated parameter uncertainty; not sampling CI, predictive interval, or independent validation",
+  "mean_deaths_avoided": 132.45765351743924,
+  "p2_5_deaths_avoided": 130.00811550792318,
+  "p97_5_deaths_avoided": 135.0342598800433,
+  "mean_cost_per_death_avoided": 99098.91408406892,
+  "p2_5_cost_per_death_avoided": 97198.34729024951,
+  "p97_5_cost_per_death_avoided": 100956.05804681327,
+  "positive_draws_cost_ratio": 200,
+  "parameter_ranges": {
+    "travel_time_hours": {
+      "kind": "multiplier",
+      "low": 0.5,
+      "high": 1.5
+    },
+    "road_quality_index": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "transport_cost_usd": {
+      "kind": "multiplier",
+      "low": 0.7,
+      "high": 1.3
+    },
+    "facility_delivery_fee_usd": {
+      "kind": "multiplier",
+      "low": 0.5,
+      "high": 1.5
+    },
+    "insurance_coverage_rate": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "skilled_staff_ratio": {
+      "kind": "multiplier",
+      "low": 0.6,
+      "high": 1.4
+    },
+    "blood_availability_rate": {
+      "kind": "additive",
+      "low": -0.15,
+      "high": 0.15
+    },
+    "community_trust_baseline": {
+      "kind": "additive",
+      "low": -0.12,
+      "high": 0.12
+    }
+  }
+}

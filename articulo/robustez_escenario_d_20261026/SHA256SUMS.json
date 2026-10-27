@@ -1,0 +1,134 @@
+[
+  {
+    "path": "INFORME_ROBUSTEZ_D.md",
+    "sha256": "F61D936DF367495D7CB13FBCA85B93184C1B5E8A34E903C2B1EE4E6258C46FBC"
+  },
+  {
+    "path": "README.md",
+    "sha256": "A0FEDF1BA2B2BDB9B6EE12E6A13ECE189A17CA7DC499D312CB51D27A4747D61D"
+  },
+  {
+    "path": "reference_corrected_global.csv",
+    "sha256": "D80D4FFBB69B891A5DBBAF2557C2D63DEE14B7D64065B0EE3FEC83AF24923BA4"
+  },
+  {
+    "path": "run_metadata.json",
+    "sha256": "242EE753392D5159B622B6E88EBE04C4EF0724BFC5852B89D066570560690AAB"
+  },
+  {
+    "path": "run_stress_analysis.py",
+    "sha256": "A3E0268A9F533E2FA07E2A281B889972710BE4CF4B5B55C4DC077BBE8BC6F73B"
+  },
+  {
+    "path": "STRESS_DESIGN.md",
+    "sha256": "0EE7DBA9AF3C380FEBC978B7BB08A2E45A60FB219C7E3F935D4DFD5C82275E83"
+  },
+  {
+    "path": "stress_matrix.json",
+    "sha256": "2D51ADDB1E22DFDA9C16ADA49EA8EE28DFC6E99195E3B83499226FCE3A342A80"
+  },
+  {
+    "path": "logs/run.log",
+    "sha256": "ED32F411BDB7389E0B835DCFEF9D07CE98E691124C0E09B26943B6B0D35E2CC8"
+  },
+  {
+    "path": "results/country_D_vs_ABC.csv",
+    "sha256": "40507436C4FCC6DDB15DD31D748CA1825A0443131CDDE800489CDCAD55EF3270"
+  },
+  {
+    "path": "results/country_results.csv",
+    "sha256": "7B27AA2957C3B6CF1AEBFCAF3D68BFB94C93A1BB158B813DF101FF31C3BB597B"
+  },
+  {
+    "path": "results/country_stress_differences_vs_D.csv",
+    "sha256": "FBF664653E748782B70F32278694B36D1608A10E2A0C145CB5A84F11115D7458"
+  },
+  {
+    "path": "results/effective_inputs_by_territory_variant.csv",
+    "sha256": "EF82F2D8853CE6D25405B827D0E63B184255AE52FC5E9B16E6E6E74F12894DDE"
+  },
+  {
+    "path": "results/effective_parameters.csv",
+    "sha256": "EB443C25D11FE950E446B3690E8FD10D4C803D350DE70F880241753077086053"
+  },
+  {
+    "path": "results/global_D_vs_ABC.csv",
+    "sha256": "91A95C52D554DB937AEE4EB06B970D21828750776B760427C4354A86403075C3"
+  },
+  {
+    "path": "results/global_results.csv",
+    "sha256": "F2B3B453A4A1F339D5F8288C6287DBBD371BF9058C2634CBA1311CEC23065891"
+  },
+  {
+    "path": "results/global_stress_differences_vs_D.csv",
+    "sha256": "F399F0A6B880FA31ADAC133D427FE168CF6EF7A13138440EE0D1775C101DF357"
+  },
+  {
+    "path": "results/reference_corrected_comparison.csv",
+    "sha256": "A6D8074BF2B101C19A47EA7CE21EB468E3938EAD0B7EA0E42170CDF53C0B8EE3"
+  },
+  {
+    "path": "results/territory_D_vs_ABC.csv",
+    "sha256": "4B9DD99E6477C0B4F850ABA808F994BA13DE691426E0CA01B1651CB636A4222E"
+  },
+  {
+    "path": "results/territory_results.csv",
+    "sha256": "731A08C60ABCA4146A76B32C19188E4CF5C94B451664DC33D04A68B921B36CDB"
+  },
+  {
+    "path": "results/territory_stress_differences_vs_D.csv",
+    "sha256": "F0C4E576D2703C22972A8E878724565A0517D1A4CE1CDAC61DA19AF27AB4CEBD"
+  },
+  {
+    "path": "source_snapshot/backend.zip",
+    "sha256": "0A4EAF269BA1F66D0B99772F1A6E340265CC3AD1F367CBA18F71D73C6D6754FB"
+  },
+  {
+    "path": "source_snapshot/backend/services/model_inputs.py",
+    "sha256": "95F4061612C53FF107CB1D1A42CF694F797C97CA8B283640FF9542F052B44B7D"
+  },
+  {
+    "path": "source_snapshot/backend/services/system_dynamics.py",
+    "sha256": "9C3B994E4FE5CAE3DD411B9F43B651E25196A9674C86E66F5427B69092221B41"
+  },
+  {
+    "path": "source_snapshot/backend/services/validation.py",
+    "sha256": "EC1EC543CD207C3870BD68E22B53EF6BC53EE67BBA137B1FC20CCF9F97E90BE9"
+  },
+  {
+    "path": "source_snapshot/backend/tests/test_model_integrity_corrections.py",
+    "sha256": "F9863FB62AA373662292F9535F47EA78E68C016AC2F0E07E4D8D8F98F00C2F87"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/geographic_access.csv",
+    "sha256": "8526D766B834BD11173667C7F89445136EF329FCAA880E63D9A3828E9C04C436"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/health_system_capacity.csv",
+    "sha256": "385CCB1112A881F301C98749C44108D2BED689D565EE2E1BE7F49779E22841F4"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/input_provenance.csv",
+    "sha256": "3171681E9CF7B8E8E3EEB0BD03831C38E6D471388037476850F7DCFB08D0DEF2"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/maternal_health_context.csv",
+    "sha256": "CECF6C0F91ED93AF64B8444A8B6282D2026F7C6D5CD2981FA09058AB7D1CB874"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/model_context.csv",
+    "sha256": "D035ABFE0C154CECD51A27C12B79159909A113937FA96258B934049540F19218"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/quintile_coverage_by_district.csv",
+    "sha256": "F6C87756722D0669B0995E4A46F07BFFCD2BECF3E5A87AADB46919C30FDA3F14"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/README.md",
+    "sha256": "479464316CCDC8DD4CD17F139392477470B6DCEDC0E487CD5B2E93F98FD5D987"
+  },
+  {
+    "path": "source_snapshot/data/model_inputs/territorial_demographics.csv",
+    "sha256": "04A679C1651A61A0BD1642BE123C7A2841ABD6F86A7116F7FD939DB67FD71160"
+  }
+]

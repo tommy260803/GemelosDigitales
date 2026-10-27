@@ -30,7 +30,11 @@ from services.system_dynamics import (
     SystemDynamicsEngine, DistrictData, SimulationResult,
     SCENARIO_DEFINITIONS, build_default_parameters
 )
-from services.validation import StatisticalValidationPy, ScientificProcedureUnavailable
+from services.validation import (
+    DEFAULT_BOOTSTRAP_ITERATIONS,
+    StatisticalValidationPy,
+    ScientificProcedureUnavailable,
+)
 from services.calibrator import ModelCalibratorPy
 from services.model_inputs import districts_from_datasets, quintile_coverage_by_district
 
@@ -369,7 +373,7 @@ def bootstrap_confidence(req: ValidationRequest):
         return StatisticalValidationPy.bootstrap_confidence_intervals(
             district,
             scenario_id=req.scenario_id,
-            iterations=req.iterations or 100,
+            iterations=req.iterations or DEFAULT_BOOTSTRAP_ITERATIONS,
             months=req.months or 36,
             seed=req.seed if req.seed is not None else 42,
         )
